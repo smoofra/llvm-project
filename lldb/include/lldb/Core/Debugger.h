@@ -132,12 +132,12 @@ public:
 
   repro::DataRecorder *GetInputRecorder();
 
-  void SetInputFileHandle(FILE *fh, bool tranfer_ownership,
-                          repro::DataRecorder *recorder = nullptr);
+  Status SetInputFile(lldb::FileSP file,
+                      repro::DataRecorder *recorder = nullptr);
 
-  void SetOutputFileHandle(FILE *fh, bool tranfer_ownership);
+  Status SetOutputFile(lldb::FileSP file);
 
-  void SetErrorFileHandle(FILE *fh, bool tranfer_ownership);
+  Status SetErrorFile(lldb::FileSP file);
 
   void SaveInputTerminalState();
 
