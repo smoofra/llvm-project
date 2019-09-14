@@ -824,44 +824,57 @@ void Debugger::SetAsyncExecution(bool async_execution) {
 
 repro::DataRecorder *Debugger::GetInputRecorder() { return m_input_recorder; }
 
-void Debugger::SetInputFileHandle(FILE *fh, bool tranfer_ownership,
-                                  repro::DataRecorder *recorder) {
+Status Debugger::SetInputFile(File &file, repro::DataRecorder *recorder) {
+  Status error;
+
   m_input_recorder = recorder;
-  if (m_input_file_sp)
-    m_input_file_sp->GetFile().SetStream(fh, tranfer_ownership);
+
+  if (!m_input_file_sp)
+    m_input_file_sp = std::make_shared<StreamFile>(file);
   else
-    m_input_file_sp = std::make_shared<StreamFile>(fh, tranfer_ownership);
+    m_input_file_sp->GetFile().SetFile(file);
 
   File &in_file = m_input_file_sp->GetFile();
-  if (!in_file.IsValid())
-    in_file.SetStream(stdin, true);
+  if (!in_file.IsValid()) {
+    in_file.SetStream(stdin, false);
+    error.SetErrorString("invalid file");
+  }
 
   // Save away the terminal state if that is relevant, so that we can restore
   // it in RestoreInputState.
   SaveInputTerminalState();
+
+  return error;
 }
 
-void Debugger::SetOutputFileHandle(FILE *fh, bool tranfer_ownership) {
-  if (m_output_file_sp)
-    m_output_file_sp->GetFile().SetStream(fh, tranfer_ownership);
+Status Debugger::SetOutputFile(File &file) {
+  Status error;
+  if (!m_output_file_sp)
+    m_output_file_sp = std::make_shared<StreamFile>(file);
   else
-    m_output_file_sp = std::make_shared<StreamFile>(fh, tranfer_ownership);
+    m_output_file_sp->GetFile().SetFile(file);
 
   File &out_file = m_output_file_sp->GetFile();
-  if (!out_file.IsValid())
+  if (!out_file.IsValid()) {
     out_file.SetStream(stdout, false);
-
+    error.SetErrorString("invalid file");
+  }
+  return error;
 }
 
-void Debugger::SetErrorFileHandle(FILE *fh, bool tranfer_ownership) {
-  if (m_error_file_sp)
-    m_error_file_sp->GetFile().SetStream(fh, tranfer_ownership);
+Status Debugger::SetErrorFile(File &file) {
+  Status error;
+  if (!m_error_file_sp)
+    m_error_file_sp = std::make_shared<StreamFile>(file);
   else
-    m_error_file_sp = std::make_shared<StreamFile>(fh, tranfer_ownership);
+    m_error_file_sp->GetFile().SetFile(file);
 
   File &err_file = m_error_file_sp->GetFile();
-  if (!err_file.IsValid())
+  if (!err_file.IsValid()) {
     err_file.SetStream(stderr, false);
+    error.SetErrorString("invalid file");
+  }
+  return error;
 }
 
 void Debugger::SaveInputTerminalState() {

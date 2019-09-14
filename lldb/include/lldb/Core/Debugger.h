@@ -121,12 +121,11 @@ public:
 
   repro::DataRecorder *GetInputRecorder();
 
-  void SetInputFileHandle(FILE *fh, bool tranfer_ownership,
-                          repro::DataRecorder *recorder = nullptr);
+  Status SetInputFile(File &file, repro::DataRecorder *recorder = nullptr);
 
-  void SetOutputFileHandle(FILE *fh, bool tranfer_ownership);
+  Status SetOutputFile(File &file);
 
-  void SetErrorFileHandle(FILE *fh, bool tranfer_ownership);
+  Status SetErrorFile(File &file);
 
   void SaveInputTerminalState();
 
