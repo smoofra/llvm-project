@@ -951,7 +951,8 @@ PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
 
 PythonFile::PythonFile(const char *path, const char *mode) {
   lldb_private::File file;
-  FileSystem::Instance().Open(file, FileSpec(path), GetOptionsFromMode(mode));
+  FileSystem::Instance().Open(file, FileSpec(path),
+                              File::GetOptionsFromMode(mode));
   Reset(file, mode);
 }
 
@@ -1019,23 +1020,6 @@ void PythonFile::Reset(File &file, const char *mode) {
 #endif
 }
 
-uint32_t PythonFile::GetOptionsFromMode(llvm::StringRef mode) {
-  if (mode.empty())
-    return 0;
-
-  return llvm::StringSwitch<uint32_t>(mode.str())
-      .Case("r", File::eOpenOptionRead)
-      .Case("w", File::eOpenOptionWrite)
-      .Case("a", File::eOpenOptionWrite | File::eOpenOptionAppend |
-                     File::eOpenOptionCanCreate)
-      .Case("r+", File::eOpenOptionRead | File::eOpenOptionWrite)
-      .Case("w+", File::eOpenOptionRead | File::eOpenOptionWrite |
-                      File::eOpenOptionCanCreate | File::eOpenOptionTruncate)
-      .Case("a+", File::eOpenOptionRead | File::eOpenOptionWrite |
-                      File::eOpenOptionAppend | File::eOpenOptionCanCreate)
-      .Default(0);
-}
-
 bool PythonFile::GetUnderlyingFile(File &file) const {
   if (!IsValid())
     return false;
@@ -1044,7 +1028,7 @@ bool PythonFile::GetUnderlyingFile(File &file) const {
   // We don't own the file descriptor returned by this function, make sure the
   // File object knows about that.
   PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
-  auto options = PythonFile::GetOptionsFromMode(py_mode.GetString());
+  auto options = File::GetOptionsFromMode(py_mode.GetString());
   file.SetDescriptor(PyObject_AsFileDescriptor(m_py_obj), options, false);
   return file.IsValid();
 }

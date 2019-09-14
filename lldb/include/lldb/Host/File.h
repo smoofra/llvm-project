@@ -123,6 +123,8 @@ public:
 
   int GetDescriptor() const;
 
+  static uint32_t GetOptionsFromMode(llvm::StringRef mode);
+
   WaitableHandle GetWaitableHandle() override;
 
   void SetDescriptor(int fd, uint32_t options, bool transfer_ownership);

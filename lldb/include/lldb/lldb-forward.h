@@ -332,6 +332,7 @@ typedef std::shared_ptr<lldb_private::ExecutionContextRef>
     ExecutionContextRefSP;
 typedef std::shared_ptr<lldb_private::ExpressionVariable> ExpressionVariableSP;
 typedef std::shared_ptr<lldb_private::File> FileSP;
+typedef std::unique_ptr<lldb_private::File> FileUP;
 typedef std::shared_ptr<lldb_private::Function> FunctionSP;
 typedef std::shared_ptr<lldb_private::FunctionCaller> FunctionCallerSP;
 typedef std::shared_ptr<lldb_private::FuncUnwinders> FuncUnwindersSP;
