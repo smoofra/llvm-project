@@ -113,7 +113,7 @@ void File::SetDescriptor(int fd, uint32_t options, bool transfer_ownership) {
   if (IsValid())
     Close();
   m_descriptor = fd;
-  m_should_close_fd = transfer_ownership;
+  m_own_descriptor = transfer_ownership;
   m_options = options;
 }
 
@@ -122,7 +122,7 @@ FILE *File::GetStream() {
     if (DescriptorIsValid()) {
       const char *mode = GetStreamOpenModeFromOptions(m_options);
       if (mode) {
-        if (!m_should_close_fd) {
+        if (!m_own_descriptor) {
 // We must duplicate the file descriptor if we don't own it because when you
 // call fdopen, the stream will own the fd
 #ifdef _WIN32
@@ -130,7 +130,7 @@ FILE *File::GetStream() {
 #else
           m_descriptor = dup(GetDescriptor());
 #endif
-          m_should_close_fd = true;
+          m_own_descriptor = true;
         }
 
         m_stream =
@@ -141,7 +141,7 @@ FILE *File::GetStream() {
 
         if (m_stream) {
           m_own_stream = true;
-          m_should_close_fd = false;
+          m_own_descriptor = false;
         }
       }
     }
@@ -184,7 +184,7 @@ Status File::Close() {
     }
   }
 
-  if (DescriptorIsValid() && m_should_close_fd) {
+  if (DescriptorIsValid() && m_own_descriptor) {
     if (::close(m_descriptor) != 0)
       error.SetErrorToErrno();
   }
@@ -192,7 +192,7 @@ Status File::Close() {
   m_stream = kInvalidStream;
   m_options = 0;
   m_own_stream = false;
-  m_should_close_fd = false;
+  m_own_descriptor = false;
   m_is_interactive = eLazyBoolCalculate;
   m_is_real_terminal = eLazyBoolCalculate;
   return error;
