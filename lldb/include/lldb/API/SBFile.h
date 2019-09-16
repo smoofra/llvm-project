@@ -13,11 +13,23 @@
 
 namespace lldb {
 
+/* These tags make no difference at the c++ level, but
+ * when the constructors are called from python they control
+ * how python files are converted by SWIG into FileSP */
+struct FileBorrow {};
+struct FileForceScriptingIO {};
+struct FileBorrowAndForceScriptingIO {};
+
 class LLDB_API SBFile {
   friend class SBDebugger;
 
 public:
   SBFile();
+  SBFile(FileSP file_sp) : m_opaque_sp(file_sp){};
+  SBFile(FileBorrow, FileSP file_sp) : m_opaque_sp(file_sp){};
+  SBFile(FileForceScriptingIO, FileSP file_sp) : m_opaque_sp(file_sp){};
+  SBFile(FileBorrowAndForceScriptingIO, FileSP file_sp)
+      : m_opaque_sp(file_sp){};
   SBFile(FILE *file, bool transfer_ownership);
   SBFile(int fd, const char *mode, bool transfer_ownership);
   ~SBFile();
@@ -33,7 +45,6 @@ public:
 
 private:
   FileSP m_opaque_sp;
-  SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
 };
 
 } // namespace lldb

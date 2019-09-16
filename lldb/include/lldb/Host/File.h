@@ -26,6 +26,10 @@ namespace lldb_private {
 ///
 /// A file class that divides abstracts the LLDB core from host file
 /// functionality.
+///
+/// Subclasses that override Read() or Write() must also override
+/// OverridesIO() -- to return true -- and also Flush().
+/// Other virtual methods are optional.
 class File : public IOObject {
 public:
   static int kInvalidDescriptor;
@@ -77,7 +81,7 @@ public:
   ~File() override;
 
   bool IsValid() const override {
-    return DescriptorIsValid() || StreamIsValid();
+    return DescriptorIsValid() || StreamIsValid() || OverridesIO();
   }
 
   /// Convert to pointer operator.
@@ -94,7 +98,7 @@ public:
   /// \return
   ///     A pointer to this object if either the directory or filename
   ///     is valid, nullptr otherwise.
-  operator bool() const { return DescriptorIsValid() || StreamIsValid(); }
+  operator bool() const { return IsValid(); }
 
   /// Logical NOT operator.
   ///
@@ -110,7 +114,7 @@ public:
   /// \return
   ///     Returns \b true if the object has an empty directory and
   ///     filename, \b false otherwise.
-  bool operator!() const { return !DescriptorIsValid() && !StreamIsValid(); }
+  bool operator!() const { return !IsValid(); }
 
   /// Get the file spec for this file.
   ///
@@ -134,7 +138,7 @@ public:
   ///     nullptr otherwise.
   FILE *TakeStreamAndClear();
 
-  int GetDescriptor() const;
+  virtual int GetDescriptor() const;
 
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
 
@@ -197,7 +201,7 @@ public:
   ///
   /// \return
   ///     The resulting seek offset, or -1 on error.
-  off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr);
+  virtual off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr);
 
   /// Seek to an offset relative to the current file position.
   ///
@@ -217,7 +221,7 @@ public:
   ///
   /// \return
   ///     The resulting seek offset, or -1 on error.
-  off_t SeekFromCurrent(off_t offset, Status *error_ptr = nullptr);
+  virtual off_t SeekFromCurrent(off_t offset, Status *error_ptr = nullptr);
 
   /// Seek to an offset relative to the end of the file.
   ///
@@ -238,7 +242,7 @@ public:
   ///
   /// \return
   ///     The resulting seek offset, or -1 on error.
-  off_t SeekFromEnd(off_t offset, Status *error_ptr = nullptr);
+  virtual off_t SeekFromEnd(off_t offset, Status *error_ptr = nullptr);
 
   /// Read bytes from a file from the specified file offset.
   ///
@@ -261,7 +265,7 @@ public:
   /// \return
   ///     An error object that indicates success or the reason for
   ///     failure.
-  Status Read(void *dst, size_t &num_bytes, off_t &offset);
+  virtual Status Read(void *dst, size_t &num_bytes, off_t &offset);
 
   /// Write bytes to a file at the specified file offset.
   ///
@@ -286,14 +290,14 @@ public:
   /// \return
   ///     An error object that indicates success or the reason for
   ///     failure.
-  Status Write(const void *src, size_t &num_bytes, off_t &offset);
+  virtual Status Write(const void *src, size_t &num_bytes, off_t &offset);
 
   /// Flush the current stream
   ///
   /// \return
   ///     An error object that indicates success or the reason for
   ///     failure.
-  Status Flush();
+  virtual Status Flush();
 
   /// Sync to disk.
   ///
@@ -349,6 +353,8 @@ protected:
   bool DescriptorIsValid() const { return DescriptorIsValid(m_descriptor); }
 
   bool StreamIsValid() const { return m_stream != kInvalidStream; }
+
+  virtual bool OverridesIO() const { return false; }
 
   void CalculateInteractiveAndTerminal();
 
