@@ -17,11 +17,40 @@ namespace lldb {
 "Represents a file."
 ) SBFile;
 
+struct FileBorrow {};
+struct FileForceScriptingIO {};
+struct FileBorrowAndForceScriptingIO {};
+
 class SBFile
 {
 public:
+
+
     SBFile();
+
+    %feature("docstring", "
+    Initialize a SBFile from a file descriptor.  mode is
+    'r', 'r+', or 'w', like fdopen.");
     SBFile(int fd, const char *mode, bool transfer_ownership);
+
+    %feature("docstring", "initialize a SBFile from a python file object");
+    SBFile(FileSP file);
+
+    %feature("docstring", "
+    Like SBFile(f), but the underlying file will
+    not be closed when the SBFile is closed or destroyed.");
+    SBFile(FileBorrow, FileSP BORROWED);
+
+    %feature("docstring" "
+    like SetFile(f), but the python read/write methods will be called even if
+    a file descriptor is available.");
+    SBFile(FileForceScriptingIO, FileSP FORCE_IO_METHODS);
+
+    %feature("docstring" "
+    like SetFile(f), but the python read/write methods will be called even
+    if a file descriptor is available -- and the underlying file will not
+    be closed when the SBFile is closed or destroyed.");
+    SBFile(FileBorrowAndForceScriptingIO, FileSP BORROWED_FORCE_IO_METHODS);
 
     ~SBFile ();
 
