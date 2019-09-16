@@ -84,14 +84,19 @@ public:
 
   PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
 
+  PythonObject(PythonObject &&rhs) {
+    m_py_obj = rhs.m_py_obj;
+    rhs.m_py_obj = nullptr;
+  }
+
   virtual ~PythonObject() { Reset(); }
 
   void Reset() {
     // Avoid calling the virtual method since it's not necessary
     // to actually validate the type of the PyObject if we're
     // just setting to null.
-    if (Py_IsInitialized())
-      Py_XDECREF(m_py_obj);
+    if (m_py_obj && Py_IsInitialized())
+      Py_DECREF(m_py_obj);
     m_py_obj = nullptr;
   }
 
@@ -467,7 +472,40 @@ public:
   void Reset(File &file, const char *mode);
 
   lldb::FileUP GetUnderlyingFile() const;
+
+  llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
+  llvm::Expected<lldb::FileSP>
+  ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false,
+                                              uint32_t options = 0);
 };
+
+class PythonException : public llvm::ErrorInfo<PythonException> {
+private:
+  PyObject *m_exception_type, *m_exception, *m_traceback;
+  PyObject *m_repr_bytes;
+
+public:
+  static char ID;
+  const char *toCString() const;
+  PythonException(const char *caller);
+  void Restore();
+  ~PythonException();
+  void log(llvm::raw_ostream &OS) const override;
+  std::error_code convertToErrorCode() const override;
+};
+
+template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+  if (expected) {
+    return expected.get();
+  } else {
+    llvm::handleAllErrors(
+        expected.takeError(), [](PythonException &E) { E.Restore(); },
+        [](const llvm::ErrorInfoBase &E) {
+          PyErr_SetString(PyExc_Exception, E.message().c_str());
+        });
+    return T();
+  }
+}
 
 } // namespace lldb_private
 
