@@ -15,6 +15,34 @@ from lldbsuite.test import  lldbtest
 from lldbsuite.test.decorators import (
     add_test_categories, no_debug_info_test, skipIf)
 
+class OhNoe(Exception):
+    pass
+
+class BadIO(io.TextIOBase):
+    def writable(self):
+        return True
+    def readable(self):
+        return True
+    def write(self, s):
+        raise OhNoe('OH NOE')
+    def read(self, n):
+        raise OhNoe("OH NOE")
+
+# This class will raise an exception while it's being
+# converted into a C++ object by swig
+class ReallyBadIO(io.TextIOBase):
+    def fileno(self):
+        return 999
+    def writable(self):
+        raise OhNoe("OH NOE!!!")
+
+class MutableBool():
+    def __init__(self, value):
+        self.value = value
+    def set(self, value):
+        self.value = bool(value)
+    def __bool__(self):
+        return self.value
 
 @contextmanager
 def replace_stdout(new):
@@ -147,7 +175,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
-    def test_sbfile_write(self):
+    def test_sbfile_write_fileno(self):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f.fileno(), "w", False)
             self.assertTrue(sbf.IsValid())
@@ -162,7 +190,21 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
-    def test_sbfile_read(self):
+    def test_sbfile_write(self):
+        with open(self.out_filename, 'w') as f:
+            sbf = lldb.SBFile(f)
+            e, n = sbf.Write(b'FOO\n')
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 4)
+            sbf.Close()
+            self.assertTrue(f.closed)
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), 'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_read_fileno(self):
         with open(self.out_filename, 'w') as f:
             f.write('FOO')
         with open(self.out_filename, 'r') as f:
@@ -172,6 +214,22 @@ class FileHandleTestCase(lldbtest.TestBase):
             e, n = sbf.Read(buffer)
             self.assertTrue(e.Success())
             self.assertEqual(buffer[:n], b'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_read(self):
+        with open(self.out_filename, 'w') as f:
+            f.write('foo')
+        with open(self.out_filename, 'r') as f:
+            sbf = lldb.SBFile(f)
+            buf = bytearray(100)
+            e, n = sbf.Read(buf)
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 3)
+            self.assertEqual(buf[:n], b'foo')
+            sbf.Close()
+            self.assertTrue(f.closed)
 
 
     @add_test_categories(['pyapi'])
@@ -272,3 +330,173 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.handleCmd('script sys.stdout.write("lol")',
                 collect_result=False, check=False)
             self.assertEqual(sys.stdout, f)
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_write_borrowed(self):
+        with open(self.out_filename, 'w') as f:
+            sbf = lldb.SBFile.Create(f, borrow=True)
+            e, n = sbf.Write(b'FOO')
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 3)
+            sbf.Close()
+            self.assertFalse(f.closed)
+            f.write('BAR\n')
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), 'FOOBAR')
+
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_write_forced(self):
+        with open(self.out_filename, 'w') as f:
+            written = MutableBool(False)
+            orig_write = f.write
+            def mywrite(x):
+                written.set(True)
+                return orig_write(x)
+            f.write = mywrite
+            sbf = lldb.SBFile.Create(f, force_io_methods=True)
+            e, n = sbf.Write(b'FOO')
+            self.assertTrue(written)
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 3)
+            sbf.Close()
+            self.assertTrue(f.closed)
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), 'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_write_forced_borrowed(self):
+        with open(self.out_filename, 'w') as f:
+            written = MutableBool(False)
+            orig_write = f.write
+            def mywrite(x):
+                written.set(True)
+                return orig_write(x)
+            f.write = mywrite
+            sbf = lldb.SBFile.Create(f, borrow=True, force_io_methods=True)
+            e, n = sbf.Write(b'FOO')
+            self.assertTrue(written)
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 3)
+            sbf.Close()
+            self.assertFalse(f.closed)
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), 'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_write_string(self):
+        f = io.StringIO()
+        sbf = lldb.SBFile(f)
+        e, n = sbf.Write(b'FOO')
+        self.assertEqual(f.getvalue().strip(), "FOO")
+        self.assertTrue(e.Success())
+        self.assertEqual(n, 3)
+        sbf.Close()
+        self.assertTrue(f.closed)
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_write_bytes(self):
+        f = io.BytesIO()
+        sbf = lldb.SBFile(f)
+        e, n = sbf.Write(b'FOO')
+        self.assertEqual(f.getvalue().strip(), b"FOO")
+        self.assertTrue(e.Success())
+        self.assertEqual(n, 3)
+        sbf.Close()
+        self.assertTrue(f.closed)
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_read_string(self):
+        f = io.StringIO('zork')
+        sbf = lldb.SBFile(f)
+        buf = bytearray(100)
+        e, n = sbf.Read(buf)
+        self.assertTrue(e.Success())
+        self.assertEqual(buf[:n], b'zork')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_read_string_one_byte(self):
+        f = io.StringIO('z')
+        sbf = lldb.SBFile(f)
+        buf = bytearray(1)
+        e, n = sbf.Read(buf)
+        self.assertTrue(e.Fail())
+        self.assertEqual(n, 0)
+        self.assertEqual(e.GetCString(), "can't read less than 6 bytes from a utf8 text stream")
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_read_bytes(self):
+        f = io.BytesIO(b'zork')
+        sbf = lldb.SBFile(f)
+        buf = bytearray(100)
+        e, n = sbf.Read(buf)
+        self.assertTrue(e.Success())
+        self.assertEqual(buf[:n], b'zork')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_sbfile_out(self):
+        with open(self.out_filename, 'w') as f:
+            sbf = lldb.SBFile(f)
+            status = self.debugger.SetOutputFile(sbf)
+            if status.Fail():
+                raise Exception(status)
+            self.handleCmd('script 2+2')
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), '4')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_error(self):
+        with open(self.out_filename, 'w') as f:
+            sbf = lldb.SBFile(f)
+            status = self.debugger.SetErrorFile(sbf)
+            if status.Fail():
+                raise Exception(status)
+            self.handleCmd('lolwut', check=False, collect_result=False)
+        with open(self.out_filename, 'r') as f:
+            errors = f.read()
+            self.assertTrue(re.search(r'error:.*lolwut', errors))
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_exceptions(self):
+        self.assertRaises(TypeError, lldb.SBFile, None)
+        self.assertRaises(TypeError, lldb.SBFile, "ham sandwich")
+        if sys.version_info[0] < 3:
+            self.assertRaises(TypeError, lldb.SBFile, ReallyBadIO())
+        else:
+            self.assertRaises(OhNoe, lldb.SBFile, ReallyBadIO())
+            error, n = lldb.SBFile(BadIO()).Write(b"FOO")
+            self.assertEqual(n, 0)
+            self.assertTrue(error.Fail())
+            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
+            error, n = lldb.SBFile(BadIO()).Read(bytearray(100))
+            self.assertEqual(n, 0)
+            self.assertTrue(error.Fail())
+            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
