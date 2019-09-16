@@ -6,6 +6,26 @@
 //
 //===----------------------------------------------------------------------===//
 
+//
+// !! FIXME FIXME FIXME !!
+//
+// Python APIs nearly all can return an exception.   They do this
+// by returning NULL, or -1, or some such value and setting
+// the exception state with PyErr_Set*().   Exceptions must be
+// handled before further python API functions are called.   Failure
+// to do so will result in asserts on debug builds of python.
+// It will also sometimes, but not usually result in crashes of
+// release builds.
+//
+// Nearly all the code in this header does not handle python exceptions
+// correctly.  It should all be converted to return Expected<> or
+// Error types to capture the exception.
+//
+// Everythign in this file except functions that return Error or
+// Expected<> is considered deprecated and should not be
+// used in new code.  If you need to use it, fix it first.
+//
+
 #ifndef LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
 #define LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
 
@@ -21,11 +41,16 @@
 
 namespace lldb_private {
 
+using llvm::Error;
+using llvm::Expected;
+
+class PythonObject;
 class PythonBytes;
 class PythonString;
 class PythonList;
 class PythonDictionary;
 class PythonInteger;
+class PythonException;
 
 class StructuredPythonObject : public StructuredData::Generic {
 public:
@@ -72,10 +97,44 @@ enum class PyRefType {
             // not call Py_INCREF.
 };
 
+namespace python {
+
+// Take a reference that you already own, and turn it into
+// a PythonObject.
+template <typename T> static T Take(PyObject *obj) {
+  return T(PyRefType::Owned, obj);
+}
+
+// Retain a reference you have borrowed, and turn it into
+// a PythonObject.
+template <typename T> static T Retain(PyObject *obj) {
+  return T(PyRefType::Borrowed, obj);
+}
+
+// Most python API methods will return NULL if and only if
+// they set an exception.   Use this to collect such return
+// values.
+//
+// If you pass something ohter than PythonObject as T,
+// you are NOT asserting that the thing is actually of
+// type T.   You'll get an invalid T back in that case,
+// so check if you need to.
+template <typename T> static T AssertTake(PyObject *obj) {
+  assert(obj);
+  assert(!PyErr_Occurred());
+  T thing(PyRefType::Owned, obj);
+  return thing;
+}
+
+} // namespace python
+
 enum class PyInitialValue { Invalid, Empty };
 
 class PythonObject {
 public:
+
+  operator PyObject *() const { return m_py_obj; };
+
   PythonObject() : m_py_obj(nullptr) {}
 
   PythonObject(PyRefType type, PyObject *py_obj) : m_py_obj(nullptr) {
@@ -84,14 +143,19 @@ public:
 
   PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
 
+  PythonObject(PythonObject &&rhs) {
+    m_py_obj = rhs.m_py_obj;
+    rhs.m_py_obj = nullptr;
+  }
+
   virtual ~PythonObject() { Reset(); }
 
   void Reset() {
     // Avoid calling the virtual method since it's not necessary
     // to actually validate the type of the PyObject if we're
     // just setting to null.
-    if (Py_IsInitialized())
-      Py_XDECREF(m_py_obj);
+    if (m_py_obj && Py_IsInitialized())
+      Py_DECREF(m_py_obj);
     m_py_obj = nullptr;
   }
 
@@ -110,6 +174,8 @@ public:
   // PyRefType doesn't make sense, and the copy constructor should be used.
   void Reset(PyRefType type, const PythonObject &ref) = delete;
 
+  // FIXME We shouldn't have virtual anything.  PythonObject should be a
+  // strictly pass-by-value type.
   virtual void Reset(PyRefType type, PyObject *py_obj) {
     if (py_obj == m_py_obj)
       return;
@@ -123,7 +189,7 @@ public:
     // an owned reference by incrementing it.  If it is an owned
     // reference (for example the caller allocated it with PyDict_New()
     // then we must *not* increment it.
-    if (Py_IsInitialized() && type == PyRefType::Borrowed)
+    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
       Py_XINCREF(m_py_obj);
   }
 
@@ -146,6 +212,17 @@ public:
 
   PythonObject &operator=(const PythonObject &other) {
     Reset(PyRefType::Borrowed, other.get());
+    return *this;
+  }
+
+  void Reset(PythonObject &&other) {
+    Reset();
+    m_py_obj = other.m_py_obj;
+    other.m_py_obj = nullptr;
+  }
+
+  PythonObject &operator=(PythonObject &&other) {
+    Reset(std::move(other));
     return *this;
   }
 
@@ -174,11 +251,13 @@ public:
 
   PythonObject GetAttributeValue(llvm::StringRef attribute) const;
 
-  bool IsValid() const;
+  bool IsNone() const { return m_py_obj == Py_None; }
 
-  bool IsAllocated() const;
+  bool IsValid() const { return m_py_obj != nullptr; }
 
-  bool IsNone() const;
+  bool IsAllocated() const { return IsValid() && !IsNone(); }
+
+  operator bool() const { return IsValid() && !IsNone(); }
 
   template <typename T> T AsType() const {
     if (!T::Check(m_py_obj))
@@ -189,8 +268,84 @@ public:
   StructuredData::ObjectSP CreateStructuredObject() const;
 
 protected:
+  static Error nullDeref() {
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "A NULL PyObject* was dereferenced");
+  }
+  static Error exception(const char *s = nullptr) {
+    return llvm::make_error<PythonException>(s);
+  }
+
+public:
+  template <typename... Args>
+  Expected<PythonObject> CallMethod(const char *name, const char *format,
+                                    Args... args) {
+    if (!m_py_obj)
+      return nullDeref();
+    PyObject *obj = PyObject_CallMethod(m_py_obj, name, format, args...);
+    if (!obj)
+      return exception();
+    return python::AssertTake<PythonObject>(obj);
+  }
+
+  Expected<PythonObject> GetAttribute(const char *name) const {
+    if (!m_py_obj)
+      return nullDeref();
+    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
+    if (!obj)
+      return exception();
+    return python::AssertTake<PythonObject>(obj);
+  }
+
+  Expected<bool> IsTrue() {
+    if (!m_py_obj)
+      return nullDeref();
+    int r = PyObject_IsTrue(m_py_obj);
+    if (r < 0)
+      return exception();
+    return !!r;
+  }
+
+  Expected<long long> AsLongLong() {
+    if (!m_py_obj)
+      return nullDeref();
+    assert(!PyErr_Occurred());
+    long long r = PyLong_AsLongLong(m_py_obj);
+    if (PyErr_Occurred())
+      return exception();
+    return r;
+  }
+
+  Expected<bool> IsInstance(PyObject *cls) {
+    if (!m_py_obj || !cls)
+      return nullDeref();
+    int r = PyObject_IsInstance(m_py_obj, cls);
+    if (r < 0)
+      return exception();
+    return !!r;
+  }
+
+protected:
   PyObject *m_py_obj;
 };
+
+namespace python {
+// This is why C++ needs monads.
+Expected<bool> AsBool(Expected<PythonObject> &&obj);
+
+Expected<long long> AsLongLong(Expected<PythonObject> &&obj);
+
+template <typename T> Expected<T> AsType(Expected<PythonObject> &&obj) {
+  if (obj) {
+    if (!T::Check(obj.get()))
+      return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                     "type error");
+    return T(PyRefType::Borrowed, std::move(obj.get()));
+  } else {
+    return obj.takeError();
+  }
+}
+} // namespace python
 
 class PythonBytes : public PythonObject {
 public:
@@ -245,9 +400,12 @@ public:
 
 class PythonString : public PythonObject {
 public:
+  static Expected<PythonString> FromUTF8(llvm::StringRef string);
+  static Expected<PythonString> FromUTF8(const char *string);
+
   PythonString();
-  explicit PythonString(llvm::StringRef string);
-  explicit PythonString(const char *string);
+  explicit PythonString(llvm::StringRef string); // safe, null on error
+  explicit PythonString(const char *string);     // safe, null on error
   PythonString(PyRefType type, PyObject *o);
 
   ~PythonString() override;
@@ -259,11 +417,13 @@ public:
 
   void Reset(PyRefType type, PyObject *py_obj) override;
 
-  llvm::StringRef GetString() const;
+  llvm::StringRef GetString() const; // safe, null on error
+
+  Expected<llvm::StringRef> AsUTF8() const;
 
   size_t GetSize() const;
 
-  void SetString(llvm::StringRef string);
+  void SetString(llvm::StringRef string); // safe, null on error
 
   StructuredData::StringSP CreateStructuredString() const;
 };
@@ -467,7 +627,37 @@ public:
   void Reset(File &file, const char *mode);
 
   lldb::FileUP GetUnderlyingFile() const;
+
+  llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
+  llvm::Expected<lldb::FileSP>
+  ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
 };
+
+class PythonException : public llvm::ErrorInfo<PythonException> {
+private:
+  PyObject *m_exception_type, *m_exception, *m_traceback;
+  PyObject *m_repr_bytes;
+
+public:
+  static char ID;
+  const char *toCString() const;
+  PythonException(const char *caller = nullptr);
+  void Restore();
+  ~PythonException();
+  void log(llvm::raw_ostream &OS) const override;
+  std::error_code convertToErrorCode() const override;
+};
+
+template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+  if (expected)
+    return expected.get();
+  llvm::handleAllErrors(
+      expected.takeError(), [](PythonException &E) { E.Restore(); },
+      [](const llvm::ErrorInfoBase &E) {
+        PyErr_SetString(PyExc_Exception, E.message().c_str());
+      });
+  return T();
+}
 
 } // namespace lldb_private
 
