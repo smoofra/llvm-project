@@ -84,14 +84,19 @@ public:
 
   PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
 
+  PythonObject (PythonObject &&rhs) {
+    m_py_obj = rhs.m_py_obj;
+    rhs.m_py_obj = nullptr;
+  }
+
   virtual ~PythonObject() { Reset(); }
 
   void Reset() {
     // Avoid calling the virtual method since it's not necessary
     // to actually validate the type of the PyObject if we're
     // just setting to null.
-    if (Py_IsInitialized())
-      Py_XDECREF(m_py_obj);
+    if (m_py_obj && Py_IsInitialized())
+      Py_DECREF(m_py_obj);
     m_py_obj = nullptr;
   }
 
@@ -470,6 +475,9 @@ public:
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
 
   bool GetUnderlyingFile(File &file) const;
+
+  Status ConvertToFile(File &file, bool borrowed = false);
+  Status ConvertToFileForcingUseOfScriptingIOMethods(File &file, bool borrowed = false);
 };
 
 } // namespace lldb_private

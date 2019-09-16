@@ -34,7 +34,7 @@ SBFile &SBFile::operator= (const SBFile &file) {
     return *this;
 }
 
-void SBFile::SetFile(const lldb_private::File &file) {
+void SBFile::SetFile(lldb_private::File &file) {
     if (m_opaque_up) {
         m_opaque_up->SetFile(file);
     } else {

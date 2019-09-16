@@ -121,7 +121,7 @@ void File::SetDescriptor(int fd, uint32_t options, bool transfer_ownership) {
 
 FILE *File::GetStream() {
   if (!StreamIsValid()) {
-    if (DescriptorIsValid()) {
+    if (DescriptorIsValid() && !OverridesIO()) {
       const char *mode = GetStreamOpenModeFromOptions(m_options);
       if (mode) {
         if (!m_fops) {
@@ -297,8 +297,11 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
 }
 
 off_t File::SeekFromStart(off_t offset, Status *error_ptr) {
-  off_t result = 0;
-  if (DescriptorIsValid()) {
+  off_t result = -1;
+  if (OverridesIO()) {
+    if (error_ptr)
+      error_ptr->SetErrorString("unsupported operation");
+  } else if (DescriptorIsValid()) {
     result = ::lseek(m_descriptor, offset, SEEK_SET);
 
     if (error_ptr) {
@@ -324,7 +327,10 @@ off_t File::SeekFromStart(off_t offset, Status *error_ptr) {
 
 off_t File::SeekFromCurrent(off_t offset, Status *error_ptr) {
   off_t result = -1;
-  if (DescriptorIsValid()) {
+  if (OverridesIO()) {
+    if (error_ptr)
+      error_ptr->SetErrorString("unsupported operation");
+  } else if (DescriptorIsValid()) {
     result = ::lseek(m_descriptor, offset, SEEK_CUR);
 
     if (error_ptr) {
@@ -350,7 +356,10 @@ off_t File::SeekFromCurrent(off_t offset, Status *error_ptr) {
 
 off_t File::SeekFromEnd(off_t offset, Status *error_ptr) {
   off_t result = -1;
-  if (DescriptorIsValid()) {
+  if (OverridesIO()) {
+    if (error_ptr)
+      error_ptr->SetErrorString("unsupported operation");
+  } else if (DescriptorIsValid()) {
     result = ::lseek(m_descriptor, offset, SEEK_END);
 
     if (error_ptr) {
@@ -374,9 +383,15 @@ off_t File::SeekFromEnd(off_t offset, Status *error_ptr) {
   return result;
 }
 
+Status FileOps::Flush() {
+  LLVM_BUILTIN_TRAP;
+}
+
 Status File::Flush() {
   Status error;
-  if (StreamIsValid()) {
+  if (OverridesIO()) {
+    error = m_fops->Flush();
+  } else if (StreamIsValid()) {
     if (llvm::sys::RetryAfterSignal(EOF, ::fflush, m_stream) == EOF)
       error.SetErrorToErrno();
   } else if (!DescriptorIsValid()) {
@@ -408,8 +423,16 @@ Status File::Sync() {
 #define MAX_WRITE_SIZE INT_MAX
 #endif
 
+Status FileOps::Read(void *buf, size_t &num_bytes) {
+  LLVM_BUILTIN_TRAP;
+}
+
 Status File::Read(void *buf, size_t &num_bytes) {
   Status error;
+
+  if (OverridesIO()) {
+    return m_fops->Read(buf, num_bytes);
+  }
 
 #if defined(MAX_READ_SIZE)
   if (num_bytes > MAX_READ_SIZE) {
@@ -467,8 +490,16 @@ Status File::Read(void *buf, size_t &num_bytes) {
   return error;
 }
 
+Status FileOps::Write(const void *buf, size_t &num_bytes) {
+  LLVM_BUILTIN_TRAP;
+}
+
 Status File::Write(const void *buf, size_t &num_bytes) {
   Status error;
+
+  if (OverridesIO()) {
+    return m_fops->Write(buf, num_bytes);
+  }
 
 #if defined(MAX_WRITE_SIZE)
   if (num_bytes > MAX_WRITE_SIZE) {
@@ -532,6 +563,11 @@ Status File::Write(const void *buf, size_t &num_bytes) {
 Status File::Read(void *buf, size_t &num_bytes, off_t &offset) {
   Status error;
 
+  if (OverridesIO()) {
+    error.SetErrorString("unsupported operation");
+    return error;
+  }
+
 #if defined(MAX_READ_SIZE)
   if (num_bytes > MAX_READ_SIZE) {
     uint8_t *p = (uint8_t *)buf;
@@ -591,6 +627,11 @@ Status File::Read(void *buf, size_t &num_bytes, off_t &offset) {
 
 Status File::Write(const void *buf, size_t &num_bytes, off_t &offset) {
   Status error;
+
+  if (OverridesIO()) {
+    error.SetErrorString("unsupported operation");
+    return error;
+  }
 
 #if defined(MAX_WRITE_SIZE)
   if (num_bytes > MAX_WRITE_SIZE) {
@@ -665,7 +706,7 @@ size_t File::Printf(const char *format, ...) {
 // Print some formatted output to the stream.
 size_t File::PrintfVarArg(const char *format, va_list args) {
   size_t result = 0;
-  if (DescriptorIsValid()) {
+  if (DescriptorIsValid() || OverridesIO()) {
     char *s = nullptr;
     result = vasprintf(&s, format, args);
     if (s != nullptr) {

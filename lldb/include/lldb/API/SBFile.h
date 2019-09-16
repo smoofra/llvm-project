@@ -26,6 +26,12 @@ public:
   void SetStream(FILE *file, bool transfer_ownership);
   void SetDescriptor(int fd, const char *mode, bool transfer_ownership);
 
+  // It seems odd that we have a private type in the argument list of a SB method.
+  // This is here for scripting clients, not C++ clients.  They will pass their own
+  // native file objects in, and the SWIG typemaps will convert it to a
+  // lldb_private::File
+  void SetFile(lldb_private::File &file);
+
   SBError Read(uint8_t *buf, size_t num_bytes, size_t *bytes_read);
   SBError Write(const uint8_t *buf, size_t num_bytes, size_t *bytes_written);
   SBError Flush();
@@ -36,7 +42,6 @@ public:
   bool operator!() const { return !IsValid(); }
 
 private:
-  void SetFile(const lldb_private::File &file);
   lldb_private::File &GetFile() const { return *m_opaque_up; }
   FileUP m_opaque_up;
 };

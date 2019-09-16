@@ -372,6 +372,52 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
   $1 = $1 || PyCallable_Check(reinterpret_cast<PyObject*>($input));
 }
 
+%typemap(in) lldb_private::File & (lldb_private::File lldb_file) {
+  using namespace lldb_private;
+  if (PythonFile::Check($input)) {
+    PythonFile py_file(PyRefType::Borrowed, $input);
+    py_file.ConvertToFile(lldb_file);
+  }
+  $1 = &lldb_file;
+}
+
+%typemap(in) lldb_private::File &FORCE_IO_METHODS (lldb_private::File lldb_file) {
+  using namespace lldb_private;
+  if (PythonFile::Check($input)) {
+    PythonFile py_file(PyRefType::Borrowed, $input);
+    py_file.ConvertToFileForcingUseOfScriptingIOMethods(lldb_file);
+  }
+  $1 = &lldb_file;
+}
+
+%typemap(in) lldb_private::File &BORROWED (lldb_private::File lldb_file) {
+  using namespace lldb_private;
+  if (PythonFile::Check($input)) {
+    PythonFile py_file(PyRefType::Borrowed, $input);
+    py_file.ConvertToFile(lldb_file, /*borrowed=*/true);
+  }
+  $1 = &lldb_file;
+}
+
+%typemap(in) lldb_private::File &BORROWED_FORCE_IO_METHODS (lldb_private::File lldb_file) {
+  using namespace lldb_private;
+  if (PythonFile::Check($input)) {
+    PythonFile py_file(PyRefType::Borrowed, $input);
+    py_file.ConvertToFileForcingUseOfScriptingIOMethods(lldb_file, /*borrowed=*/true);
+  }
+  $1 = &lldb_file;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) lldb_private::File & {
+  if (lldb_private::PythonFile::Check($input)) {
+    $1 = 1;
+  } else {
+    PyErr_Clear();
+    $1 = 0;
+  }
+}
+
+
 // FIXME both of these paths wind up calling fdopen() with no provision for ever calling
 // fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
 // use and this typemap should eventually be removed.

@@ -29,24 +29,37 @@ public:
     m_descriptor(kInvalidDescriptor),
     m_stream(nullptr),
     m_own_descriptor(false),
-    m_own_stream(false) {};
+    m_own_stream(false),
+    m_overrides_io(false) {};
   FileOps(FILE *stream, bool take_ownership) :
     m_descriptor(kInvalidDescriptor),
     m_stream(stream),
     m_own_descriptor(false),
-    m_own_stream(take_ownership) {};
+    m_own_stream(take_ownership),
+    m_overrides_io(false) {};
   FileOps(int descriptor, bool take_ownership) :
     m_descriptor(descriptor),
     m_stream(nullptr),
     m_own_descriptor(take_ownership),
-    m_own_stream(false) {};
+    m_own_stream(false),
+    m_overrides_io(false) {};
   virtual Status Close();
   virtual ~FileOps();
+  virtual Status Write(const void *buf, size_t &num_bytes);
+  virtual Status Read(void *buf, size_t &num_bytes);
+  virtual Status Flush();
+
 protected:
   int m_descriptor;
   FILE *m_stream;
   bool m_own_descriptor;
   bool m_own_stream;
+
+  // If this is false the the FileOps is only here to manage closing
+  // the stream or descriptor when all the Files that refer to it are
+  // closed.   If it's true then actual io operations will be routed
+  // through the FileOps.
+  bool m_overrides_io;
 };
 
 /// \class File File.h "lldb/Host/File.h"
@@ -108,6 +121,21 @@ public:
         m_supports_colors(file.m_supports_colors),
         m_fops(file.m_fops) {}
 
+  File(std::shared_ptr<FileOps> fops)
+      : IOObject(eFDTypeFile), m_descriptor(kInvalidDescriptor),
+        m_stream(kInvalidStream), m_options(0),
+        m_is_interactive(eLazyBoolCalculate),
+        m_is_real_terminal(eLazyBoolCalculate),
+        m_supports_colors(eLazyBoolCalculate),
+        m_fops(fops) {}
+
+  File(std::shared_ptr<FileOps> fops, int fd)
+      : IOObject(eFDTypeFile), m_descriptor(fd),
+        m_stream(kInvalidStream), m_options(0),
+        m_is_interactive(eLazyBoolCalculate),
+        m_is_real_terminal(eLazyBoolCalculate),
+        m_supports_colors(eLazyBoolCalculate),
+        m_fops(fops) {}
 
   /// Destructor.
   ///
@@ -115,7 +143,7 @@ public:
   ~File() override;
 
   bool IsValid() const override {
-    return DescriptorIsValid() || StreamIsValid();
+    return DescriptorIsValid() || StreamIsValid() || OverridesIO();
   }
 
   /// Convert to pointer operator.
@@ -132,7 +160,7 @@ public:
   /// \return
   ///     A pointer to this object if either the directory or filename
   ///     is valid, nullptr otherwise.
-  operator bool() const { return DescriptorIsValid() || StreamIsValid(); }
+  operator bool() const { return IsValid(); }
 
   /// Logical NOT operator.
   ///
@@ -148,7 +176,7 @@ public:
   /// \return
   ///     Returns \b true if the object has an empty directory and
   ///     filename, \b false otherwise.
-  bool operator!() const { return !DescriptorIsValid() && !StreamIsValid(); }
+  bool operator!() const { return !IsValid(); }
 
   /// Get the file spec for this file.
   ///
@@ -395,6 +423,8 @@ protected:
   bool DescriptorIsValid() const { return DescriptorIsValid(m_descriptor); }
 
   bool StreamIsValid() const { return m_stream != kInvalidStream; }
+
+  bool OverridesIO() const { return m_fops && m_fops->m_overrides_io; }
 
   void CalculateInteractiveAndTerminal();
 
