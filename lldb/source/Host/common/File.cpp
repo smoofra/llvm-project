@@ -113,8 +113,10 @@ void File::SetDescriptor(int fd, uint32_t options, bool transfer_ownership) {
   if (IsValid())
     Close();
   m_descriptor = fd;
-  m_own_descriptor = transfer_ownership;
   m_options = options;
+  if (transfer_ownership) {
+    m_fops = std::make_shared<FileOps>(fd, true);
+  }
 }
 
 FILE *File::GetStream() {
@@ -122,7 +124,14 @@ FILE *File::GetStream() {
     if (DescriptorIsValid()) {
       const char *mode = GetStreamOpenModeFromOptions(m_options);
       if (mode) {
-        if (!m_own_descriptor) {
+        if (!m_fops) {
+          m_fops = std::make_shared<FileOps>();
+        }
+        if (m_fops->m_stream) {
+          m_stream = m_fops->m_stream;
+          return m_stream;
+        }
+        if (!m_fops->m_own_descriptor) {
 // We must duplicate the file descriptor if we don't own it because when you
 // call fdopen, the stream will own the fd
 #ifdef _WIN32
@@ -130,7 +139,8 @@ FILE *File::GetStream() {
 #else
           m_descriptor = dup(GetDescriptor());
 #endif
-          m_own_descriptor = true;
+          m_fops->m_descriptor = m_descriptor;
+          m_fops->m_own_descriptor = true;
         }
 
         m_stream =
@@ -140,8 +150,9 @@ FILE *File::GetStream() {
         // the descriptor because fclose() will close it for us
 
         if (m_stream) {
-          m_own_stream = true;
-          m_own_descriptor = false;
+          m_fops->m_own_stream = true;
+          m_fops->m_stream = m_stream;
+          m_fops->m_own_descriptor = false;
         }
       }
     }
@@ -153,7 +164,26 @@ void File::SetStream(FILE *fh, bool transfer_ownership) {
   if (IsValid())
     Close();
   m_stream = fh;
-  m_own_stream = transfer_ownership;
+  if (transfer_ownership) {
+    m_fops = std::make_shared<FileOps>(fh, transfer_ownership);
+  }
+}
+
+void File::SetFile(const File &file) {
+  if (IsValid())
+    Close();
+  m_descriptor = file.m_descriptor;
+  m_stream = file.m_stream;
+  m_options = file.m_options;
+  m_is_interactive = file.m_is_interactive;
+  m_is_real_terminal = file.m_is_real_terminal;
+  m_supports_colors = file.m_supports_colors;
+  m_fops = file.m_fops;
+}
+
+File &File::operator=(const File &file) {
+  SetFile(file);
+  return *this;
 }
 
 uint32_t File::GetPermissions(Status &error) const {
@@ -172,9 +202,9 @@ uint32_t File::GetPermissions(Status &error) const {
   return 0;
 }
 
-Status File::Close() {
+Status FileOps::Close() {
   Status error;
-  if (StreamIsValid()) {
+  if (m_stream != File::kInvalidStream) {
     if (m_own_stream) {
       if (::fclose(m_stream) == EOF)
         error.SetErrorToErrno();
@@ -183,28 +213,52 @@ Status File::Close() {
         error.SetErrorToErrno();
     }
   }
-
-  if (DescriptorIsValid() && m_own_descriptor) {
+  if (m_descriptor != File::kInvalidDescriptor && m_own_descriptor) {
     if (::close(m_descriptor) != 0)
       error.SetErrorToErrno();
+  }
+  m_descriptor = File::kInvalidDescriptor;
+  m_stream = File::kInvalidStream;
+  return error;
+}
+
+FileOps::~FileOps() {
+  Close();
+}
+
+Status File::Close() {
+  Status error;
+  if (m_stream) {
+    int r = llvm::sys::RetryAfterSignal(EOF, ::fflush, m_stream);
+    if (r != 0)
+      error.SetErrorToErrno();
+  }
+  if (m_fops) {
+    if (m_fops.unique()) {
+      error = m_fops->Close();
+    }
+    m_fops.reset();
   }
   m_descriptor = kInvalidDescriptor;
   m_stream = kInvalidStream;
   m_options = 0;
-  m_own_stream = false;
-  m_own_descriptor = false;
   m_is_interactive = eLazyBoolCalculate;
   m_is_real_terminal = eLazyBoolCalculate;
+  m_supports_colors = eLazyBoolCalculate;
   return error;
 }
 
-void File::Clear() {
-  m_stream = nullptr;
-  m_descriptor = kInvalidDescriptor;
-  m_options = 0;
-  m_own_stream = false;
-  m_is_interactive = m_supports_colors = m_is_real_terminal =
-      eLazyBoolCalculate;
+FILE *File::TakeStreamAndClear() {
+  FILE *stream = NULL;
+  GetStream();
+  if (!m_fops) {
+    stream = m_stream;
+  } else if (m_fops && m_fops.unique()) {
+    stream = m_fops->m_stream;
+    m_fops->m_own_stream = false;
+  }
+  Close();
+  return stream;
 }
 
 Status File::GetFileSpec(FileSpec &file_spec) const {

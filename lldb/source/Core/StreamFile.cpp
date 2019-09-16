@@ -26,6 +26,9 @@ StreamFile::StreamFile(int fd, bool transfer_ownership)
 StreamFile::StreamFile(FILE *fh, bool transfer_ownership)
     : Stream(), m_file(fh, transfer_ownership) {}
 
+StreamFile::StreamFile(File &file)
+  : Stream(), m_file(file) {}
+
 StreamFile::StreamFile(const char *path) : Stream(), m_file() {
   FileSystem::Instance().Open(m_file, FileSpec(path),
                               File::eOpenOptionWrite |

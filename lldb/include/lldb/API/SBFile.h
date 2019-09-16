@@ -15,9 +15,13 @@ namespace lldb {
 
 class LLDB_API SBFile {
 public:
+
+  SBFile (const SBFile &file);
+  SBFile (SBFile &&file);
   SBFile();
   ~SBFile();
 
+  SBFile &operator= (const SBFile &file);
   void SetStream(FILE *file, bool transfer_ownership);
   void SetDescriptor(int fd, const char *mode, bool transfer_ownership);
 
@@ -31,7 +35,8 @@ public:
   bool operator!() const { return !IsValid(); }
 
 private:
-  DISALLOW_COPY_AND_ASSIGN(SBFile);
+  void SetFile(const lldb_private::File &file);
+  lldb_private::File &GetFile() const { return *m_opaque_up; }
   FileUP m_opaque_up;
 };
 

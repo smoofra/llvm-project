@@ -17,6 +17,31 @@ SBFile::~SBFile() {}
 
 SBFile::SBFile() {}
 
+SBFile::SBFile(const SBFile &file) {
+    m_opaque_up = std::make_unique<File>(file.GetFile());
+}
+
+SBFile::SBFile(SBFile &&file) {
+    std::swap(m_opaque_up, file.m_opaque_up);
+}
+
+SBFile &SBFile::operator= (const SBFile &file) {
+    if (m_opaque_up) {
+        m_opaque_up->SetFile(file.GetFile());
+    } else {
+        m_opaque_up = std::make_unique<File>(file.GetFile());
+    }
+    return *this;
+}
+
+void SBFile::SetFile(const lldb_private::File &file) {
+    if (m_opaque_up) {
+        m_opaque_up->SetFile(file);
+    } else {
+        m_opaque_up = std::make_unique<File>(file);
+    }
+}
+
 void SBFile::SetStream(FILE *file, bool transfer_ownership) {
   m_opaque_up = std::make_unique<File>(file, transfer_ownership);
 }

@@ -35,6 +35,8 @@ public:
 
   StreamFile(FILE *fh, bool transfer_ownership);
 
+  StreamFile(File &file);
+
   ~StreamFile() override;
 
   File &GetFile() { return m_file; }

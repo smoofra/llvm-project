@@ -21,6 +21,34 @@
 
 namespace lldb_private {
 
+class FileOps {
+  friend class File;
+public:
+  static const int kInvalidDescriptor = -1;
+  FileOps() :
+    m_descriptor(kInvalidDescriptor),
+    m_stream(nullptr),
+    m_own_descriptor(false),
+    m_own_stream(false) {};
+  FileOps(FILE *stream, bool take_ownership) :
+    m_descriptor(kInvalidDescriptor),
+    m_stream(stream),
+    m_own_descriptor(false),
+    m_own_stream(take_ownership) {};
+  FileOps(int descriptor, bool take_ownership) :
+    m_descriptor(descriptor),
+    m_stream(nullptr),
+    m_own_descriptor(take_ownership),
+    m_own_stream(false) {};
+  virtual Status Close();
+  virtual ~FileOps();
+protected:
+  int m_descriptor;
+  FILE *m_stream;
+  bool m_own_descriptor;
+  bool m_own_stream;
+};
+
 /// \class File File.h "lldb/Host/File.h"
 /// A file class.
 ///
@@ -51,27 +79,35 @@ public:
   static mode_t ConvertOpenOptionsForPOSIXOpen(uint32_t open_options);
 
   File()
-      : IOObject(eFDTypeFile),
-        m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
-        m_stream(kInvalidStream), m_options(0), m_own_stream(false),
+      : IOObject(eFDTypeFile), m_descriptor(kInvalidDescriptor),
+        m_stream(kInvalidStream), m_options(0),
         m_is_interactive(eLazyBoolCalculate),
         m_is_real_terminal(eLazyBoolCalculate),
         m_supports_colors(eLazyBoolCalculate) {}
 
   File(FILE *fh, bool transfer_ownership)
-      : IOObject(eFDTypeFile),
-        m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
-        m_stream(fh), m_options(0), m_own_stream(transfer_ownership),
+      : IOObject(eFDTypeFile), m_descriptor(kInvalidDescriptor),
+        m_stream(fh), m_options(0),
         m_is_interactive(eLazyBoolCalculate),
         m_is_real_terminal(eLazyBoolCalculate),
-        m_supports_colors(eLazyBoolCalculate) {}
+        m_supports_colors(eLazyBoolCalculate),
+        m_fops(std::make_shared<FileOps>(fh, transfer_ownership)) {}
 
   File(int fd, uint32_t options, bool transfer_ownership)
-      : IOObject(eFDTypeFile),
-        m_descriptor(fd), m_own_descriptor(transfer_ownership),
-        m_stream(kInvalidStream), m_options(options), m_own_stream(false),
-        m_is_interactive(eLazyBoolCalculate),
-        m_is_real_terminal(eLazyBoolCalculate) {}
+      : IOObject(eFDTypeFile), m_descriptor(fd),
+        m_stream(kInvalidStream),
+        m_options(options), m_is_interactive(eLazyBoolCalculate),
+        m_is_real_terminal(eLazyBoolCalculate),
+        m_fops(std::make_shared<FileOps>(fd, transfer_ownership)) {}
+
+  File(const File &file)
+      : IOObject(eFDTypeFile), m_descriptor(file.m_descriptor),
+        m_stream(file.m_stream), m_options(file.m_options),
+        m_is_interactive(file.m_is_interactive),
+        m_is_real_terminal(file.m_is_real_terminal),
+        m_supports_colors(file.m_supports_colors),
+        m_fops(file.m_fops) {}
+
 
   /// Destructor.
   ///
@@ -122,7 +158,19 @@ public:
 
   Status Close() override;
 
-  void Clear();
+  /// DANGEROUS. Extract the underlying FILE* and reset this File without closing it.
+  ///
+  /// This is only here to support legacy SB interfaces that need to convert scripting
+  /// language objects into FILE* streams.   That conversion is inherently sketchy and
+  /// doing so may cause the stream to be leaked.
+  ///
+  ///  After calling this the File will be reset to it's original state.  It will be
+  ///  invalid and it will not hold on to any resources.
+  ///
+  /// \return
+  ///     The underlying FILE* stream from this File, if one exists and can be extracted,
+  ///     nullptr otherwise.
+  FILE *TakeStreamAndClear();
 
   int GetDescriptor() const;
 
@@ -135,6 +183,10 @@ public:
   FILE *GetStream();
 
   void SetStream(FILE *fh, bool transfer_ownership);
+
+  void SetFile(const File &file);
+
+  File &operator=(const File &file);
 
   /// Read bytes from a file from the current file position.
   ///
@@ -348,17 +400,14 @@ protected:
 
   // Member variables
   int m_descriptor;
-  bool m_own_descriptor;
   FILE *m_stream;
   uint32_t m_options;
-  bool m_own_stream;
   LazyBool m_is_interactive;
   LazyBool m_is_real_terminal;
   LazyBool m_supports_colors;
   std::mutex offset_access_mutex;
+  std::shared_ptr<FileOps> m_fops;
 
-private:
-  DISALLOW_COPY_AND_ASSIGN(File);
 };
 
 } // namespace lldb_private
