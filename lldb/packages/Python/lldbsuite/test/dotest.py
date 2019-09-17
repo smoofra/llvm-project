@@ -670,24 +670,32 @@ def visit_file(dir, name):
     filterspec = None
     for filterspec in configuration.filters:
         # Optimistically set the flag to True.
-        filtered = True
         module = __import__(base)
         parts = filterspec.split('.')
         obj = module
-        for part in parts:
-            try:
-                parent, obj = obj, getattr(obj, part)
-            except AttributeError:
-                # The filterspec has failed.
-                filtered = False
-                break
+
+        def check(obj, parts):
+            for part in parts:
+                try:
+                    parent, obj = obj, getattr(obj, part)
+                except AttributeError:
+                    # The filterspec has failed.
+                    return False
+            return True
+
+        if check(obj, parts):
+            filtered = True
+        elif parts[0] == base and len(parts) > 1 and check(obj, parts[1:]):
+            filterspec = '.'.join(parts[1:])
+            filtered = True
+        else:
+            filtered = False
 
         # If filtered, we have a good filterspec.  Add it.
         if filtered:
-            # print("adding filter spec %s to module %s" % (filterspec, module))
-            configuration.suite.addTests(
-                unittest2.defaultTestLoader.loadTestsFromName(
-                    filterspec, module))
+            print("adding filter spec %s to module %s" % (filterspec, repr(module)))
+            tests = unittest2.defaultTestLoader.loadTestsFromName(filterspec, module)
+            configuration.suite.addTests(tests)
             continue
 
     # Forgo this module if the (base, filterspec) combo is invalid
