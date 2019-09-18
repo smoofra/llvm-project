@@ -111,7 +111,21 @@ public:
   lldb::SBListener GetListener();
 
   void HandleProcessEvent(const lldb::SBProcess &process,
-                          const lldb::SBEvent &event, FILE *out, FILE *err);
+                          const lldb::SBEvent &event, FILE *out,
+                          FILE *err); // DEPRECATED
+
+  void HandleProcessEvent(const lldb::SBProcess &process,
+                          const lldb::SBEvent &event, SBFile &out, SBFile &err);
+
+  void HandleProcessEvent(const lldb::SBProcess &process,
+                          const lldb::SBEvent &event, lldb_private::File &out,
+                          lldb_private::File &err);
+
+  void HandleProcessEvent(const lldb::SBProcess &process,
+                          const lldb::SBEvent &event, SBFile &&out,
+                          SBFile &&err) {
+    HandleProcessEvent(process, event, out, err);
+  }
 
   lldb::SBTarget CreateTarget(const char *filename, const char *target_triple,
                               const char *platform_name,
