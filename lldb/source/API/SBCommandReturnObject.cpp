@@ -10,6 +10,7 @@
 #include "SBReproducerPrivate.h"
 #include "Utils.h"
 #include "lldb/API/SBError.h"
+#include "lldb/API/SBFile.h"
 #include "lldb/API/SBStream.h"
 #include "lldb/Interpreter/CommandReturnObject.h"
 #include "lldb/Utility/ConstString.h"
@@ -104,7 +105,6 @@ size_t SBCommandReturnObject::GetErrorSize() {
 
 size_t SBCommandReturnObject::PutOutput(FILE *fh) {
   LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FILE *), fh);
-
   if (fh) {
     size_t num_bytes = GetOutputSize();
     if (num_bytes)
@@ -112,6 +112,17 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
   }
   return 0;
 }
+
+size_t SBCommandReturnObject::PutOutput(File &file) {
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (File &), file);
+  return file.Printf("%s", GetOutput());
+}
+
+size_t SBCommandReturnObject::PutOutput(SBFile &file) {
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (SBFile &), file);
+  return file.GetFile().Printf("%s", GetOutput());
+}
+
 
 size_t SBCommandReturnObject::PutError(FILE *fh) {
   LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *), fh);
@@ -122,6 +133,16 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
       return ::fprintf(fh, "%s", GetError());
   }
   return 0;
+}
+
+size_t SBCommandReturnObject::PutError(File &file) {
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (File &), file);
+  return file.Printf("%s", GetError());
+}
+
+size_t SBCommandReturnObject::PutError(SBFile &file) {
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (SBFile &), file);
+  return file.GetFile().Printf("%s", GetError());
 }
 
 void SBCommandReturnObject::Clear() {
@@ -245,8 +266,10 @@ void SBCommandReturnObject::SetImmediateOutputFile(FILE *fh,
   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
                      (FILE *, bool), fh, transfer_ownership);
 
-  if (m_opaque_up)
-    m_opaque_up->SetImmediateOutputFile(fh, transfer_ownership);
+  if (m_opaque_up) {
+    File file(fh, transfer_ownership);
+    m_opaque_up->SetImmediateOutputFile(file);
+  }
 }
 
 void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
@@ -254,8 +277,42 @@ void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
                      (FILE *, bool), fh, transfer_ownership);
 
-  if (m_opaque_up)
-    m_opaque_up->SetImmediateErrorFile(fh, transfer_ownership);
+  if (m_opaque_up) {
+    File file(fh, transfer_ownership);
+    m_opaque_up->SetImmediateErrorFile(file);
+  }
+}
+
+void SBCommandReturnObject::SetImmediateOutputFile(SBFile &file) {
+  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
+                     (SBFile &), file);
+  if (m_opaque_up) {
+    m_opaque_up->SetImmediateOutputFile(file.GetFile());
+  }
+}
+
+void SBCommandReturnObject::SetImmediateErrorFile(SBFile &file) {
+  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
+                     (SBFile &), file);
+  if (m_opaque_up) {
+    m_opaque_up->SetImmediateErrorFile(file.GetFile());
+  }
+}
+
+void SBCommandReturnObject::SetImmediateOutputFile(File &file) {
+  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
+                     (File &), file);
+  if (m_opaque_up) {
+    m_opaque_up->SetImmediateOutputFile(file);
+  }
+}
+
+void SBCommandReturnObject::SetImmediateErrorFile(File &file) {
+  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
+                     (File &), file);
+  if (m_opaque_up) {
+    m_opaque_up->SetImmediateErrorFile(file);
+  }
 }
 
 void SBCommandReturnObject::PutCString(const char *string, int len) {
@@ -353,6 +410,10 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, GetErrorSize, ());
   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (FILE *));
   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *));
+  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (SBFile &));
+  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (SBFile &));
+  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (File &));
+  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (File &));
   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, Clear, ());
   LLDB_REGISTER_METHOD(lldb::ReturnStatus, SBCommandReturnObject, GetStatus,
                        ());
@@ -370,6 +431,10 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
                        (FILE *));
   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
                        (FILE *));
+  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile, (SBFile &));
+  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile, (SBFile &));
+  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile, (File &));
+  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile, (File &));
   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
                        (FILE *, bool));
   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
