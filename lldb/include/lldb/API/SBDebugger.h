@@ -94,6 +94,12 @@ public:
 
   SBError SetErrorFile(SBFile &file);
 
+  SBError SetInputFile(lldb_private::File &file);
+
+  SBError SetOutputFile(lldb_private::File &file);
+
+  SBError SetErrorFile(lldb_private::File &file);
+
   SBFile GetInputFile();
 
   SBFile GetOutputFile();

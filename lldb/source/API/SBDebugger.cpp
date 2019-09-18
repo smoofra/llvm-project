@@ -314,6 +314,11 @@ void SBDebugger::SetInputFileHandle(FILE *fh, bool transfer_ownership) {
 
 SBError SBDebugger::SetInputFile(SBFile &file) {
   LLDB_RECORD_METHOD(SBError, SBDebugger, SetInputFile, (SBFile &), file);
+  return SetInputFile(file.GetFile());
+}
+
+SBError SBDebugger::SetInputFile(File &file) {
+  LLDB_RECORD_METHOD(SBError, SBDebugger, SetInputFile, (File &), file);
 
   SBError error;
   if (!m_opaque_sp) {
@@ -339,7 +344,7 @@ SBError SBDebugger::SetInputFile(SBFile &file) {
   if (loader_file) {
     error.SetError(m_opaque_sp->SetInputFile(loader_file, recorder));
   } else if (file) {
-    error.SetError(m_opaque_sp->SetInputFile(file.GetFile(), recorder));
+    error.SetError(m_opaque_sp->SetInputFile(file, recorder));
   }
 
   return error;
@@ -357,6 +362,11 @@ void SBDebugger::SetOutputFileHandle(FILE *fh, bool transfer_ownership) {
 
 SBError SBDebugger::SetOutputFile(SBFile &file) {
   LLDB_RECORD_METHOD(SBError, SBDebugger, SetOutputFile, (SBFile &file), file);
+  return SetOutputFile(file.GetFile());
+}
+
+SBError SBDebugger::SetOutputFile(File &file) {
+  LLDB_RECORD_METHOD(SBError, SBDebugger, SetOutputFile, (File &file), file);
   SBError error;
   if (!m_opaque_sp) {
     error.ref().SetErrorString("invalid debugger");
@@ -366,7 +376,7 @@ SBError SBDebugger::SetOutputFile(SBFile &file) {
     error.ref().SetErrorString("invalid file");
     return error;
   }
-  error.SetError(m_opaque_sp->SetOutputFile(file.GetFile()));
+  error.SetError(m_opaque_sp->SetOutputFile(file));
   return error;
 }
 
@@ -382,6 +392,11 @@ void SBDebugger::SetErrorFileHandle(FILE *fh, bool transfer_ownership) {
 
 SBError SBDebugger::SetErrorFile(SBFile &file) {
   LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (SBFile &file), file);
+  return SetErrorFile(file.GetFile());
+}
+
+SBError SBDebugger::SetErrorFile(File &file) {
+  LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (File &file), file);
   SBError error;
   if (!m_opaque_sp) {
     error.ref().SetErrorString("invalid debugger");
@@ -391,7 +406,7 @@ SBError SBDebugger::SetErrorFile(SBFile &file) {
     error.ref().SetErrorString("invalid file");
     return error;
   }
-  error.SetError(m_opaque_sp->SetErrorFile(file.GetFile()));
+  error.SetError(m_opaque_sp->SetErrorFile(file));
   return error;
 }
 
@@ -1635,7 +1650,11 @@ static void SetFileHandleRedirect(SBDebugger *, FILE *, bool) {
   // Do nothing.
 }
 
-static SBError SetFileRedirect(SBDebugger *, SBFile &file) {
+static SBError SetFileRedirect(SBDebugger *, File &file) {
+  return SBError();
+}
+
+static SBError SetSBFileRedirect(SBDebugger *, SBFile &file) {
   return SBError();
 }
 
@@ -1661,12 +1680,22 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
 
   R.Register(
     &invoke<SBError (SBDebugger::*)(SBFile &)>::method<&SBDebugger::SetInputFile>::doit,
-    &SetFileRedirect);
+    &SetSBFileRedirect);
   R.Register(
     &invoke<SBError (SBDebugger::*)(SBFile &)>::method<&SBDebugger::SetOutputFile>::doit,
-    &SetFileRedirect);
+    &SetSBFileRedirect);
   R.Register(
     &invoke<SBError (SBDebugger::*)(SBFile &)>::method<&SBDebugger::SetErrorFile>::doit,
+    &SetSBFileRedirect);
+
+  R.Register(
+    &invoke<SBError (SBDebugger::*)(File &)>::method<&SBDebugger::SetInputFile>::doit,
+    &SetFileRedirect);
+  R.Register(
+    &invoke<SBError (SBDebugger::*)(File &)>::method<&SBDebugger::SetOutputFile>::doit,
+    &SetFileRedirect);
+  R.Register(
+    &invoke<SBError (SBDebugger::*)(File &)>::method<&SBDebugger::SetErrorFile>::doit,
     &SetFileRedirect);
 
   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, ());

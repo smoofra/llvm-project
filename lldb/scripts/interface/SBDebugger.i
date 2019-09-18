@@ -165,32 +165,47 @@ public:
     void
     SkipLLDBInitFiles (bool b);
 
+    %feature("autodoc", "DEPRECATED, use SetInputFile");
     void
     SetInputFileHandle (FILE *f, bool transfer_ownership);
 
+    %feature("autodoc", "DEPRECATED, use SetOutputFile");
     void
     SetOutputFileHandle (FILE *f, bool transfer_ownership);
 
+    %feature("autodoc", "DEPRECATED, use SetErrorFile");
     void
     SetErrorFileHandle (FILE *f, bool transfer_ownership);
 
+    %feature("autodoc", "DEPRECATED, use GetInputFile");
     FILE *
     GetInputFileHandle ();
 
+    %feature("autodoc", "DEPRECATED, use GetOutputFile");
     FILE *
     GetOutputFileHandle ();
 
+    %feature("autodoc", "DEPRECATED, use GetErrorFile");
     FILE *
     GetErrorFileHandle ();
 
     SBError
-    SetInputFile (SBFile file);
+    SetInputFile (SBFile &file);
 
     SBError
-    SetOutputFile (SBFile file);
+    SetOutputFile (SBFile &file);
 
     SBError
-    SetErrorFile (SBFile file);
+    SetErrorFile (SBFile &file);
+
+    SBError
+    SetInputFile (lldb_private::File &file);
+
+    SBError
+    SetOutputFile (lldb_private::File &file);
+
+    SBError
+    SetErrorFile (lldb_private::File &file);
 
     SBFile
     GetInputFile ();
