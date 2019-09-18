@@ -560,7 +560,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
     @skipIf(py_version=['<', (3,)])
     def test_string_error(self):
         f = io.StringIO()
@@ -631,7 +630,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
     @skipIf(py_version=['<', (3,)])
     def test_file_out(self):
         with open(self.out_filename, 'w') as f:
@@ -655,7 +653,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
     def test_file_error(self):
         with open(self.out_filename, 'w') as f:
             status = self.debugger.SetErrorFile(f)
@@ -747,7 +744,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetOutputFile
     def test_close(self):
         debugger = self.debugger
         with open(self.out_filename, 'w') as f:
@@ -768,7 +764,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @skipIf(py_version=['<', (3,)])
-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetOutputFile
     def test_stdout(self):
         f = io.StringIO()
         status = self.debugger.SetOutputFile(f)
