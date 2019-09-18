@@ -213,8 +213,14 @@ public:
     void
     HandleProcessEvent (const lldb::SBProcess &process,
                         const lldb::SBEvent &event,
-                        FILE *out,
-                        FILE *err);
+                        SBFile &out,
+                        SBFile &err);
+
+    void
+    HandleProcessEvent (const lldb::SBProcess &process,
+                        const lldb::SBEvent &event,
+                        lldb_private::File &BORROWED,
+                        lldb_private::File &BORROWED);
 
     lldb::SBTarget
     CreateTarget (const char *filename,

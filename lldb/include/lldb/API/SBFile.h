@@ -15,6 +15,7 @@ namespace lldb {
 
 class LLDB_API SBFile {
   friend class SBDebugger;
+  friend class SBProcess;
 public:
 
   SBFile (const SBFile &file);

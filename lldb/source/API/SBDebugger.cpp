@@ -518,8 +518,7 @@ void SBDebugger::HandleCommand(const char *command) {
         while (lldb_listener_sp->GetEventForBroadcaster(
             process_sp.get(), event_sp, std::chrono::seconds(0))) {
           SBEvent event(event_sp);
-          HandleProcessEvent(process, event, GetOutputFileHandle(),
-                             GetErrorFileHandle());
+          HandleProcessEvent(process, event, GetOutputFile(), GetErrorFile());
         }
       }
     }
@@ -536,12 +535,36 @@ SBListener SBDebugger::GetListener() {
   return LLDB_RECORD_RESULT(sb_listener);
 }
 
+void SBDebugger::HandleProcessEvent(const SBProcess &process, const SBEvent &event,
+                                    SBFile &out, SBFile &err) {
+
+  LLDB_RECORD_METHOD(
+      void, SBDebugger, HandleProcessEvent,
+      (const lldb::SBProcess &, const lldb::SBEvent &, SBFile &, SBFile &), process,
+      event, out, err);
+
+  return HandleProcessEvent(process, event, out.GetFile(), err.GetFile());
+}
+
 void SBDebugger::HandleProcessEvent(const SBProcess &process,
                                     const SBEvent &event, FILE *out,
                                     FILE *err) {
   LLDB_RECORD_METHOD(
       void, SBDebugger, HandleProcessEvent,
       (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *), process,
+      event, out, err);
+
+  File outfile(out, false);
+  File errfile(err, false);
+  return HandleProcessEvent(process, event, outfile, errfile);
+}
+
+void SBDebugger::HandleProcessEvent(const SBProcess &process, const SBEvent &event,
+                                    File &out, File &err) {
+
+  LLDB_RECORD_METHOD(
+      void, SBDebugger, HandleProcessEvent,
+      (const lldb::SBProcess &, const lldb::SBEvent &, File &, File &), process,
       event, out, err);
 
   if (!process.IsValid())
@@ -561,16 +584,14 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
       (Process::eBroadcastBitSTDOUT | Process::eBroadcastBitStateChanged)) {
     // Drain stdout when we stop just in case we have any bytes
     while ((len = process.GetSTDOUT(stdio_buffer, sizeof(stdio_buffer))) > 0)
-      if (out != nullptr)
-        ::fwrite(stdio_buffer, 1, len, out);
+      out.Write(stdio_buffer, len);
   }
 
   if (event_type &
       (Process::eBroadcastBitSTDERR | Process::eBroadcastBitStateChanged)) {
     // Drain stderr when we stop just in case we have any bytes
     while ((len = process.GetSTDERR(stdio_buffer, sizeof(stdio_buffer))) > 0)
-      if (err != nullptr)
-        ::fwrite(stdio_buffer, 1, len, err);
+      err.Write(stdio_buffer, len);
   }
 
   if (event_type & Process::eBroadcastBitStateChanged) {
@@ -1684,6 +1705,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
   LLDB_REGISTER_METHOD(
       void, SBDebugger, HandleProcessEvent,
       (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *));
+  LLDB_REGISTER_METHOD(
+      void, SBDebugger, HandleProcessEvent,
+      (const lldb::SBProcess &, const lldb::SBEvent &, SBFile &, SBFile &));
+  LLDB_REGISTER_METHOD(
+      void, SBDebugger, HandleProcessEvent,
+      (const lldb::SBProcess &, const lldb::SBEvent &, File &, File &));
   LLDB_REGISTER_METHOD(lldb::SBSourceManager, SBDebugger, GetSourceManager, ());
   LLDB_REGISTER_STATIC_METHOD(bool, SBDebugger, SetDefaultArchitecture,
                               (const char *));
