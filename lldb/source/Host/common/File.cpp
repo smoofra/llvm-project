@@ -501,47 +501,32 @@ Status File::Write(const void *buf, size_t &num_bytes) {
     return m_fops->Write(buf, num_bytes);
   }
 
-#if defined(MAX_WRITE_SIZE)
-  if (num_bytes > MAX_WRITE_SIZE) {
+  if (DescriptorIsValid()) {
     const uint8_t *p = (const uint8_t *)buf;
     size_t bytes_left = num_bytes;
-    // Init the num_bytes written to zero
-    num_bytes = 0;
-
+    size_t bytes_written = 0;
     while (bytes_left > 0) {
-      size_t curr_num_bytes;
-      if (bytes_left > MAX_WRITE_SIZE)
-        curr_num_bytes = MAX_WRITE_SIZE;
-      else
-        curr_num_bytes = bytes_left;
+      size_t curr_num_bytes = bytes_left;
+      #if defined(MAX_WRITE_SIZE)
+        if (bytes_left > MAX_WRITE_SIZE)
+          curr_num_bytes = MAX_WRITE_SIZE;
+      #endif
 
-      error = Write(p + num_bytes, curr_num_bytes);
-
-      // Update how many bytes were read
-      num_bytes += curr_num_bytes;
-      if (bytes_left < curr_num_bytes)
-        bytes_left = 0;
-      else
-        bytes_left -= curr_num_bytes;
-
-      if (error.Fail())
+      int r = llvm::sys::RetryAfterSignal(-1, ::write, m_descriptor, p+bytes_written, curr_num_bytes);
+      if (r < 0) {
+        error.SetErrorToErrno();
         break;
+      } else if (r > 0) {
+        bytes_written += r;
+        bytes_left -= r;
+      } else {
+        break;
+      }
     }
-    return error;
-  }
-#endif
+    num_bytes = bytes_written;
 
-  ssize_t bytes_written = -1;
-  if (DescriptorIsValid()) {
-    bytes_written =
-        llvm::sys::RetryAfterSignal(-1, ::write, m_descriptor, buf, num_bytes);
-    if (bytes_written == -1) {
-      error.SetErrorToErrno();
-      num_bytes = 0;
-    } else
-      num_bytes = bytes_written;
   } else if (StreamIsValid()) {
-    bytes_written = ::fwrite(buf, 1, num_bytes, m_stream);
+    size_t bytes_written = ::fwrite(buf, 1, num_bytes, m_stream);
 
     if (bytes_written == 0) {
       if (::feof(m_stream))
