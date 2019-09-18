@@ -266,7 +266,8 @@ IOHandlerEditline::IOHandlerEditline(
 #ifndef LLDB_DISABLE_LIBEDIT
   bool use_editline = false;
 
-  use_editline = m_input_sp->GetFile().GetIsRealTerminal();
+  use_editline = GetInputFILE() && GetOutputFILE() && GetErrorFILE() &&
+    m_input_sp->GetFile().GetIsRealTerminal();
 
   if (use_editline) {
     m_editline_up.reset(new Editline(editline_name, GetInputFILE(),
