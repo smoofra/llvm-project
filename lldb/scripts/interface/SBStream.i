@@ -75,7 +75,18 @@ public:
     RedirectToFile (const char *path, bool append);
 
     void
-    RedirectToFileHandle (FILE *fh, bool transfer_fh_ownership);
+    RedirectToFile (SBFile &file);
+
+    void
+    RedirectToFile (lldb_private::File &file);
+
+    %extend {
+        %feature("autodoc", "DEPRECATED, use RedirectToFile");
+        void
+        RedirectToFileHandle (lldb_private::File &file, bool transfer_fh_ownership) {
+            self->RedirectToFile(file);
+        }
+    }
 
     void
     RedirectToFileDescriptor (int fd, bool transfer_fh_ownership);

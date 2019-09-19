@@ -14,6 +14,7 @@
 #include "lldb/Utility/Status.h"
 #include "lldb/Utility/Stream.h"
 #include "lldb/Utility/StreamString.h"
+#include "lldb/API/SBFile.h"
 
 using namespace lldb;
 using namespace lldb_private;
@@ -107,8 +108,17 @@ void SBStream::RedirectToFile(const char *path, bool append) {
 void SBStream::RedirectToFileHandle(FILE *fh, bool transfer_fh_ownership) {
   LLDB_RECORD_METHOD(void, SBStream, RedirectToFileHandle, (FILE *, bool), fh,
                      transfer_fh_ownership);
+}
 
-  if (fh == nullptr)
+void SBStream::RedirectToFile(SBFile &file) {
+  LLDB_RECORD_METHOD(void, SBStream, RedirectToFile, (SBFile &), file)
+  RedirectToFile(file.GetFile());
+}
+
+void SBStream::RedirectToFile(File &file) {
+  LLDB_RECORD_METHOD(void, SBStream, RedirectToFile, (File &), file);
+
+  if (!file.IsValid())
     return;
 
   std::string local_data;
@@ -118,7 +128,7 @@ void SBStream::RedirectToFileHandle(FILE *fh, bool transfer_fh_ownership) {
     if (!m_is_file)
       local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
   }
-  m_opaque_up.reset(new StreamFile(fh, transfer_fh_ownership));
+  m_opaque_up.reset(new StreamFile(file));
 
   if (m_opaque_up) {
     m_is_file = true;
@@ -189,6 +199,8 @@ void RegisterMethods<SBStream>(Registry &R) {
   LLDB_REGISTER_METHOD(const char *, SBStream, GetData, ());
   LLDB_REGISTER_METHOD(size_t, SBStream, GetSize, ());
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (const char *, bool));
+  LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (File &));
+  LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (SBFile &));
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFileHandle, (FILE *, bool));
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFileDescriptor, (int, bool));
   LLDB_REGISTER_METHOD(void, SBStream, Clear, ());
