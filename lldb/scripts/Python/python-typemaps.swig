@@ -417,6 +417,27 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
   }
 }
 
+%typemap(out) lldb_private::File & {
+  using namespace lldb_private;
+  PythonFile pyfile(*$1);
+  $result = pyfile.release();
+  if (!$result)
+  {
+      $result = Py_None;
+      Py_INCREF(Py_None);
+  }
+}
+
+%typemap(out) lldb_private::File {
+  using namespace lldb_private;
+  PythonFile pyfile($1);
+  $result = pyfile.release();
+  if (!$result)
+  {
+      $result = Py_None;
+      Py_INCREF(Py_None);
+  }
+}
 
 // FIXME both of these paths wind up calling fdopen() with no provision for ever calling
 // fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting

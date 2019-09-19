@@ -119,10 +119,16 @@ void File::SetDescriptor(int fd, uint32_t options, bool transfer_ownership) {
   }
 }
 
+const char *File::GetFdopenMode() const {
+  if (m_options)
+    return GetStreamOpenModeFromOptions(m_options);
+  return nullptr;
+}
+
 FILE *File::GetStream() {
   if (!StreamIsValid()) {
     if (DescriptorIsValid() && !OverridesIO()) {
-      const char *mode = GetStreamOpenModeFromOptions(m_options);
+      const char *mode = GetFdopenMode();
       if (mode) {
         if (!m_fops) {
           m_fops = std::make_shared<FileOps>();

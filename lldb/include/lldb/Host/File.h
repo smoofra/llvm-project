@@ -23,26 +23,38 @@ namespace lldb_private {
 
 class FileOps {
   friend class File;
+  friend class PythonFile;
 public:
+  enum FileOpsKind {
+    FOK_FileOps = 0,
+    FOK_SimplePythonFileOps,
+    FOK_BinaryPythonFileOps,
+    FOK_TextPythonFileOps,
+    FOK_Last_SimplePythonFileOps,
+  };
+  FileOpsKind GetKind() const { return m_kind; }
   static const int kInvalidDescriptor = -1;
   FileOps() :
     m_descriptor(kInvalidDescriptor),
     m_stream(nullptr),
     m_own_descriptor(false),
     m_own_stream(false),
-    m_overrides_io(false) {};
+    m_overrides_io(false),
+    m_kind(FOK_FileOps) {};
   FileOps(FILE *stream, bool take_ownership) :
     m_descriptor(kInvalidDescriptor),
     m_stream(stream),
     m_own_descriptor(false),
     m_own_stream(take_ownership),
-    m_overrides_io(false) {};
+    m_overrides_io(false),
+    m_kind(FOK_FileOps) {};
   FileOps(int descriptor, bool take_ownership) :
     m_descriptor(descriptor),
     m_stream(nullptr),
     m_own_descriptor(take_ownership),
     m_own_stream(false),
-    m_overrides_io(false) {};
+    m_overrides_io(false),
+    m_kind(FOK_FileOps) {};
   virtual Status Close();
   virtual ~FileOps();
   virtual Status Write(const void *buf, size_t &num_bytes);
@@ -60,6 +72,7 @@ protected:
   // closed.   If it's true then actual io operations will be routed
   // through the FileOps.
   bool m_overrides_io;
+  FileOpsKind m_kind;
 };
 
 /// \class File File.h "lldb/Host/File.h"
@@ -68,6 +81,7 @@ protected:
 /// A file class that divides abstracts the LLDB core from host file
 /// functionality.
 class File : public IOObject {
+  friend class PythonFile;
 public:
   static int kInvalidDescriptor;
   static FILE *kInvalidStream;
@@ -203,6 +217,8 @@ public:
   int GetDescriptor() const;
 
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
+
+  const char *GetFdopenMode() const;
 
   WaitableHandle GetWaitableHandle() override;
 

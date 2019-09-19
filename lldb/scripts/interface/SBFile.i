@@ -58,6 +58,8 @@ public:
     bool IsValid() const;
 
     SBError Close();
+
+    lldb_private::File &GetFile();
 };
 
 } // namespace lldb

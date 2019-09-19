@@ -459,7 +459,7 @@ public:
 class PythonFile : public PythonObject {
 public:
   PythonFile();
-  PythonFile(File &file, const char *mode);
+  PythonFile(File &file, const char *mode = nullptr);
   PythonFile(const char *path, const char *mode);
   PythonFile(PyRefType type, PyObject *o);
 
@@ -470,7 +470,7 @@ public:
   using PythonObject::Reset;
 
   void Reset(PyRefType type, PyObject *py_obj) override;
-  void Reset(File &file, const char *mode);
+  void Reset(File &file, const char *mode = nullptr);
 
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
 

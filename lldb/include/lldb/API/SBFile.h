@@ -14,9 +14,6 @@
 namespace lldb {
 
 class LLDB_API SBFile {
-  friend class SBDebugger;
-  friend class SBCommandReturnObject;
-  friend class SBProcess;
 public:
 
   SBFile (const SBFile &file);
@@ -43,8 +40,9 @@ public:
   operator bool() const { return IsValid(); }
   bool operator!() const { return !IsValid(); }
 
-private:
   lldb_private::File &GetFile() const { return *m_opaque_up; }
+
+private:
   FileUP m_opaque_up;
 };
 

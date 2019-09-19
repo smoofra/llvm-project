@@ -24,6 +24,7 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/Errno.h"
+#include "llvm/Support/Casting.h"
 
 #include <stdio.h>
 
@@ -1009,24 +1010,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
   PythonObject::Reset(PyRefType::Borrowed, result.get());
 }
 
-void PythonFile::Reset(File &file, const char *mode) {
-  if (!file.IsValid()) {
-    Reset();
-    return;
-  }
-
-  char *cmode = const_cast<char *>(mode);
-#if PY_MAJOR_VERSION >= 3
-  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
-                                        -1, nullptr, "ignore", nullptr, 0));
-#else
-  // Read through the Python source, doesn't seem to modify these strings
-  Reset(PyRefType::Owned,
-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
-                        nullptr));
-#endif
-}
-
 bool PythonFile::GetUnderlyingFile(File &file) const {
   if (!IsValid())
     return false;
@@ -1081,14 +1064,18 @@ static Status PyException(const char *caller) {
 }
 
 class SimplePythonFileOps : public FileOps {
+  friend class PythonFile;
 public:
+
   SimplePythonFileOps(int fd, PyObject *py_obj, bool borrowed) :
       FileOps(fd, false),
       m_py_obj(py_obj),
       m_borrowed(borrowed)
   {
+    m_kind = FOK_SimplePythonFileOps;
     Py_INCREF(m_py_obj);
   }
+
   Status Close() override {
     FileOps::Close();
     GIL takeGIL;
@@ -1097,10 +1084,48 @@ public:
     Py_XDECREF(m_py_obj);
     return PyException("Close");
   };
+
+  static bool classof(const FileOps *fops) {
+    return fops->GetKind() >= FOK_SimplePythonFileOps &&
+      fops->GetKind() <= FOK_Last_SimplePythonFileOps;
+  }
+
 protected:
   PyObject *m_py_obj;
   bool m_borrowed;
 };
+
+void PythonFile::Reset(File &file, const char *mode) {
+  if (!file.IsValid()) {
+    Reset();
+    return;
+  }
+
+  if (file.m_fops) {
+    auto *fops = llvm::dyn_cast<SimplePythonFileOps>(&*file.m_fops);
+    if (fops) {
+      Reset(PyRefType::Borrowed, fops->m_py_obj);
+      return;
+    }
+  }
+
+  if (!mode)
+    mode = file.GetFdopenMode();
+  if (!mode) {
+    Reset();
+    return;
+  }
+
+#if PY_MAJOR_VERSION >= 3
+  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, mode,
+                                        -1, nullptr, "ignore", nullptr, 0));
+#else
+  // Read through the Python source, doesn't seem to modify these strings
+  Reset(PyRefType::Owned,
+        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), mode,
+                        nullptr));
+#endif
+}
 
 Status PythonFile::ConvertToFile(File &file, bool borrowed) {
   Status error;
@@ -1157,7 +1182,10 @@ class BinaryPythonFileOps : public SimplePythonFileOps {
 public:
   BinaryPythonFileOps(int fd, PyObject *py_obj, bool borrowed)
     : SimplePythonFileOps(fd, py_obj, borrowed)
-  { m_overrides_io = true; }
+  {
+    m_kind = FOK_BinaryPythonFileOps;
+    m_overrides_io = true;
+  }
 
   Status Write(const void *buf, size_t &num_bytes) override {
     GIL takeGIL;
@@ -1209,7 +1237,10 @@ class TextPythonFileOps : public SimplePythonFileOps {
 public:
   TextPythonFileOps(int fd, PyObject *py_obj, bool borrowed)
     : SimplePythonFileOps(fd, py_obj, borrowed)
-  { m_overrides_io = true; }
+  {
+    m_kind = FOK_TextPythonFileOps;
+    m_overrides_io = true;
+  }
 
   Status Write(const void *buf, size_t &num_bytes) override {
     GIL takeGIL;
