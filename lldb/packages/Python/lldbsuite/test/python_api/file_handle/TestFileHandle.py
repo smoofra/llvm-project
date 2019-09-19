@@ -401,9 +401,8 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME IOHandler still using FILE*
     def test_string_inout(self):
-        inf = io.StringIO("help help\n")
+        inf = io.StringIO("help help\np/x ~0\n")
         outf = io.StringIO()
         status = self.debugger.SetOutputFile(lldb.SBFile(outf))
         self.assertTrue(status.Success())
@@ -414,10 +413,10 @@ class FileHandleTestCase(lldbtest.TestBase):
         self.debugger.GetOutputFile().Flush()
         output = outf.getvalue()
         self.assertIn('Show a list of all debugger commands', output)
+        self.assertIn('0xfff', output)
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) # FIXME IOHandler still using FILE*
     def test_bytes_inout(self):
         inf = io.BytesIO(b"help help\nhelp b\n")
         outf = io.BytesIO()
