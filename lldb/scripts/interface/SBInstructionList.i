@@ -55,7 +55,10 @@ public:
     AppendInstruction (lldb::SBInstruction inst);
 
     void
-    Print (FILE *out);
+    Print (SBFile &out);
+
+    void
+    Print (lldb_private::File &BORROWED);
 
     bool
     GetDescription (lldb::SBStream &description);
