@@ -103,6 +103,11 @@ bool SBFile::operator!() const {
   return LLDB_RECORD_RESULT(!IsValid());
 }
 
+FileSP SBFile::GetFile() const {
+  LLDB_RECORD_METHOD_CONST_NO_ARGS(FileSP, SBFile, GetFile);
+  return m_opaque_sp;
+}
+
 static SBFile *dummy() { return new SBFile(); }
 static SBFile *dummy(int, const char *, bool) { return new SBFile(); }
 static SBFile *dummy(FILE *, bool) { return new SBFile(); }
@@ -122,6 +127,7 @@ template <> void RegisterMethods<SBFile>(Registry &R) {
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator bool,());
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator!,());
+  LLDB_REGISTER_METHOD_CONST(FileSP, SBFile, GetFile, ());
   LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Close, ());
 }
 } // namespace repro

@@ -612,7 +612,7 @@ public:
 class PythonFile : public PythonObject {
 public:
   PythonFile();
-  PythonFile(File &file, const char *mode);
+  PythonFile(File &file, const char *mode = nullptr);
   PythonFile(PyRefType type, PyObject *o);
 
   ~PythonFile() override;
@@ -622,7 +622,7 @@ public:
   using PythonObject::Reset;
 
   void Reset(PyRefType type, PyObject *py_obj) override;
-  void Reset(File &file, const char *mode);
+  void Reset(File &file, const char *mode = nullptr);
 
   lldb::FileUP GetUnderlyingFile() const;
 
