@@ -316,27 +316,70 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
 #endif
     line.clear();
 
-    FILE *in = GetInputFILE();
-    if (in) {
-      if (GetIsInteractive()) {
-        const char *prompt = nullptr;
+    if (GetIsInteractive()) {
+      const char *prompt = nullptr;
 
-        if (m_multi_line && m_curr_line_idx > 0)
-          prompt = GetContinuationPrompt();
+      if (m_multi_line && m_curr_line_idx > 0)
+        prompt = GetContinuationPrompt();
 
-        if (prompt == nullptr)
-          prompt = GetPrompt();
+      if (prompt == nullptr)
+        prompt = GetPrompt();
 
-        if (prompt && prompt[0]) {
-          if (m_output_sp) {
-            m_output_sp->GetFile().Printf("%s", prompt);
-            m_output_sp->Flush();
-          }
+      if (prompt && prompt[0]) {
+        if (m_output_sp) {
+          m_output_sp->GetFile().Printf("%s", prompt);
+          m_output_sp->Flush();
         }
       }
-      char buffer[256];
-      bool done = false;
-      bool got_line = false;
+    }
+
+    FILE *in = GetInputFILE();
+    char buffer[256];
+    bool done = false;
+    bool got_line = false;
+
+    if (!in && m_input_sp) {
+      // there is no FILE*, fall back on just reading bytes from the stream.
+
+      size_t pos = m_line_buffer.find('\n');
+      if (pos != std::string::npos) {
+        size_t end = pos;
+        while (end > 0 && (m_line_buffer[end] == '\n' || m_line_buffer[end] == '\r'))
+          end--;
+        line = m_line_buffer.substr(0, end+1);
+        m_line_buffer = m_line_buffer.substr(pos+1);
+        done = true;
+        got_line = true;
+      }
+
+      while (!done) {
+        size_t bytes_read = sizeof(buffer);
+        m_input_sp->GetFile().Read((void*)buffer, bytes_read);
+        if (bytes_read) {
+          auto bytes = llvm::StringRef(buffer, bytes_read);
+          size_t pos = bytes.find('\n');
+          if (pos != llvm::StringRef::npos) {
+            size_t end = pos;
+            while (end > 0 && (bytes[end] == '\n' || bytes[end] == '\r'))
+              end--;
+            line = m_line_buffer;
+            line.append(bytes.substr(0, end+1));
+            m_line_buffer = bytes.substr(pos+1);
+            done = true;
+            got_line = true;
+          } else {
+            m_line_buffer.append(bytes);
+          }
+        } else {
+          // No more input file, we are done...
+          SetIsDone(true);
+          done = true;
+        }
+      }
+      return got_line;
+    }
+
+    if (in) {
       m_editing = true;
       while (!done) {
 #ifdef _WIN32
