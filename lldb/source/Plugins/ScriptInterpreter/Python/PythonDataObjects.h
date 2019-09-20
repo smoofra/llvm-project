@@ -471,8 +471,6 @@ public:
   void Reset(PyRefType type, PyObject *py_obj) override;
   void Reset(File &file, const char *mode = nullptr);
 
-  lldb::FileUP GetUnderlyingFile() const;
-
   llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
   llvm::Expected<lldb::FileSP>
   ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
