@@ -641,8 +641,6 @@ public:
     }
   }
 
-  lldb::FileUP GetUnderlyingFile() const;
-
   llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
   llvm::Expected<lldb::FileSP>
   ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
