@@ -460,7 +460,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIf(True) #FIXME bug in ScriptInterpreterPython
     def test_replace_stdout_with_nonfile(self):
         debugger = self.debugger
         f = io.StringIO()
