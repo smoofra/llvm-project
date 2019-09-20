@@ -1075,22 +1075,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
   return Take<PythonFile>(file_obj);
 }
 
-
-FileUP PythonFile::GetUnderlyingFile() const {
-  if (!IsValid())
-    return nullptr;
-
-  // We don't own the file descriptor returned by this function, make sure the
-  // File object knows about that.
-  PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
-  auto options = File::GetOptionsFromMode(py_mode.GetString());
-  auto file = std::unique_ptr<File>(
-      new NativeFile(PyObject_AsFileDescriptor(m_py_obj), options, false));
-  if (!file->IsValid())
-    return nullptr;
-  return file;
-}
-
 namespace {
 class GIL {
 public:
