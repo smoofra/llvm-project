@@ -1111,7 +1111,8 @@ void PythonFile::Reset(File &file, const char *mode) {
 #else
   // Read through the Python source, doesn't seem to modify these strings
   Reset(PyRefType::Owned,
-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), mode,
+        PyFile_FromFile(file.GetStream(),
+                        const_cast<char *>(""), const_cast<char *>(mode),
                         nullptr));
 #endif
 }
@@ -1150,6 +1151,8 @@ Status PythonFile::ConvertToFile(File &file, bool borrowed) {
   }
   return error;
 }
+
+#if PY_MAJOR_VERSION >= 3
 
 class PythonBuffer {
 public:
@@ -1286,7 +1289,11 @@ public:
   }
 };
 
+#endif
+
 Status PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(File &file, bool borrowed) {
+#if PY_MAJOR_VERSION >= 3
+
   if (!IsValid())
     return Status("invalid PythonFile");
 
@@ -1318,6 +1325,11 @@ Status PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(File &file, bool 
     return Status("invalid file");
 
   return Status();
+
+#else
+  file.Close();
+  return Status("not implemented on python2");
+#endif
 }
 
 #endif

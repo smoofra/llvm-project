@@ -438,6 +438,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_string_out(self):
         f = io.StringIO()
         debugger = lldb.SBDebugger.Create()
@@ -453,6 +454,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_stdout(self):
         f = io.StringIO()
         debugger = lldb.SBDebugger.Create()
@@ -468,6 +470,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_string_error(self):
 
         f = io.StringIO()
@@ -487,6 +490,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_string_inout(self):
 
         debugger = lldb.SBDebugger.Create()
@@ -516,6 +520,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_bytes_inout(self):
 
         debugger = lldb.SBDebugger.Create()
@@ -585,6 +590,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_stream_error(self):
 
         messages = list()
@@ -606,6 +612,7 @@ class FileHandleTestCase(TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_identity(self):
         f = io.StringIO()
         sbf = lldb.SBFile()
