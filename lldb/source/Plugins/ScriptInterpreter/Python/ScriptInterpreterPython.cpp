@@ -382,7 +382,7 @@ void ScriptInterpreterPython::Terminate() {}
 
 ScriptInterpreterPythonImpl::Locker::Locker(
     ScriptInterpreterPythonImpl *py_interpreter, uint16_t on_entry,
-    uint16_t on_leave, FILE *in, FILE *out, FILE *err)
+    uint16_t on_leave, File *in, File *out, File *err)
     : ScriptInterpreterLocker(),
       m_teardown_session((on_leave & TearDownSession) == TearDownSession),
       m_python_interpreter(py_interpreter) {
@@ -411,9 +411,10 @@ bool ScriptInterpreterPythonImpl::Locker::DoAcquireLock() {
   return true;
 }
 
-bool ScriptInterpreterPythonImpl::Locker::DoInitSession(uint16_t on_entry_flags,
-                                                        FILE *in, FILE *out,
-                                                        FILE *err) {
+bool ScriptInterpreterPythonImpl::Locker::DoInitSession(
+    uint16_t on_entry_flags,
+    File *in, File *out, File *err)
+{
   if (!m_python_interpreter)
     return false;
   return m_python_interpreter->EnterSession(on_entry_flags, in, out, err);
@@ -649,7 +650,7 @@ void ScriptInterpreterPythonImpl::LeaveSession() {
 }
 
 bool ScriptInterpreterPythonImpl::SetStdHandle(File &file, const char *py_name,
-                                               PythonFile &save_file,
+                                               PythonObject &save_file,
                                                const char *mode) {
   if (file.IsValid()) {
     // Flush the file before giving it to python to avoid interleaved output.
@@ -657,8 +658,7 @@ bool ScriptInterpreterPythonImpl::SetStdHandle(File &file, const char *py_name,
 
     PythonDictionary &sys_module_dict = GetSysModuleDictionary();
 
-    save_file = sys_module_dict.GetItemForKey(PythonString(py_name))
-                    .AsType<PythonFile>();
+    save_file = sys_module_dict.GetItemForKey(PythonString(py_name));
 
     PythonFile new_file(file, mode);
     sys_module_dict.SetItemForKey(PythonString(py_name), new_file);
@@ -669,7 +669,7 @@ bool ScriptInterpreterPythonImpl::SetStdHandle(File &file, const char *py_name,
 }
 
 bool ScriptInterpreterPythonImpl::EnterSession(uint16_t on_entry_flags,
-                                               FILE *in, FILE *out, FILE *err) {
+                                               File *inp, File *outp, File *errp) {
   // If we have already entered the session, without having officially 'left'
   // it, then there is no need to 'enter' it again.
   Log *log(lldb_private::GetLogIfAllCategoriesSet(LIBLLDB_LOG_SCRIPT));
@@ -718,31 +718,35 @@ bool ScriptInterpreterPythonImpl::EnterSession(uint16_t on_entry_flags,
 
   PythonDictionary &sys_module_dict = GetSysModuleDictionary();
   if (sys_module_dict.IsValid()) {
-    File in_file(in, false);
-    File out_file(out, false);
-    File err_file(err, false);
+    File in, out, err;
+    if (inp)
+      in = *inp;
+    if (outp)
+      out = *outp;
+    if (errp)
+      err = *errp;
 
     lldb::StreamFileSP in_sp;
     lldb::StreamFileSP out_sp;
     lldb::StreamFileSP err_sp;
-    if (!in_file.IsValid() || !out_file.IsValid() || !err_file.IsValid())
+    if (!in.IsValid() || !out.IsValid() || !err.IsValid())
       m_debugger.AdoptTopIOHandlerFilesIfInvalid(in_sp, out_sp, err_sp);
 
     if (on_entry_flags & Locker::NoSTDIN) {
       m_saved_stdin.Reset();
     } else {
-      if (!SetStdHandle(in_file, "stdin", m_saved_stdin, "r")) {
+      if (!SetStdHandle(in, "stdin", m_saved_stdin, "r")) {
         if (in_sp)
           SetStdHandle(in_sp->GetFile(), "stdin", m_saved_stdin, "r");
       }
     }
 
-    if (!SetStdHandle(out_file, "stdout", m_saved_stdout, "w")) {
+    if (!SetStdHandle(out, "stdout", m_saved_stdout, "w")) {
       if (out_sp)
         SetStdHandle(out_sp->GetFile(), "stdout", m_saved_stdout, "w");
     }
 
-    if (!SetStdHandle(err_file, "stderr", m_saved_stderr, "w")) {
+    if (!SetStdHandle(err, "stderr", m_saved_stderr, "w")) {
       if (err_sp)
         SetStdHandle(err_sp->GetFile(), "stderr", m_saved_stderr, "w");
     }
@@ -914,9 +918,9 @@ bool ScriptInterpreterPythonImpl::ExecuteOneLine(
       error_file_sp = output_file_sp;
     }
 
-    FILE *in_file = input_file_sp->GetFile().GetStream();
-    FILE *out_file = output_file_sp->GetFile().GetStream();
-    FILE *err_file = error_file_sp->GetFile().GetStream();
+    File &in_file = input_file_sp->GetFile();
+    File &out_file = output_file_sp->GetFile();
+    File &err_file = error_file_sp->GetFile();
     bool success = false;
     {
       // WARNING!  It's imperative that this RAII scope be as tight as
@@ -932,8 +936,8 @@ bool ScriptInterpreterPythonImpl::ExecuteOneLine(
           Locker::AcquireLock | Locker::InitSession |
               (options.GetSetLLDBGlobals() ? Locker::InitGlobals : 0) |
               ((result && result->GetInteractive()) ? 0 : Locker::NoSTDIN),
-          Locker::FreeAcquiredLock | Locker::TearDownSession, in_file, out_file,
-          err_file);
+          Locker::FreeAcquiredLock | Locker::TearDownSession,
+          &in_file, &out_file, &err_file);
 
       // Find the correct script interpreter dictionary in the main module.
       PythonDictionary &session_dict = GetSessionDictionary();
@@ -960,9 +964,8 @@ bool ScriptInterpreterPythonImpl::ExecuteOneLine(
       }
 
       // Flush our output and error file handles
-      ::fflush(out_file);
-      if (out_file != err_file)
-        ::fflush(err_file);
+      out_file.Flush();
+      err_file.Flush();
     }
 
     if (join_read_thread) {

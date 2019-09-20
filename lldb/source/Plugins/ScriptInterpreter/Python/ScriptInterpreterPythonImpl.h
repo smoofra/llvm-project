@@ -292,17 +292,19 @@ public:
       TearDownSession = 0x0004
     };
 
-    Locker(ScriptInterpreterPythonImpl *py_interpreter = nullptr,
+    Locker(ScriptInterpreterPythonImpl *py_interpreter,
            uint16_t on_entry = AcquireLock | InitSession,
-           uint16_t on_leave = FreeLock | TearDownSession, FILE *in = nullptr,
-           FILE *out = nullptr, FILE *err = nullptr);
+           uint16_t on_leave = FreeLock | TearDownSession,
+           File *in = nullptr,
+           File *out = nullptr,
+           File *err = nullptr);
 
     ~Locker() override;
 
   private:
     bool DoAcquireLock();
 
-    bool DoInitSession(uint16_t on_entry_flags, FILE *in, FILE *out, FILE *err);
+    bool DoInitSession(uint16_t on_entry_flags, File *in, File *out, File *err);
 
     bool DoFreeLock();
 
@@ -310,7 +312,6 @@ public:
 
     bool m_teardown_session;
     ScriptInterpreterPythonImpl *m_python_interpreter;
-    //    	FILE*                    m_tmp_fh;
     PyGILState_STATE m_GILState;
   };
 
@@ -339,7 +340,7 @@ public:
 
   static void AddToSysPath(AddLocation location, std::string path);
 
-  bool EnterSession(uint16_t on_entry_flags, FILE *in, FILE *out, FILE *err);
+  bool EnterSession(uint16_t on_entry_flags, File *in, File *out, File *err);
 
   void LeaveSession();
 
@@ -367,12 +368,12 @@ public:
 
   bool GetEmbeddedInterpreterModuleObjects();
 
-  bool SetStdHandle(File &file, const char *py_name, PythonFile &save_file,
+  bool SetStdHandle(File &file, const char *py_name, PythonObject &save_file,
                     const char *mode);
 
-  PythonFile m_saved_stdin;
-  PythonFile m_saved_stdout;
-  PythonFile m_saved_stderr;
+  PythonObject m_saved_stdin;
+  PythonObject m_saved_stdout;
+  PythonObject m_saved_stderr;
   PythonObject m_main_module;
   PythonDictionary m_session_dict;
   PythonDictionary m_sys_module_dict;
