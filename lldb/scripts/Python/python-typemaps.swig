@@ -439,66 +439,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
   }
 }
 
-// FIXME both of these paths wind up calling fdopen() with no provision for ever calling
-// fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
-// use and this typemap should eventually be removed.
-%typemap(in) FILE * {
-   using namespace lldb_private;
-   if ($input == Py_None)
-      $1 = nullptr;
-   else if (!lldb_private::PythonFile::Check($input)) {
-      int fd = PyObject_AsFileDescriptor($input);
-      PythonObject py_input(PyRefType::Borrowed, $input);
-      PythonString py_mode = py_input.GetAttributeValue("mode").AsType<PythonString>();
-
-      if (-1 != fd && py_mode.IsValid()) {
-         FILE *f;
-         if ((f = fdopen(fd, py_mode.GetString().str().c_str())))
-            $1 = f;
-         else
-            PyErr_SetString(PyExc_TypeError, strerror(errno));
-      } else {
-         PyErr_SetString(PyExc_TypeError,"not a file-like object");
-         return nullptr;
-      }
-   }
-   else
-   {
-      PythonFile py_file(PyRefType::Borrowed, $input);
-      File file;
-      if (!py_file.GetUnderlyingFile(file))
-         return nullptr;
-      $1 = file.TakeStreamAndClear();
-    }
-}
-
-%typemap(out) FILE * {
-   char mode[4] = {0};
-%#ifdef __APPLE__
-   int i = 0;
-   if ($1)
-   {
-       short flags = $1->_flags;
-
-       if (flags & __SRD)
-          mode[i++] = 'r';
-       else if (flags & __SWR)
-          mode[i++] = 'w';
-       else // if (flags & __SRW)
-          mode[i++] = 'a';
-    }
-%#endif
-   using namespace lldb_private;
-   File file($1, false);
-   PythonFile py_file(file, mode);
-   $result = py_file.release();
-   if (!$result)
-   {
-       $result = Py_None;
-       Py_INCREF(Py_None);
-   }
-}
-
 %typemap(in) (const char* string, int len) {
     using namespace lldb_private;
     if ($input == Py_None)

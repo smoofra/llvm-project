@@ -474,8 +474,6 @@ public:
 
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
 
-  bool GetUnderlyingFile(File &file) const;
-
   Status ConvertToFile(File &file, bool borrowed = false);
   Status ConvertToFileForcingUseOfScriptingIOMethods(File &file, bool borrowed = false);
 };

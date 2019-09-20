@@ -1012,19 +1012,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
   PythonObject::Reset(PyRefType::Borrowed, result.get());
 }
 
-bool PythonFile::GetUnderlyingFile(File &file) const {
-  if (!IsValid())
-    return false;
-
-  file.Close();
-  // We don't own the file descriptor returned by this function, make sure the
-  // File object knows about that.
-  PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
-  auto options = File::GetOptionsFromMode(py_mode.GetString());
-  file.SetDescriptor(PyObject_AsFileDescriptor(m_py_obj), options, false);
-  return file.IsValid();
-}
-
 class GIL {
 public:
   GIL() {
