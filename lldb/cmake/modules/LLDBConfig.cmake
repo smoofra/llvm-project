@@ -227,7 +227,7 @@ function(find_python_libs_windows)
   else()
     # Lookup for concrete python installation depending on build type
     if (CMAKE_BUILD_TYPE STREQUAL Debug)
-      set(LOOKUP_DEBUG_PYTHON TRUE)
+      set(LOOKUP_DEBUG_PYTHON FALSE)
     else()
       set(LOOKUP_DEBUG_PYTHON FALSE)
     endif()
