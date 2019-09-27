@@ -162,13 +162,17 @@ Status File::Close() {
   return error;
 }
 
-void File::Clear() {
-  m_stream = nullptr;
+FILE *File::TakeStreamAndClear() {
+  GetStream();
+  FILE *stream = m_stream;
+  m_stream = NULL;
   m_descriptor = kInvalidDescriptor;
   m_options = 0;
   m_own_stream = false;
+  m_own_descriptor = false;
   m_is_interactive = m_supports_colors = m_is_real_terminal =
       eLazyBoolCalculate;
+  return stream;
 }
 
 Status File::GetFileSpec(FileSpec &file_spec) const {
