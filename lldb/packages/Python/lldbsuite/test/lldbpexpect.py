@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 # System modules
 import sys
+import os
 
 # Third-party modules
 import six
@@ -37,9 +38,14 @@ else:
                 args += ['--file', executable]
             if extra_args is not None:
                 args.extend(extra_args)
+            env = dict(os.environ)
+            # The tests may be running in a batch environment without TERM or
+            # a pty.  But since pexpect tests are testing user interaction,
+            # we should set TERM to something reasonable.
+            env['TERM'] = 'vt100'
             self.child = pexpect.spawn(
                     lldbtest_config.lldbExec, args=args, logfile=logfile,
-                    timeout=timeout, dimensions=dimensions)
+                    timeout=timeout, dimensions=dimensions, env=env)
             self.expect_prompt()
             for cmd in self.setUpCommands():
                 self.child.expect_exact(cmd)
