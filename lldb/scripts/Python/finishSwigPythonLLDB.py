@@ -72,7 +72,7 @@ strErrMsgMakeSymlink = "creating symbolic link"
 strErrMsgUnexpected = "Unexpected error: %s"
 strMsgCopySixPy = "Copying six.py from '%s' to '%s'"
 strErrMsgCopySixPyFailed = "Unable to copy '%s' to '%s'"
-
+strErrMsgOsTypeUnknown = "Unknown OS"
 
 def is_debug_interpreter():
     return hasattr(sys, 'gettotalrefcount')
@@ -615,10 +615,9 @@ def get_config_build_dir(vDictArgs, vstrFrameworkPythonDir):
 
     return (bOk, strConfigBldDir, strErrMsg)
 
-
 #++---------------------------------------------------------------------------
-# Details:  Retrieve the directory path for Python's dist_packages/
-#           site_package folder on a UNIX style platform.
+# Details:  Get the directory where the lldb python package will be created.
+#
 # Args:     vDictArgs   - (R) Program input parameters.
 # Returns:  Bool - True = function success, False = failure.
 #           Str - Python Framework directory path.
@@ -626,16 +625,17 @@ def get_config_build_dir(vDictArgs, vstrFrameworkPythonDir):
 # Throws:   None.
 #--
 
-def get_framework_python_dir_other_platforms(vDictArgs):
+def get_lldb_package_dir(vDictArgs):
     dbg = utilsDebug.CDebugFnVerbose(
-        "Python script get_framework_python_dir_other_platform()")
-    bOk = True
-    strWkDir = ""
-    strErrMsg = ""
-    bDbg = "-d" in vDictArgs
+        "Python script get_lldb_package_dir()")
 
     bMakeFileCalled = "-m" in vDictArgs
-    if bMakeFileCalled:
+    eOSType = utilsOsType.determine_os_type()
+
+    if eOSType == utilsOsType.EnumOsType.Unknown:
+        return False, None, strErrMsgOsTypeUnknown
+
+    if bMakeFileCalled or eOSType == utilsOsType.EnumOsType.Windows:
         dbg.dump_text("Not building a framework.")
 
         from distutils.sysconfig import get_python_lib
@@ -651,7 +651,8 @@ def get_framework_python_dir_other_platforms(vDictArgs):
 
         python_library_dir = get_python_lib(True, False, prefix)
         lldb_package_dir = os.path.normcase(os.path.join(python_library_dir, "lldb"))
-        return (bOk, lldb_package_dir, strErrMsg)
+
+        return True, lldb_package_dir, None
 
     else:
         dbg.dump_text("Building LLDB.framework")
@@ -659,47 +660,14 @@ def get_framework_python_dir_other_platforms(vDictArgs):
         # into the LLDB.framework/Resources/Python subdirectory.
         strWkDir = vDictArgs["--targetDir"]
         strWkDir = os.path.join(strWkDir, "LLDB.framework")
-        if os.path.exists(strWkDir):
-            if bDbg:
-                print((strMsgFoundLldbFrameWkDir % strWkDir))
-            strWkDir = os.path.join(strWkDir, "Resources", "Python", "lldb")
-            strWkDir = os.path.normcase(strWkDir)
-        else:
-            bOk = False
-            strErrMsg = strErrMsgFrameWkPyDirNotExist % strWkDir
+        if not os.path.exists(strWkDir):
+            return False, None, strErrMsgFrameWkPyDirNotExist % strWkDir
+        if "-d" in vDictArgs:
+            print((strMsgFoundLldbFrameWkDir % strWkDir))
+        strWkDir = os.path.join(strWkDir, "Resources", "Python", "lldb")
+        strWkDir = os.path.normcase(strWkDir)
+        return True, strWkDir, None
 
-    return (bOk, strWkDir, strErrMsg)
-
-#++---------------------------------------------------------------------------
-# Details:  Retrieve the directory path for Python's dist_packages/
-#           site_package folder depending on the type of OS platform being
-#           used.
-# Args:     vDictArgs   - (R) Program input parameters.
-# Returns:  Bool - True = function success, False = failure.
-#           Str - Python Framework directory path.
-#           strErrMsg - Error description on task failure.
-# Throws:   None.
-#--
-
-
-def get_framework_python_dir(vDictArgs):
-    dbg = utilsDebug.CDebugFnVerbose(
-        "Python script get_framework_python_dir()")
-    bOk = True
-    strWkDir = ""
-    strErrMsg = ""
-
-    eOSType = utilsOsType.determine_os_type()
-    if eOSType == utilsOsType.EnumOsType.Unknown:
-        bOk = False
-        strErrMsg = strErrMsgOsTypeUnknown
-    elif eOSType == utilsOsType.EnumOsType.Windows:
-        bOk, strWkDir, strErrMsg = get_framework_python_dir_windows(vDictArgs)
-    else:
-        bOk, strWkDir, strErrMsg = get_framework_python_dir_other_platforms(
-            vDictArgs)
-
-    return (bOk, strWkDir, strErrMsg)
 
 #++---------------------------------------------------------------------------
 # Details:  Retrieve the liblldb directory path, if it exists and is valid.
@@ -775,7 +743,7 @@ def main(vDictArgs):
         print((strMsgOsVersion % utilsOsType.EnumOsType.name_of(eOSType)))
         print((strMsgPyVersion % (pyVersion[0], pyVersion[1])))
 
-    bOk, strFrameworkPythonDir, strMsg = get_framework_python_dir(vDictArgs)
+    bOk, strFrameworkPythonDir, strMsg = get_lldb_package_dir(vDictArgs)
 
     if bOk:
         bOk, strCfgBldDir, strMsg = get_config_build_dir(
