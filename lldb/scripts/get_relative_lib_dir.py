@@ -21,8 +21,16 @@ def get_python_relative_libdir():
     # architecture-specific modules.  Handle the lookup here.
     # When that bug is fixed, we should just ask lldb for the
     # right answer always.
-    arch_specific_libdir = distutils.sysconfig.get_python_lib(True, False)
-    split_libdir = arch_specific_libdir.split(os.sep)
+
+    # Some python's will return a very different answer from
+    # get_python_lib if you pass it an empty string or None, vs
+    # if you pass it a real prefix.   We pass in a dummy path
+    # to make sure we're getting a path relative to a prefix,
+    # and not some special path that only applies if the prefix is
+    # the root directory.
+
+    arch_specific_libdir = distutils.sysconfig.get_python_lib(True, False, "foo")
+    split_libdir = arch_specific_libdir.split(os.sep)[1:]
     lib_re = re.compile(r"^lib.*$")
 
     for i in range(len(split_libdir)):

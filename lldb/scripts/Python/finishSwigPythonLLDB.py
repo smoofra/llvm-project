@@ -615,46 +615,6 @@ def get_config_build_dir(vDictArgs, vstrFrameworkPythonDir):
 
     return (bOk, strConfigBldDir, strErrMsg)
 
-#++---------------------------------------------------------------------------
-# Details:  Determine where to put the files. Retrieve the directory path for
-#           Python's dist_packages/ site_package folder on a Windows platform.
-# Args:     vDictArgs   - (R) Program input parameters.
-# Returns:  Bool - True = function success, False = failure.
-#           Str - Python Framework directory path.
-#           strErrMsg - Error description on task failure.
-# Throws:   None.
-#--
-
-
-def get_framework_python_dir_windows(vDictArgs):
-    dbg = utilsDebug.CDebugFnVerbose(
-        "Python script get_framework_python_dir_windows()")
-    bOk = True
-    strWkDir = ""
-    strErrMsg = ""
-
-    # We are being built by LLVM, so use the PYTHON_INSTALL_DIR argument,
-    # and append the python version directory to the end of it.  Depending
-    # on the system other stuff may need to be put here as well.
-    from distutils.sysconfig import get_python_lib
-    strPythonInstallDir = ""
-    bHaveArgPrefix = "--prefix" in vDictArgs
-    if bHaveArgPrefix:
-        strPythonInstallDir = os.path.normpath(vDictArgs["--prefix"])
-
-    bHaveArgCmakeBuildConfiguration = "--cmakeBuildConfiguration" in vDictArgs
-    if bHaveArgCmakeBuildConfiguration:
-        strPythonInstallDir = os.path.join(
-            strPythonInstallDir,
-            vDictArgs["--cmakeBuildConfiguration"])
-
-    if strPythonInstallDir.__len__() != 0:
-        strWkDir = get_python_lib(True, False, strPythonInstallDir)
-    else:
-        strWkDir = get_python_lib(True, False)
-    strWkDir = os.path.normcase(os.path.join(strWkDir, "lldb"))
-
-    return (bOk, strWkDir, strErrMsg)
 
 #++---------------------------------------------------------------------------
 # Details:  Retrieve the directory path for Python's dist_packages/
@@ -666,7 +626,6 @@ def get_framework_python_dir_windows(vDictArgs):
 # Throws:   None.
 #--
 
-
 def get_framework_python_dir_other_platforms(vDictArgs):
     dbg = utilsDebug.CDebugFnVerbose(
         "Python script get_framework_python_dir_other_platform()")
@@ -677,11 +636,26 @@ def get_framework_python_dir_other_platforms(vDictArgs):
 
     bMakeFileCalled = "-m" in vDictArgs
     if bMakeFileCalled:
-        dbg.dump_text("Built by LLVM")
-        return get_framework_python_dir_windows(vDictArgs)
+        dbg.dump_text("Not building a framework.")
+
+        from distutils.sysconfig import get_python_lib
+
+        # this equals CMAKE_BINARY_DIR ie. the root of the build tree.
+        prefix = vDictArgs.get('--prefix')
+        if not prefix:
+            return False, None, '--prefix is a required argument to this script'
+
+        cmakeBuildConfiguration = vDictArgs.get('--cmakeBuildConfiguration')
+        if cmakeBuildConfiguration:
+            prefix = os.path.normpath(os.path.join(prefix, cmakeBuildConfiguration))
+
+        python_library_dir = get_python_lib(True, False, prefix)
+        lldb_package_dir = os.path.normcase(os.path.join(python_library_dir, "lldb"))
+        return (bOk, lldb_package_dir, strErrMsg)
+
     else:
-        dbg.dump_text("Built by XCode")
-        # We are being built by XCode, so all the lldb Python files can go
+        dbg.dump_text("Building LLDB.framework")
+        # We are building a framework, so all the lldb Python files can go
         # into the LLDB.framework/Resources/Python subdirectory.
         strWkDir = vDictArgs["--targetDir"]
         strWkDir = os.path.join(strWkDir, "LLDB.framework")
