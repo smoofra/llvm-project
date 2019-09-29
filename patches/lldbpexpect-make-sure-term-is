@@ -1,0 +1,43 @@
+Bottom: 7a7913626084e72eed9c5d8eb2c7eb1619212880
+Top:    398aba1f98458c8e38db75548ebfb360f6b79316
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-27 12:52:45 -0700
+
+lldbpexpect: make sure TERM is set for pexpect tests
+
+When I build and test in a batch environment, I found a number
+of tests were failing because TERM was not set.   The pexpect tests
+should not be inheriting TERM from the environment.   Since they
+are testing user interaction, they should be setting TERM to a known
+value anyway.
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/lldbpexpect.py b/lldb/packages/Python/lldbsuite/test/lldbpexpect.py
+index 402148a9534..f76496eb2c2 100644
+--- a/lldb/packages/Python/lldbsuite/test/lldbpexpect.py
++++ b/lldb/packages/Python/lldbsuite/test/lldbpexpect.py
+@@ -3,6 +3,7 @@ from __future__ import absolute_import
+ 
+ # System modules
+ import sys
++import os
+ 
+ # Third-party modules
+ import six
+@@ -37,9 +38,14 @@ else:
+                 args += ['--file', executable]
+             if extra_args is not None:
+                 args.extend(extra_args)
++            env = dict(os.environ)
++            # The tests may be running in a batch environment without TERM or
++            # a pty.  But since pexpect tests are testing user interaction,
++            # we should set TERM to something reasonable.
++            env['TERM'] = 'vt100'
+             self.child = pexpect.spawn(
+                     lldbtest_config.lldbExec, args=args, logfile=logfile,
+-                    timeout=timeout, dimensions=dimensions)
++                    timeout=timeout, dimensions=dimensions, env=env)
+             self.expect_prompt()
+             for cmd in self.setUpCommands():
+                 self.child.expect_exact(cmd)

@@ -1,0 +1,528 @@
+Bottom: 6d3bdc8ac4e3c317ef309adc8748d996cde94c97
+Top:    dfc47497678bb6fb6c0c5616ba26ebb88fb5a62f
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-14 14:01:50 -0700
+
+new api class: SBFile
+
+Summary:
+SBFile is a scripting API wrapper for lldb_private::File
+
+This is the first step in a rework of https://reviews.llvm.org/D38829
+
+The ultimate goal is support for arbitrary python file objects for
+reading and writing, including objects which have no file descriptor
+and override the read() and write() functions.
+
+Reviewers: JDevlieghere, jasonmolenda, zturner, jingham, labath
+
+Subscribers: mgorny, lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D67793
+
+
+---
+diff --git a/lldb/include/lldb/API/LLDB.h b/lldb/include/lldb/API/LLDB.h
+index 0806ab700a9..75e2d70c0c3 100644
+--- a/lldb/include/lldb/API/LLDB.h
++++ b/lldb/include/lldb/API/LLDB.h
+@@ -13,8 +13,8 @@
+ #include "lldb/API/SBAttachInfo.h"
+ #include "lldb/API/SBBlock.h"
+ #include "lldb/API/SBBreakpoint.h"
+-#include "lldb/API/SBBreakpointName.h"
+ #include "lldb/API/SBBreakpointLocation.h"
++#include "lldb/API/SBBreakpointName.h"
+ #include "lldb/API/SBBroadcaster.h"
+ #include "lldb/API/SBCommandInterpreter.h"
+ #include "lldb/API/SBCommandReturnObject.h"
+@@ -28,6 +28,7 @@
+ #include "lldb/API/SBEvent.h"
+ #include "lldb/API/SBExecutionContext.h"
+ #include "lldb/API/SBExpressionOptions.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBFileSpec.h"
+ #include "lldb/API/SBFileSpecList.h"
+ #include "lldb/API/SBFrame.h"
+diff --git a/lldb/include/lldb/API/SBDefines.h b/lldb/include/lldb/API/SBDefines.h
+index 838c84cece6..29dcf479b06 100644
+--- a/lldb/include/lldb/API/SBDefines.h
++++ b/lldb/include/lldb/API/SBDefines.h
+@@ -92,6 +92,7 @@ class LLDB_API SBValueList;
+ class LLDB_API SBVariablesOptions;
+ class LLDB_API SBWatchpoint;
+ class LLDB_API SBUnixSignals;
++class LLDB_API SBFile;
+ 
+ typedef bool (*SBBreakpointHitCallback)(void *baton, SBProcess &process,
+                                         SBThread &thread,
+diff --git a/lldb/include/lldb/API/SBError.h b/lldb/include/lldb/API/SBError.h
+index b076f87b766..3db2658d9fb 100644
+--- a/lldb/include/lldb/API/SBError.h
++++ b/lldb/include/lldb/API/SBError.h
+@@ -70,6 +70,7 @@ protected:
+   friend class SBTrace;
+   friend class SBValue;
+   friend class SBWatchpoint;
++  friend class SBFile;
+ 
+   lldb_private::Status *get();
+ 
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+new file mode 100644
+index 00000000000..efd70966b9a
+--- /dev/null
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -0,0 +1,38 @@
++//===-- SBFile.h --------------------------------------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef LLDB_SBFile_h_
++#define LLDB_SBFile_h_
++
++#include "lldb/API/SBDefines.h"
++
++namespace lldb {
++
++class LLDB_API SBFile {
++public:
++  SBFile();
++  SBFile(FILE *file, bool transfer_ownership);
++  SBFile(int fd, const char *mode, bool transfer_ownership);
++  ~SBFile();
++
++  SBError Read(uint8_t *buf, size_t num_bytes, size_t *bytes_read);
++  SBError Write(const uint8_t *buf, size_t num_bytes, size_t *bytes_written);
++  SBError Flush();
++  bool IsValid() const;
++  SBError Close();
++
++  operator bool() const { return IsValid(); }
++  bool operator!() const { return !IsValid(); }
++
++private:
++  FileSP m_opaque_sp;
++};
++
++} // namespace lldb
++
++#endif // LLDB_SBFile_h_
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index 9ad5f4715da..effd0bec954 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -136,6 +136,8 @@ public:
+ 
+   int GetDescriptor() const;
+ 
++  static uint32_t GetOptionsFromMode(llvm::StringRef mode);
++
+   WaitableHandle GetWaitableHandle() override;
+ 
+   FILE *GetStream();
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index e69de29bb2d..020f171c21b 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -0,0 +1,132 @@
++"""
++Test lldb Python API for file handles.
++"""
++
++from __future__ import print_function
++
++import contextlib
++import os
++import io
++import re
++import sys
++
++import lldb
++from lldbsuite.test.decorators import *
++from lldbsuite.test.lldbtest import *
++from lldbsuite.test import lldbutil
++
++
++def readStrippedLines(f):
++    def i():
++        for line in f:
++            line = line.strip()
++            if line:
++                yield line
++    return list(i())
++
++def handle_command(debugger, cmd, raise_on_fail=True, collect_result=True):
++
++    ret = lldb.SBCommandReturnObject()
++
++    if collect_result:
++        interpreter = debugger.GetCommandInterpreter()
++        interpreter.HandleCommand(cmd, ret)
++    else:
++        debugger.HandleCommand(cmd)
++
++    if collect_result and raise_on_fail and not ret.Succeeded():
++        raise Exception
++
++    return ret.GetOutput()
++
++
++class FileHandleTestCase(TestBase):
++
++    mydir = TestBase.compute_mydir(__file__)
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_legacy_file_out(self):
++        debugger = lldb.SBDebugger.Create()
++        try:
++            with open('output', 'w') as f:
++                debugger.SetOutputFileHandle(f, False)
++                handle_command(debugger, 'script 1+1')
++                debugger.GetOutputFileHandle().write('FOO\n')
++            with open('output', 'r') as f:
++                self.assertEqual(readStrippedLines(f), ['2', 'FOO'])
++        finally:
++            self.RemoveTempFile('output')
++            lldb.SBDebugger.Destroy(debugger)
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_legacy_file_err(self):
++        debugger = lldb.SBDebugger.Create()
++        try:
++            with open('output', 'w') as f:
++                debugger.SetErrorFileHandle(f, False)
++                handle_command(debugger, 'lol', raise_on_fail=False, collect_result=False)
++            lldb.SBDebugger.Destroy(debugger)
++            with open('output', 'r') as f:
++                self.assertTrue(re.search("is not a valid command", f.read()))
++        finally:
++            self.RemoveTempFile('output')
++            lldb.SBDebugger.Destroy(debugger)
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_invalid(self):
++        sbf = lldb.SBFile()
++        self.assertFalse(sbf.IsValid())
++        e, n = sbf.Write(b'foo')
++        self.assertTrue(e.Fail())
++        self.assertEqual(n, 0)
++        buffer = bytearray(100)
++        e, n = sbf.Read(buffer)
++        self.assertEqual(n, 0)
++        self.assertTrue(e.Fail())
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_write(self):
++        try:
++            with open('output', 'w') as f:
++                sbf = lldb.SBFile(f.fileno(), "w", False)
++                self.assertTrue(sbf.IsValid())
++                e, n = sbf.Write(b'FOO\nBAR')
++                self.assertTrue(e.Success())
++                self.assertEqual(n, 7)
++                sbf.Close()
++                self.assertFalse(sbf.IsValid())
++
++            with open('output', 'r') as f:
++                self.assertEqual(readStrippedLines(f), ['FOO', 'BAR'])
++        finally:
++            self.RemoveTempFile('output')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_read(self):
++        try:
++            with open('output', 'w') as f:
++                f.write('FOO')
++            with open('output', 'r') as f:
++                sbf = lldb.SBFile(f.fileno(), "r", False)
++                self.assertTrue(sbf.IsValid())
++                buffer = bytearray(100)
++                e, n = sbf.Read(buffer)
++                self.assertTrue(e.Success())
++                self.assertEqual(buffer[:n], b'FOO')
++        finally:
++            self.RemoveTempFile('output')
++
++
++
++
++
++
+diff --git a/lldb/scripts/interface/SBFile.i b/lldb/scripts/interface/SBFile.i
+new file mode 100644
+index 00000000000..9c9223b3815
+--- /dev/null
++++ b/lldb/scripts/interface/SBFile.i
+@@ -0,0 +1,41 @@
++//===-- SWIG Interface for SBFile -----------------------------------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++%include <pybuffer.i>
++
++%pybuffer_binary(const uint8_t *buf, size_t num_bytes);
++%pybuffer_mutable_binary(uint8_t *buf, size_t num_bytes);
++
++namespace lldb {
++
++%feature("docstring",
++"Represents a file."
++) SBFile;
++
++class SBFile
++{
++public:
++    SBFile();
++    SBFile(int fd, const char *mode, bool transfer_ownership);
++
++    ~SBFile ();
++
++    %feature("autodoc", "Read(buffer) -> SBError, bytes_read") Read;
++    SBError Read(uint8_t *buf, size_t num_bytes, size_t *OUTPUT);
++
++    %feature("autodoc", "Write(buffer) -> SBError, written_read") Write;
++    SBError Write(const uint8_t *buf, size_t num_bytes, size_t *OUTPUT);
++
++    void Flush();
++
++    bool IsValid() const;
++
++    SBError Close();
++};
++
++} // namespace lldb
+diff --git a/lldb/scripts/lldb.swig b/lldb/scripts/lldb.swig
+index ec39ad1b335..1634e1884af 100644
+--- a/lldb/scripts/lldb.swig
++++ b/lldb/scripts/lldb.swig
+@@ -123,6 +123,7 @@ def lldb_iter(obj, getsize, getelem):
+ #include "lldb/API/SBExecutionContext.h"
+ #include "lldb/API/SBExpressionOptions.h"
+ #include "lldb/API/SBFileSpec.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBFileSpecList.h"
+ #include "lldb/API/SBFrame.h"
+ #include "lldb/API/SBFunction.h"
+@@ -210,6 +211,7 @@ def lldb_iter(obj, getsize, getelem):
+ %include "./interface/SBExecutionContext.i"
+ %include "./interface/SBExpressionOptions.i"
+ %include "./interface/SBFileSpec.i"
++%include "./interface/SBFile.i"
+ %include "./interface/SBFileSpecList.i"
+ %include "./interface/SBFrame.i"
+ %include "./interface/SBFunction.i"
+diff --git a/lldb/source/API/CMakeLists.txt b/lldb/source/API/CMakeLists.txt
+index d93b8b5e381..f06ed1fcdd0 100644
+--- a/lldb/source/API/CMakeLists.txt
++++ b/lldb/source/API/CMakeLists.txt
+@@ -34,6 +34,7 @@ add_lldb_library(liblldb SHARED
+   SBExecutionContext.cpp
+   SBExpressionOptions.cpp
+   SBFileSpec.cpp
++  SBFile.cpp
+   SBFileSpecList.cpp
+   SBFrame.cpp
+   SBFunction.cpp
+diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
+new file mode 100644
+index 00000000000..a22bca8cf4d
+--- /dev/null
++++ b/lldb/source/API/SBFile.cpp
+@@ -0,0 +1,76 @@
++//===-- SBFile.cpp ------------------------------------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#include "lldb/API/SBFile.h"
++#include "lldb/API/SBError.h"
++#include "lldb/Host/File.h"
++
++using namespace lldb;
++using namespace lldb_private;
++
++SBFile::~SBFile() {}
++
++SBFile::SBFile() {}
++
++SBFile::SBFile(FILE *file, bool transfer_ownership) {
++  m_opaque_sp = std::make_shared<File>(file, transfer_ownership);
++}
++
++SBFile::SBFile(int fd, const char *mode, bool transfer_owndership) {
++  auto options = File::GetOptionsFromMode(mode);
++  m_opaque_sp = std::make_shared<File>(fd, options, transfer_owndership);
++}
++
++SBError SBFile::Read(uint8_t *buf, size_t num_bytes, size_t *bytes_read) {
++  SBError error;
++  if (!m_opaque_sp) {
++    error.SetErrorString("invalid SBFile");
++    *bytes_read = 0;
++  } else {
++    Status status = m_opaque_sp->Read(buf, num_bytes);
++    error.SetError(status);
++    *bytes_read = num_bytes;
++  }
++  return error;
++}
++
++SBError SBFile::Write(const uint8_t *buf, size_t num_bytes,
++                      size_t *bytes_written) {
++  SBError error;
++  if (!m_opaque_sp) {
++    error.SetErrorString("invalid SBFile");
++    *bytes_written = 0;
++  } else {
++    Status status = m_opaque_sp->Write(buf, num_bytes);
++    error.SetError(status);
++    *bytes_written = num_bytes;
++  }
++  return error;
++}
++
++SBError SBFile::Flush() {
++  SBError error;
++  if (!m_opaque_sp) {
++    error.SetErrorString("invalid SBFile");
++  } else {
++    Status status = m_opaque_sp->Flush();
++    error.SetError(status);
++  }
++  return error;
++}
++
++bool SBFile::IsValid() const { return m_opaque_sp && m_opaque_sp->IsValid(); }
++
++SBError SBFile::Close() {
++  SBError error;
++  if (m_opaque_sp) {
++    Status status = m_opaque_sp->Close();
++    error.SetError(status);
++  }
++  return error;
++}
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index 368dc60759f..ac4f187cc37 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -68,6 +68,22 @@ static const char *GetStreamOpenModeFromOptions(uint32_t options) {
+   return nullptr;
+ }
+ 
++uint32_t File::GetOptionsFromMode(llvm::StringRef mode) {
++  if (mode.empty())
++    return 0;
++  return llvm::StringSwitch<uint32_t>(mode.str())
++      .Case("r", File::eOpenOptionRead)
++      .Case("w", File::eOpenOptionWrite)
++      .Case("a", File::eOpenOptionWrite | File::eOpenOptionAppend |
++                     File::eOpenOptionCanCreate)
++      .Case("r+", File::eOpenOptionRead | File::eOpenOptionWrite)
++      .Case("w+", File::eOpenOptionRead | File::eOpenOptionWrite |
++                      File::eOpenOptionCanCreate | File::eOpenOptionTruncate)
++      .Case("a+", File::eOpenOptionRead | File::eOpenOptionWrite |
++                      File::eOpenOptionAppend | File::eOpenOptionCanCreate)
++      .Default(0);
++}
++
+ int File::kInvalidDescriptor = -1;
+ FILE *File::kInvalidStream = nullptr;
+ 
+@@ -143,9 +159,14 @@ uint32_t File::GetPermissions(Status &error) const {
+ 
+ Status File::Close() {
+   Status error;
+-  if (StreamIsValid() && m_own_stream) {
+-    if (::fclose(m_stream) == EOF)
+-      error.SetErrorToErrno();
++  if (StreamIsValid()) {
++    if (m_own_stream) {
++      if (::fclose(m_stream) == EOF)
++        error.SetErrorToErrno();
++    } else {
++      if (::fflush(m_stream) == EOF)
++        error.SetErrorToErrno();
++    }
+   }
+ 
+   if (DescriptorIsValid() && m_own_descriptor) {
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index bb7f77fa514..0a0f992e96b 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -949,7 +949,6 @@ PythonFile::PythonFile() : PythonObject() {}
+ 
+ PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
+ 
+-
+ PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
+ 
+ PythonFile::~PythonFile() {}
+@@ -1014,22 +1013,6 @@ void PythonFile::Reset(File &file, const char *mode) {
+ #endif
+ }
+ 
+-uint32_t PythonFile::GetOptionsFromMode(llvm::StringRef mode) {
+-  if (mode.empty())
+-    return 0;
+-
+-  return llvm::StringSwitch<uint32_t>(mode.str())
+-      .Case("r", File::eOpenOptionRead)
+-      .Case("w", File::eOpenOptionWrite)
+-      .Case("a", File::eOpenOptionWrite | File::eOpenOptionAppend |
+-                     File::eOpenOptionCanCreate)
+-      .Case("r+", File::eOpenOptionRead | File::eOpenOptionWrite)
+-      .Case("w+", File::eOpenOptionRead | File::eOpenOptionWrite |
+-                      File::eOpenOptionCanCreate | File::eOpenOptionTruncate)
+-      .Case("a+", File::eOpenOptionRead | File::eOpenOptionWrite |
+-                      File::eOpenOptionAppend | File::eOpenOptionCanCreate)
+-      .Default(0);
+-}
+ 
+ FileUP PythonFile::GetUnderlyingFile() const {
+   if (!IsValid())
+@@ -1038,7 +1021,7 @@ FileUP PythonFile::GetUnderlyingFile() const {
+   // We don't own the file descriptor returned by this function, make sure the
+   // File object knows about that.
+   PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
+-  auto options = PythonFile::GetOptionsFromMode(py_mode.GetString());
++  auto options = File::GetOptionsFromMode(py_mode.GetString());
+   auto file = std::make_unique<File>(PyObject_AsFileDescriptor(m_py_obj),
+                                      options, false);
+   if (!file->IsValid())
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 3e1a3541bc7..060a25ff10b 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -466,8 +466,6 @@ public:
+   void Reset(PyRefType type, PyObject *py_obj) override;
+   void Reset(File &file, const char *mode);
+ 
+-  static uint32_t GetOptionsFromMode(llvm::StringRef mode);
+-
+   lldb::FileUP GetUnderlyingFile() const;
+ };

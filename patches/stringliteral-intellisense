@@ -1,0 +1,38 @@
+Bottom: aeb1be6edc4f21157cdbf84f77ed65910f61d33f
+Top:    03df2ea92e72204d4bd07dd5eed906201c1a4295
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-14 14:01:51 -0700
+
+StringLiteral: intellisense workaround
+
+Summary:
+The intellisense parser from Visual Studio Code will pretend to be
+clang by defining __clang__, but it doesn't fully implement enable_if.
+It does define __INTELLISENSE__ however, so we can avoid spurious
+errors by also checking for that.
+
+https://github.com/microsoft/vscode-cpptools/issues/4246
+
+Reviewers: JDevlieghere, jasonmolenda
+
+Subscribers: dexonsmith, llvm-commits
+
+Tags: #llvm
+
+Differential Revision: https://reviews.llvm.org/D67788
+
+
+---
+diff --git a/llvm/include/llvm/ADT/StringRef.h b/llvm/include/llvm/ADT/StringRef.h
+index 52baab17bed..1d3179d9e42 100644
+--- a/llvm/include/llvm/ADT/StringRef.h
++++ b/llvm/include/llvm/ADT/StringRef.h
+@@ -857,7 +857,7 @@ namespace llvm {
+   public:
+     template <size_t N>
+     constexpr StringLiteral(const char (&Str)[N])
+-#if defined(__clang__) && __has_attribute(enable_if)
++#if !__INTELLISENSE__ && defined(__clang__) && __has_attribute(enable_if)
+ #pragma clang diagnostic push
+ #pragma clang diagnostic ignored "-Wgcc-compat"
+         __attribute((enable_if(__builtin_strlen(Str) == N - 1,

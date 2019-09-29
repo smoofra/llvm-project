@@ -1,0 +1,100 @@
+Bottom: 03df2ea92e72204d4bd07dd5eed906201c1a4295
+Top:    6d3bdc8ac4e3c317ef309adc8748d996cde94c97
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-27 10:04:53 -0700
+
+File::Clear() -> File::TakeStreamAndClear()
+
+Summary:
+File::Clear() is an ugly function.  It's only used in one place,
+which is the swig typemaps for FILE*.   This patch refactors and
+renames that function to make it clear what it's really for and
+why nobody else should use it.
+
+Both File::TakeStreamAndClear() and the FILE* typemaps will be
+removed in later patches after a suitable replacement is in place.
+
+Reviewers: JDevlieghere, jasonmolenda, labath
+
+Subscribers: lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D68160
+
+
+---
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index 767d631672c..9ad5f4715da 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -120,7 +120,19 @@ public:
+ 
+   Status Close() override;
+ 
+-  void Clear();
++  /// DEPRECATED! Extract the underlying FILE* and reset this File without closing it.
++  ///
++  /// This is only here to support legacy SB interfaces that need to convert scripting
++  /// language objects into FILE* streams.   That conversion is inherently sketchy and
++  /// doing so may cause the stream to be leaked.
++  ///
++  /// After calling this the File will be reset to its original state.  It will be
++  /// invalid and it will not hold on to any resources.
++  ///
++  /// \return
++  ///     The underlying FILE* stream from this File, if one exists and can be extracted,
++  ///     nullptr otherwise.
++  FILE *TakeStreamAndClear();
+ 
+   int GetDescriptor() const;
+ 
+diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
+index 0dcd050356e..fe6a1798c53 100644
+--- a/lldb/scripts/Python/python-typemaps.swig
++++ b/lldb/scripts/Python/python-typemaps.swig
+@@ -372,6 +372,9 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+   $1 = $1 || PyCallable_Check(reinterpret_cast<PyObject*>($input));
+ }
+ 
++// FIXME both of these paths wind up calling fdopen() with no provision for ever calling
++// fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
++// use and this typemap should eventually be removed.
+ %typemap(in) FILE * {
+    using namespace lldb_private;
+    if ($input == Py_None)
+@@ -398,9 +401,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+       lldb::FileUP file = py_file.GetUnderlyingFile();
+       if (!file)
+          return nullptr;
+-      $1 = file->GetStream();
+-      if ($1)
+-         file->Clear();
++      $1 = file->TakeStreamAndClear();
+     }
+ }
+ 
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index 70e0507d185..368dc60759f 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -162,13 +162,17 @@ Status File::Close() {
+   return error;
+ }
+ 
+-void File::Clear() {
+-  m_stream = nullptr;
++FILE *File::TakeStreamAndClear() {
++  GetStream();
++  FILE *stream = m_stream;
++  m_stream = NULL;
+   m_descriptor = kInvalidDescriptor;
+   m_options = 0;
+   m_own_stream = false;
++  m_own_descriptor = false;
+   m_is_interactive = m_supports_colors = m_is_real_terminal =
+       eLazyBoolCalculate;
++  return stream;
+ }
+ 
+ Status File::GetFileSpec(FileSpec &file_spec) const {
