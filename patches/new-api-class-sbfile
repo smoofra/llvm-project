@@ -1,5 +1,5 @@
 Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
-Top:    86c8531e6c68114428e3a9d4e5f05cddb5e489b8
+Top:    a8166968261d2b2f3fdf2e2f7f9ee43742b49d7c
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -24,7 +24,6 @@ Differential Revision: https://reviews.llvm.org/D67793
 
 
 ---
-
 diff --git a/lldb/include/lldb/API/LLDB.h b/lldb/include/lldb/API/LLDB.h
 index 0806ab700a9..75e2d70c0c3 100644
 --- a/lldb/include/lldb/API/LLDB.h
@@ -48,17 +47,17 @@ index 0806ab700a9..75e2d70c0c3 100644
  #include "lldb/API/SBFileSpecList.h"
  #include "lldb/API/SBFrame.h"
 diff --git a/lldb/include/lldb/API/SBDefines.h b/lldb/include/lldb/API/SBDefines.h
-index 838c84cece6..29dcf479b06 100644
+index 838c84cece6..68aca930d19 100644
 --- a/lldb/include/lldb/API/SBDefines.h
 +++ b/lldb/include/lldb/API/SBDefines.h
-@@ -92,6 +92,7 @@ class LLDB_API SBValueList;
- class LLDB_API SBVariablesOptions;
- class LLDB_API SBWatchpoint;
- class LLDB_API SBUnixSignals;
+@@ -41,6 +41,7 @@ class LLDB_API SBEvent;
+ class LLDB_API SBEventList;
+ class LLDB_API SBExecutionContext;
+ class LLDB_API SBExpressionOptions;
 +class LLDB_API SBFile;
- 
- typedef bool (*SBBreakpointHitCallback)(void *baton, SBProcess &process,
-                                         SBThread &thread,
+ class LLDB_API SBFileSpec;
+ class LLDB_API SBFileSpecList;
+ class LLDB_API SBFrame;
 diff --git a/lldb/include/lldb/API/SBError.h b/lldb/include/lldb/API/SBError.h
 index b076f87b766..3db2658d9fb 100644
 --- a/lldb/include/lldb/API/SBError.h
@@ -128,27 +127,51 @@ index 9ad5f4715da..effd0bec954 100644
    WaitableHandle GetWaitableHandle() override;
  
    FILE *GetStream();
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/TestDefaultConstructorForAPIObjects.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/TestDefaultConstructorForAPIObjects.py
+index e48b90e2ee9..75bd4a6760d 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/TestDefaultConstructorForAPIObjects.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/TestDefaultConstructorForAPIObjects.py
+@@ -192,6 +192,20 @@ class APIDefaultConstructorTestCase(TestBase):
+         import sb_function
+         sb_function.fuzz_obj(obj)
+ 
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_SBFile(self):
++        sbf = lldb.SBFile()
++        self.assertFalse(sbf.IsValid())
++        self.assertFalse(bool(sbf))
++        e, n = sbf.Write(b'foo')
++        self.assertTrue(e.Fail())
++        self.assertEqual(n, 0)
++        buffer = bytearray(100)
++        e, n = sbf.Read(buffer)
++        self.assertEqual(n, 0)
++        self.assertTrue(e.Fail())
++
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+     def test_SBInstruction(self):
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index e69de29bb2d..020f171c21b 100644
+index e69de29bb2d..76a8441df5d 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,148 @@
 +"""
 +Test lldb Python API for file handles.
 +"""
 +
 +from __future__ import print_function
 +
-+import contextlib
 +import os
 +import io
 +import re
 +import sys
++from contextlib import contextmanager
 +
 +import lldb
-+from lldbsuite.test.decorators import *
-+from lldbsuite.test.lldbtest import *
-+from lldbsuite.test import lldbutil
++from lldbsuite.test import  lldbtest
++from lldbsuite.test.decorators import add_test_categories, no_debug_info_test
 +
 +
 +def readStrippedLines(f):
@@ -159,118 +182,193 @@ index e69de29bb2d..020f171c21b 100644
 +                yield line
 +    return list(i())
 +
-+def handle_command(debugger, cmd, raise_on_fail=True, collect_result=True):
 +
-+    ret = lldb.SBCommandReturnObject()
++class FileHandleTestCase(lldbtest.TestBase):
 +
-+    if collect_result:
-+        interpreter = debugger.GetCommandInterpreter()
-+        interpreter.HandleCommand(cmd, ret)
-+    else:
-+        debugger.HandleCommand(cmd)
++    mydir = lldbtest.Base.compute_mydir(__file__)
 +
-+    if collect_result and raise_on_fail and not ret.Succeeded():
-+        raise Exception
++    # The way this class interacts with the debugger is different
++    # than normal.   Most of these test cases will mess with the
++    # debugger I/O streams, so we want a fresh debugger for each
++    # test so those mutations don't interfere with each other.
++    #
++    # Also, the way normal tests evaluate debugger commands is
++    # by using a SBCommandInterpreter directly, which captures
++    # the output in a result object.   For many of tests tests
++    # we want the debugger to write the  output directly to
++    # its I/O streams like it would have done interactively.
++    #
++    # For this reason we also define handleCmd() here, even though
++    # it is similar to runCmd().
 +
-+    return ret.GetOutput()
++    def setUp(self):
++        super(FileHandleTestCase, self).setUp()
++        self.debugger = lldb.SBDebugger.Create()
++        self.out_filename = self.getBuildArtifact('output')
++        self.in_filename = self.getBuildArtifact('input')
 +
++    def tearDown(self):
++        lldb.SBDebugger.Destroy(self.debugger)
++        super(FileHandleTestCase, self).tearDown()
++        for name in (self.out_filename, self.in_filename):
++            if os.path.exists(name):
++                os.unlink(name)
 +
-+class FileHandleTestCase(TestBase):
++    # Similar to runCmd(), but this uses the per-test debugger, and it
++    # supports, letting the debugger just print the results instead
++    # of collecting them.
++    def handleCmd(self, cmd, check=True, collect_result=True):
++        assert not check or collect_result
++        ret = lldb.SBCommandReturnObject()
++        if collect_result:
++            interpreter = self.debugger.GetCommandInterpreter()
++            interpreter.HandleCommand(cmd, ret)
++        else:
++            self.debugger.HandleCommand(cmd)
++        if collect_result and check:
++            self.assertTrue(ret.Succeeded())
++        return ret.GetOutput()
 +
-+    mydir = TestBase.compute_mydir(__file__)
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_legacy_file_out_script(self):
++        with open(self.out_filename, 'w') as f:
++            self.debugger.SetOutputFileHandle(f, False)
++            # scripts print to output even if you capture the results
++            # I'm not sure I love that behavior, but that's the way
++            # it's been for a long time.  That's why this test works
++            # even with collect_result=True.
++            self.handleCmd('script 1+1')
++            self.debugger.GetOutputFileHandle().write('FOO\n')
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(readStrippedLines(f), ['2', 'FOO'])
++
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
 +    def test_legacy_file_out(self):
-+        debugger = lldb.SBDebugger.Create()
-+        try:
-+            with open('output', 'w') as f:
-+                debugger.SetOutputFileHandle(f, False)
-+                handle_command(debugger, 'script 1+1')
-+                debugger.GetOutputFileHandle().write('FOO\n')
-+            with open('output', 'r') as f:
-+                self.assertEqual(readStrippedLines(f), ['2', 'FOO'])
-+        finally:
-+            self.RemoveTempFile('output')
-+            lldb.SBDebugger.Destroy(debugger)
++        with open(self.out_filename, 'w') as f:
++            self.debugger.SetOutputFileHandle(f, False)
++            self.handleCmd('p/x 3735928559', collect_result=False, check=False)
++        lldb.SBDebugger.Destroy(self.debugger)
++        with open(self.out_filename, 'r') as f:
++            self.assertIn('deadbeef', f.read())
 +
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
 +    def test_legacy_file_err(self):
-+        debugger = lldb.SBDebugger.Create()
-+        try:
-+            with open('output', 'w') as f:
-+                debugger.SetErrorFileHandle(f, False)
-+                handle_command(debugger, 'lol', raise_on_fail=False, collect_result=False)
-+            lldb.SBDebugger.Destroy(debugger)
-+            with open('output', 'r') as f:
-+                self.assertTrue(re.search("is not a valid command", f.read()))
-+        finally:
-+            self.RemoveTempFile('output')
-+            lldb.SBDebugger.Destroy(debugger)
++        with open(self.out_filename, 'w') as f:
++            self.debugger.SetErrorFileHandle(f, False)
++            self.handleCmd('lol', check=False, collect_result=False)
++        lldb.SBDebugger.Destroy(self.debugger)
++        with open(self.out_filename, 'r') as f:
++            self.assertIn("is not a valid command", f.read())
 +
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
-+    def test_sbfile_invalid(self):
++    def test_sbfile_type_errors(self):
 +        sbf = lldb.SBFile()
-+        self.assertFalse(sbf.IsValid())
-+        e, n = sbf.Write(b'foo')
-+        self.assertTrue(e.Fail())
-+        self.assertEqual(n, 0)
-+        buffer = bytearray(100)
-+        e, n = sbf.Read(buffer)
-+        self.assertEqual(n, 0)
-+        self.assertTrue(e.Fail())
++        self.assertRaises(TypeError, sbf.Write, None)
++        self.assertRaises(TypeError, sbf.Read, None)
++        self.assertRaises(TypeError, sbf.Read, b'this bytes is not mutable')
++        self.assertRaises(TypeError, sbf.Write, u"ham sandwich")
++        self.assertRaises(TypeError, sbf.Read, u"ham sandwich")
 +
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
 +    def test_sbfile_write(self):
-+        try:
-+            with open('output', 'w') as f:
-+                sbf = lldb.SBFile(f.fileno(), "w", False)
-+                self.assertTrue(sbf.IsValid())
-+                e, n = sbf.Write(b'FOO\nBAR')
-+                self.assertTrue(e.Success())
-+                self.assertEqual(n, 7)
-+                sbf.Close()
-+                self.assertFalse(sbf.IsValid())
-+
-+            with open('output', 'r') as f:
-+                self.assertEqual(readStrippedLines(f), ['FOO', 'BAR'])
-+        finally:
-+            self.RemoveTempFile('output')
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f.fileno(), "w", False)
++            self.assertTrue(sbf.IsValid())
++            e, n = sbf.Write(b'FOO\nBAR')
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 7)
++            sbf.Close()
++            self.assertFalse(sbf.IsValid())
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(readStrippedLines(f), ['FOO', 'BAR'])
 +
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
 +    def test_sbfile_read(self):
-+        try:
-+            with open('output', 'w') as f:
-+                f.write('FOO')
-+            with open('output', 'r') as f:
-+                sbf = lldb.SBFile(f.fileno(), "r", False)
-+                self.assertTrue(sbf.IsValid())
-+                buffer = bytearray(100)
-+                e, n = sbf.Read(buffer)
-+                self.assertTrue(e.Success())
-+                self.assertEqual(buffer[:n], b'FOO')
-+        finally:
-+            self.RemoveTempFile('output')
++        with open(self.out_filename, 'w') as f:
++            f.write('FOO')
++        with open(self.out_filename, 'r') as f:
++            sbf = lldb.SBFile(f.fileno(), "r", False)
++            self.assertTrue(sbf.IsValid())
++            buffer = bytearray(100)
++            e, n = sbf.Read(buffer)
++            self.assertTrue(e.Success())
++            self.assertEqual(buffer[:n], b'FOO')
 +
+diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
+index fe6a1798c53..9c43ef18ac1 100644
+--- a/lldb/scripts/Python/python-typemaps.swig
++++ b/lldb/scripts/Python/python-typemaps.swig
+@@ -224,7 +224,7 @@
+ namespace {
+ template <class T>
+ T PyLongAsT(PyObject *obj) {
+-  static_assert(true, "unsupported type"); 
++  static_assert(true, "unsupported type");
+ }
+ 
+ template <> uint64_t PyLongAsT<uint64_t>(PyObject *obj) {
+@@ -461,3 +461,44 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+         return NULL;
+     }
+ }
 +
++// These two pybuffer macros are copied out of swig/Lib/python/pybuffer.i,
++// and fixed so they will not crash if PyObject_GetBuffer fails.
++// https://github.com/swig/swig/issues/1640
 +
++%define %pybuffer_mutable_binary(TYPEMAP, SIZE)
++%typemap(in) (TYPEMAP, SIZE) {
++  int res; Py_ssize_t size = 0; void *buf = 0;
++  Py_buffer view;
++  res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
++  if (res < 0) {
++    PyErr_Clear();
++    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
++  }
++  size = view.len;
++  buf = view.buf;
++  PyBuffer_Release(&view);
++  $1 = ($1_ltype) buf;
++  $2 = ($2_ltype) (size/sizeof($*1_type));
++}
++%enddef
 +
++%define %pybuffer_binary(TYPEMAP, SIZE)
++%typemap(in) (TYPEMAP, SIZE) {
++  int res; Py_ssize_t size = 0; const void *buf = 0;
++  Py_buffer view;
++  res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
++  if (res < 0) {
++    PyErr_Clear();
++    %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
++  }
++  size = view.len;
++  buf = view.buf;
++  PyBuffer_Release(&view);
++  $1 = ($1_ltype) buf;
++  $2 = ($2_ltype) (size / sizeof($*1_type));
++}
++%enddef
 +
-+
++%pybuffer_binary(const uint8_t *buf, size_t num_bytes);
++%pybuffer_mutable_binary(uint8_t *buf, size_t num_bytes);
 diff --git a/lldb/scripts/interface/SBFile.i b/lldb/scripts/interface/SBFile.i
 new file mode 100644
-index 00000000000..9c9223b3815
+index 00000000000..6cdb192f26e
 --- /dev/null
 +++ b/lldb/scripts/interface/SBFile.i
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,38 @@
 +//===-- SWIG Interface for SBFile -----------------------------------------===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -278,11 +376,6 @@ index 00000000000..9c9223b3815
 +// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 +//
 +//===----------------------------------------------------------------------===//
-+
-+%include <pybuffer.i>
-+
-+%pybuffer_binary(const uint8_t *buf, size_t num_bytes);
-+%pybuffer_mutable_binary(uint8_t *buf, size_t num_bytes);
 +
 +namespace lldb {
 +
@@ -307,6 +400,8 @@ index 00000000000..9c9223b3815
 +    void Flush();
 +
 +    bool IsValid() const;
++
++    operator bool() const;
 +
 +    SBError Close();
 +};
@@ -427,17 +522,15 @@ index 00000000000..a22bca8cf4d
 +  return error;
 +}
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index b79c00378c9..7785ee3921d 100644
+index b79c00378c9..eff4197db64 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
-@@ -68,6 +68,22 @@ static const char *GetStreamOpenModeFromOptions(uint32_t options) {
+@@ -68,6 +68,20 @@ static const char *GetStreamOpenModeFromOptions(uint32_t options) {
    return nullptr;
  }
  
 +uint32_t File::GetOptionsFromMode(llvm::StringRef mode) {
-+  if (mode.empty())
-+    return 0;
-+  return llvm::StringSwitch<uint32_t>(mode.str())
++  return llvm::StringSwitch<uint32_t>(mode)
 +      .Case("r", File::eOpenOptionRead)
 +      .Case("w", File::eOpenOptionWrite)
 +      .Case("a", File::eOpenOptionWrite | File::eOpenOptionAppend |
@@ -453,7 +546,7 @@ index b79c00378c9..7785ee3921d 100644
  int File::kInvalidDescriptor = -1;
  FILE *File::kInvalidStream = nullptr;
  
-@@ -143,9 +159,14 @@ uint32_t File::GetPermissions(Status &error) const {
+@@ -143,9 +157,14 @@ uint32_t File::GetPermissions(Status &error) const {
  
  Status File::Close() {
    Status error;
