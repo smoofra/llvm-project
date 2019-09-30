@@ -1,5 +1,5 @@
 Bottom: 03df2ea92e72204d4bd07dd5eed906201c1a4295
-Top:    6d3bdc8ac4e3c317ef309adc8748d996cde94c97
+Top:    154a91a3179cf44c752f15904df42dc68b9410fa
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-27 10:04:53 -0700
 
@@ -24,6 +24,7 @@ Differential Revision: https://reviews.llvm.org/D68160
 
 
 ---
+
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
 index 767d631672c..9ad5f4715da 100644
 --- a/lldb/include/lldb/Host/File.h
@@ -75,18 +76,17 @@ index 0dcd050356e..fe6a1798c53 100644
  }
  
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 70e0507d185..368dc60759f 100644
+index 70e0507d185..b79c00378c9 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
-@@ -162,13 +162,17 @@ Status File::Close() {
+@@ -162,13 +162,16 @@ Status File::Close() {
    return error;
  }
  
 -void File::Clear() {
 -  m_stream = nullptr;
 +FILE *File::TakeStreamAndClear() {
-+  GetStream();
-+  FILE *stream = m_stream;
++  FILE *stream = GetStream();
 +  m_stream = NULL;
    m_descriptor = kInvalidDescriptor;
    m_options = 0;
