@@ -163,8 +163,7 @@ Status File::Close() {
 }
 
 FILE *File::TakeStreamAndClear() {
-  GetStream();
-  FILE *stream = m_stream;
+  FILE *stream = GetStream();
   m_stream = NULL;
   m_descriptor = kInvalidDescriptor;
   m_options = 0;
