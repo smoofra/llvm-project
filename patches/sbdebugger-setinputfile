@@ -1,5 +1,5 @@
 Bottom: a8166968261d2b2f3fdf2e2f7f9ee43742b49d7c
-Top:    a8166968261d2b2f3fdf2e2f7f9ee43742b49d7c
+Top:    9482fec76c6bc3657b22b244374630c2bf93f2b0
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:55 -0700
 
@@ -22,4 +22,514 @@ Differential Revision: https://reviews.llvm.org/D68181
 
 
 ---
-
+diff --git a/lldb/include/lldb/API/SBDebugger.h b/lldb/include/lldb/API/SBDebugger.h
+index 417cead24a8..1f36999c3c4 100644
+--- a/lldb/include/lldb/API/SBDebugger.h
++++ b/lldb/include/lldb/API/SBDebugger.h
+@@ -88,6 +88,18 @@ public:
+ 
+   FILE *GetErrorFileHandle();
+ 
++  SBError SetInputFile(SBFile file);
++
++  SBError SetOutputFile(SBFile file);
++
++  SBError SetErrorFile(SBFile file);
++
++  SBFile GetInputFile();
++
++  SBFile GetOutputFile();
++
++  SBFile GetErrorFile();
++
+   void SaveInputTerminalState();
+ 
+   void RestoreInputTerminalState();
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+index efd70966b9a..e5c765926a6 100644
+--- a/lldb/include/lldb/API/SBFile.h
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -14,6 +14,8 @@
+ namespace lldb {
+ 
+ class LLDB_API SBFile {
++  friend class SBDebugger;
++
+ public:
+   SBFile();
+   SBFile(FILE *file, bool transfer_ownership);
+@@ -31,6 +33,7 @@ public:
+ 
+ private:
+   FileSP m_opaque_sp;
++  SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
+ };
+ 
+ } // namespace lldb
+diff --git a/lldb/include/lldb/Core/Debugger.h b/lldb/include/lldb/Core/Debugger.h
+index 90eefe11524..f57f6cf746e 100644
+--- a/lldb/include/lldb/Core/Debugger.h
++++ b/lldb/include/lldb/Core/Debugger.h
+@@ -132,12 +132,12 @@ public:
+ 
+   repro::DataRecorder *GetInputRecorder();
+ 
+-  void SetInputFileHandle(FILE *fh, bool tranfer_ownership,
+-                          repro::DataRecorder *recorder = nullptr);
++  Status SetInputFile(lldb::FileSP file,
++                      repro::DataRecorder *recorder = nullptr);
+ 
+-  void SetOutputFileHandle(FILE *fh, bool tranfer_ownership);
++  Status SetOutputFile(lldb::FileSP file);
+ 
+-  void SetErrorFileHandle(FILE *fh, bool tranfer_ownership);
++  Status SetErrorFile(lldb::FileSP file);
+ 
+   void SaveInputTerminalState();
+ 
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 76a8441df5d..301b6685dbd 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -15,6 +15,15 @@ from lldbsuite.test import  lldbtest
+ from lldbsuite.test.decorators import add_test_categories, no_debug_info_test
+ 
+ 
++@contextmanager
++def replace_stdout(new):
++    old = sys.stdout
++    sys.stdout = new
++    try:
++        yield
++    finally:
++        sys.stdout = old
++
+ def readStrippedLines(f):
+     def i():
+         for line in f:
+@@ -66,10 +75,13 @@ class FileHandleTestCase(lldbtest.TestBase):
+             interpreter.HandleCommand(cmd, ret)
+         else:
+             self.debugger.HandleCommand(cmd)
++        self.debugger.GetOutputFile().Flush()
++        self.debugger.GetErrorFile().Flush()
+         if collect_result and check:
+             self.assertTrue(ret.Succeeded())
+         return ret.GetOutput()
+ 
++
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+     def test_legacy_file_out_script(self):
+@@ -95,6 +107,19 @@ class FileHandleTestCase(lldbtest.TestBase):
+         with open(self.out_filename, 'r') as f:
+             self.assertIn('deadbeef', f.read())
+ 
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_legacy_file_err_with_get(self):
++        with open(self.out_filename, 'w') as f:
++            self.debugger.SetErrorFileHandle(f, False)
++            self.handleCmd('lolwut', check=False, collect_result=False)
++            self.debugger.GetErrorFileHandle().write('FOOBAR\n')
++
++        with open(self.out_filename, 'r') as f:
++            errors = f.read()
++            self.assertTrue(re.search(r'error:.*lolwut', errors))
++            self.assertTrue(re.search(r'FOOBAR', errors))
++
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+@@ -146,3 +171,106 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(e.Success())
+             self.assertEqual(buffer[:n], b'FOO')
+ 
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_out(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f.fileno(), "w", False)
++            status = self.debugger.SetOutputFile(sbf)
++            if status.Fail():
++                raise Exception(status)
++            self.handleCmd('script 1+2')
++            self.debugger.GetOutputFile().Write(b'quux')
++
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(readStrippedLines(f), ['3', 'quux'])
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_help(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f.fileno(), "w", False)
++            status = self.debugger.SetOutputFile(sbf)
++            if status.Fail():
++                raise Exception(status)
++            self.handleCmd("help help", collect_result=False, check=False)
++        with open(self.out_filename, 'r') as f:
++            self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_immediate(self):
++        with open(self.out_filename, 'w') as f:
++            ret = lldb.SBCommandReturnObject()
++            ret.SetImmediateOutputFile(f)
++            interpreter = self.debugger.GetCommandInterpreter()
++            interpreter.HandleCommand("help help", ret)
++            # make sure the file wasn't closed early.
++            f.write("\nQUUX\n")
++
++        ret = None # call destructor and flush streams
++
++        with open(self.out_filename, 'r') as f:
++            output = f.read()
++            self.assertTrue(re.search(r'Show a list of all debugger commands', output))
++            self.assertTrue(re.search(r'QUUX', output))
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_inout(self):
++        with open(self.in_filename, 'w') as f:
++            f.write("help help\n")
++
++        with open(self.out_filename, 'w') as outf, open(self.in_filename, 'r') as inf:
++
++            outsbf = lldb.SBFile(outf.fileno(), "w", False)
++            status = self.debugger.SetOutputFile(outsbf)
++            if status.Fail():
++                raise Exception(status)
++
++            insbf = lldb.SBFile(inf.fileno(), "r", False)
++            status = self.debugger.SetInputFile(insbf)
++            if status.Fail():
++                raise Exception(status)
++
++            opts = lldb.SBCommandInterpreterRunOptions()
++            self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
++            self.debugger.GetOutputFile().Flush()
++
++        with open(self.out_filename, 'r') as f:
++            self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_error(self):
++        with open(self.out_filename, 'w') as f:
++
++            sbf = lldb.SBFile(f.fileno(), 'w', False)
++            status = self.debugger.SetErrorFile(sbf)
++            if status.Fail():
++                raise Exception(status)
++
++            self.handleCmd('lolwut', check=False, collect_result=False)
++
++            self.debugger.GetErrorFile().Write(b'\nzork\n')
++
++        with open(self.out_filename, 'r') as f:
++            errors = f.read()
++            self.assertTrue(re.search(r'error:.*lolwut', errors))
++            self.assertTrue(re.search(r'zork', errors))
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_replace_stdout(self):
++        f = io.StringIO()
++        with replace_stdout(f):
++            self.assertEqual(sys.stdout, f)
++            self.handleCmd('script sys.stdout.write("lol")',
++                collect_result=False, check=False)
++            self.assertEqual(sys.stdout, f)
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index f3cee14b61a..c4eb11ea356 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -183,6 +183,24 @@ public:
+     FILE *
+     GetErrorFileHandle ();
+ 
++    SBError
++    SetInputFile (SBFile file);
++
++    SBError
++    SetOutputFile (SBFile file);
++
++    SBError
++    SetErrorFile (SBFile file);
++
++    SBFile
++    GetInputFile ();
++
++    SBFile
++    GetOutputFile ();
++
++    SBFile
++    GetErrorFile ();
++
+     lldb::SBCommandInterpreter
+     GetCommandInterpreter ();
+ 
+diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
+index 893ede5e414..b0b5d06c6cb 100644
+--- a/lldb/source/API/SBDebugger.cpp
++++ b/lldb/source/API/SBDebugger.cpp
+@@ -18,6 +18,7 @@
+ #include "lldb/API/SBCommandReturnObject.h"
+ #include "lldb/API/SBError.h"
+ #include "lldb/API/SBEvent.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBFrame.h"
+ #include "lldb/API/SBListener.h"
+ #include "lldb/API/SBProcess.h"
+@@ -304,30 +305,92 @@ void SBDebugger::SetInputFileHandle(FILE *fh, bool transfer_ownership) {
+   if (loader) {
+     llvm::Optional<std::string> file = loader->GetNextFile();
+     fh = file ? FileSystem::Instance().Fopen(file->c_str(), "r") : nullptr;
++    transfer_ownership = true;
+   }
+ 
+-  m_opaque_sp->SetInputFileHandle(fh, transfer_ownership, recorder);
++  m_opaque_sp->SetInputFile(std::make_shared<File>(fh, transfer_ownership),
++                            recorder);
++}
++
++SBError SBDebugger::SetInputFile(SBFile file) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetInputFile, (SBFile), file);
++
++  SBError error;
++  if (!m_opaque_sp) {
++    error.ref().SetErrorString("invalid debugger");
++    return error;
++  }
++
++  repro::DataRecorder *recorder = nullptr;
++  if (repro::Generator *g = repro::Reproducer::Instance().GetGenerator())
++    recorder = g->GetOrCreate<repro::CommandProvider>().GetNewDataRecorder();
++
++  FileSP file_sp = file.m_opaque_sp;
++
++  static std::unique_ptr<repro::CommandLoader> loader =
++      repro::CommandLoader::Create(repro::Reproducer::Instance().GetLoader());
++  if (loader) {
++    llvm::Optional<std::string> nextfile = loader->GetNextFile();
++    FILE *fh = nextfile ? FileSystem::Instance().Fopen(nextfile->c_str(), "r")
++                        : nullptr;
++    if (fh) {
++      file_sp = std::make_shared<File>(fh, true);
++    }
++  }
++
++  error.SetError(m_opaque_sp->SetInputFile(file_sp, recorder));
++  return error;
+ }
+ 
+ void SBDebugger::SetOutputFileHandle(FILE *fh, bool transfer_ownership) {
+   LLDB_RECORD_METHOD(void, SBDebugger, SetOutputFileHandle, (FILE *, bool), fh,
+                      transfer_ownership);
+ 
+-  if (m_opaque_sp)
+-    m_opaque_sp->SetOutputFileHandle(fh, transfer_ownership);
++  if (m_opaque_sp) {
++    m_opaque_sp->SetOutputFile(std::make_shared<File>(fh, transfer_ownership));
++  }
++}
++
++SBError SBDebugger::SetOutputFile(SBFile file) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetOutputFile, (SBFile file), file);
++  SBError error;
++  if (!m_opaque_sp) {
++    error.ref().SetErrorString("invalid debugger");
++    return error;
++  }
++  if (!file) {
++    error.ref().SetErrorString("invalid file");
++    return error;
++  }
++  error.SetError(m_opaque_sp->SetOutputFile(file.m_opaque_sp));
++  return error;
+ }
+ 
+ void SBDebugger::SetErrorFileHandle(FILE *fh, bool transfer_ownership) {
+   LLDB_RECORD_METHOD(void, SBDebugger, SetErrorFileHandle, (FILE *, bool), fh,
+                      transfer_ownership);
++  if (m_opaque_sp) {
++    m_opaque_sp->SetErrorFile(std::make_shared<File>(fh, transfer_ownership));
++  }
++}
+ 
+-  if (m_opaque_sp)
+-    m_opaque_sp->SetErrorFileHandle(fh, transfer_ownership);
++SBError SBDebugger::SetErrorFile(SBFile file) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (SBFile file), file);
++  SBError error;
++  if (!m_opaque_sp) {
++    error.ref().SetErrorString("invalid debugger");
++    return error;
++  }
++  if (!file) {
++    error.ref().SetErrorString("invalid file");
++    return error;
++  }
++  error.SetError(m_opaque_sp->SetErrorFile(file.m_opaque_sp));
++  return error;
+ }
+ 
+ FILE *SBDebugger::GetInputFileHandle() {
+   LLDB_RECORD_METHOD_NO_ARGS(FILE *, SBDebugger, GetInputFileHandle);
+-
+   if (m_opaque_sp) {
+     File &file_sp = m_opaque_sp->GetInputFile();
+     return LLDB_RECORD_RESULT(file_sp.GetStream());
+@@ -335,9 +398,16 @@ FILE *SBDebugger::GetInputFileHandle() {
+   return nullptr;
+ }
+ 
++SBFile SBDebugger::GetInputFile() {
++  LLDB_RECORD_METHOD_NO_ARGS(SBFile, SBDebugger, GetInputFile);
++  if (m_opaque_sp) {
++    return LLDB_RECORD_RESULT(SBFile(m_opaque_sp->GetInputFileSP()));
++  }
++  return LLDB_RECORD_RESULT(SBFile());
++}
++
+ FILE *SBDebugger::GetOutputFileHandle() {
+   LLDB_RECORD_METHOD_NO_ARGS(FILE *, SBDebugger, GetOutputFileHandle);
+-
+   if (m_opaque_sp) {
+     StreamFile &stream_file = m_opaque_sp->GetOutputStream();
+     return LLDB_RECORD_RESULT(stream_file.GetFile().GetStream());
+@@ -345,6 +415,15 @@ FILE *SBDebugger::GetOutputFileHandle() {
+   return nullptr;
+ }
+ 
++SBFile SBDebugger::GetOutputFile() {
++  LLDB_RECORD_METHOD_NO_ARGS(SBFile, SBDebugger, GetOutputFile);
++  if (m_opaque_sp) {
++    SBFile file(m_opaque_sp->GetOutputStream().GetFileSP());
++    return LLDB_RECORD_RESULT(file);
++  }
++  return LLDB_RECORD_RESULT(SBFile());
++}
++
+ FILE *SBDebugger::GetErrorFileHandle() {
+   LLDB_RECORD_METHOD_NO_ARGS(FILE *, SBDebugger, GetErrorFileHandle);
+ 
+@@ -355,6 +434,16 @@ FILE *SBDebugger::GetErrorFileHandle() {
+   return nullptr;
+ }
+ 
++SBFile SBDebugger::GetErrorFile() {
++  LLDB_RECORD_METHOD_NO_ARGS(SBFile, SBDebugger, GetErrorFile);
++  SBFile file;
++  if (m_opaque_sp) {
++    SBFile file(m_opaque_sp->GetErrorStream().GetFileSP());
++    return LLDB_RECORD_RESULT(file);
++  }
++  return LLDB_RECORD_RESULT(SBFile());
++}
++
+ void SBDebugger::SaveInputTerminalState() {
+   LLDB_RECORD_METHOD_NO_ARGS(void, SBDebugger, SaveInputTerminalState);
+ 
+@@ -1503,6 +1592,8 @@ static void SetFileHandleRedirect(SBDebugger *, FILE *, bool) {
+   // Do nothing.
+ }
+ 
++static SBError SetFileRedirect(SBDebugger *, SBFile file) { return SBError(); }
++
+ static bool GetDefaultArchitectureRedirect(char *arch_name,
+                                            size_t arch_name_len) {
+   // The function is writing to its argument. Without the redirect it would
+@@ -1523,6 +1614,16 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+                                        &SBDebugger::GetDefaultArchitecture),
+                                    &GetDefaultArchitectureRedirect);
+ 
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 SBFile)>::method<&SBDebugger::SetInputFile>::doit,
++             &SetFileRedirect);
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 SBFile)>::method<&SBDebugger::SetOutputFile>::doit,
++             &SetFileRedirect);
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 SBFile)>::method<&SBDebugger::SetErrorFile>::doit,
++             &SetFileRedirect);
++
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, ());
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, (const lldb::DebuggerSP &));
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, (const lldb::SBDebugger &));
+@@ -1547,6 +1648,9 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+   LLDB_REGISTER_METHOD(FILE *, SBDebugger, GetInputFileHandle, ());
+   LLDB_REGISTER_METHOD(FILE *, SBDebugger, GetOutputFileHandle, ());
+   LLDB_REGISTER_METHOD(FILE *, SBDebugger, GetErrorFileHandle, ());
++  LLDB_REGISTER_METHOD(SBFile, SBDebugger, GetInputFile, ());
++  LLDB_REGISTER_METHOD(SBFile, SBDebugger, GetOutputFile, ());
++  LLDB_REGISTER_METHOD(SBFile, SBDebugger, GetErrorFile, ());
+   LLDB_REGISTER_METHOD(void, SBDebugger, SaveInputTerminalState, ());
+   LLDB_REGISTER_METHOD(void, SBDebugger, RestoreInputTerminalState, ());
+   LLDB_REGISTER_METHOD(lldb::SBCommandInterpreter, SBDebugger,
+diff --git a/lldb/source/Core/Debugger.cpp b/lldb/source/Core/Debugger.cpp
+index fe2815029ca..7f5ac854b26 100644
+--- a/lldb/source/Core/Debugger.cpp
++++ b/lldb/source/Core/Debugger.cpp
+@@ -821,32 +821,42 @@ void Debugger::SetAsyncExecution(bool async_execution) {
+ 
+ repro::DataRecorder *Debugger::GetInputRecorder() { return m_input_recorder; }
+ 
+-void Debugger::SetInputFileHandle(FILE *fh, bool tranfer_ownership,
+-                                  repro::DataRecorder *recorder) {
++Status Debugger::SetInputFile(FileSP file_sp, repro::DataRecorder *recorder) {
++  Status error;
+   m_input_recorder = recorder;
+ 
+-  m_input_file_sp = std::make_shared<File>(fh, tranfer_ownership);
+-  if (!m_input_file_sp->IsValid())
++  if (!file_sp || !file_sp->IsValid()) {
+     m_input_file_sp = std::make_shared<File>(stdin, false);
++    error.SetErrorString("invalid file");
++  } else {
++    m_input_file_sp = file_sp;
++  }
+ 
+   // Save away the terminal state if that is relevant, so that we can restore
+   // it in RestoreInputState.
+   SaveInputTerminalState();
++
++  return error;
+ }
+ 
+-void Debugger::SetOutputFileHandle(FILE *fh, bool tranfer_ownership) {
+-  FileSP file_sp = std::make_shared<File>(fh, tranfer_ownership);
+-  if (!file_sp->IsValid())
++Status Debugger::SetOutputFile(FileSP file_sp) {
++  Status error;
++  if (!file_sp || !file_sp->IsValid()) {
+     file_sp = std::make_shared<File>(stdout, false);
++    error.SetErrorString("invalid file");
++  }
+   m_output_stream_sp = std::make_shared<StreamFile>(file_sp);
+-
++  return error;
+ }
+ 
+-void Debugger::SetErrorFileHandle(FILE *fh, bool tranfer_ownership) {
+-  FileSP file_sp = std::make_shared<File>(fh, tranfer_ownership);
+-  if (!file_sp->IsValid())
++Status Debugger::SetErrorFile(FileSP file_sp) {
++  Status error;
++  if (!file_sp || !file_sp->IsValid()) {
+     file_sp = std::make_shared<File>(stderr, false);
++    error.SetErrorString("invalid file");
++  }
+   m_error_stream_sp = std::make_shared<StreamFile>(file_sp);
++  return error;
+ }
+ 
+ void Debugger::SaveInputTerminalState() {
