@@ -1,5 +1,5 @@
-Bottom: f6ab9b24cccb1cfc6f74c22a01b103b83bc58cdd
-Top:    73b1e7bc40d9505023044acc582c8f8275e14cc7
+Bottom: 026625793c656c565f2dc4b7234dad02e0894be5
+Top:    c4b47cc2d425bbfe3085186f2cadcaa4bee415a1
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -25,6 +25,7 @@ Differential Revision: https://reviews.llvm.org/D68188
 
 
 ---
+
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
 index e5c765926a6..38c0bdfbc38 100644
 --- a/lldb/include/lldb/API/SBFile.h
@@ -583,7 +584,7 @@ index 9c9223b3815..3f5ce3fe3bd 100644
  
      %feature("autodoc", "Read(buffer) -> SBError, bytes_read") Read;
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index ac4f187cc37..7dcded6c469 100644
+index 7785ee3921d..6c8497f2615 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
 @@ -111,7 +111,7 @@ IOObject::WaitableHandle File::GetWaitableHandle() { return GetDescriptor(); }
@@ -595,7 +596,7 @@ index ac4f187cc37..7dcded6c469 100644
        const char *mode = GetStreamOpenModeFromOptions(m_options);
        if (mode) {
          if (!m_own_descriptor) {
-@@ -232,8 +232,11 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
+@@ -231,8 +231,11 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
  }
  
  off_t File::SeekFromStart(off_t offset, Status *error_ptr) {
@@ -609,7 +610,7 @@ index ac4f187cc37..7dcded6c469 100644
      result = ::lseek(m_descriptor, offset, SEEK_SET);
  
      if (error_ptr) {
-@@ -259,7 +262,10 @@ off_t File::SeekFromStart(off_t offset, Status *error_ptr) {
+@@ -258,7 +261,10 @@ off_t File::SeekFromStart(off_t offset, Status *error_ptr) {
  
  off_t File::SeekFromCurrent(off_t offset, Status *error_ptr) {
    off_t result = -1;
@@ -621,7 +622,7 @@ index ac4f187cc37..7dcded6c469 100644
      result = ::lseek(m_descriptor, offset, SEEK_CUR);
  
      if (error_ptr) {
-@@ -285,7 +291,10 @@ off_t File::SeekFromCurrent(off_t offset, Status *error_ptr) {
+@@ -284,7 +290,10 @@ off_t File::SeekFromCurrent(off_t offset, Status *error_ptr) {
  
  off_t File::SeekFromEnd(off_t offset, Status *error_ptr) {
    off_t result = -1;
@@ -633,7 +634,7 @@ index ac4f187cc37..7dcded6c469 100644
      result = ::lseek(m_descriptor, offset, SEEK_END);
  
      if (error_ptr) {
-@@ -322,7 +331,8 @@ Status File::Flush() {
+@@ -321,7 +330,8 @@ Status File::Flush() {
  
  Status File::Sync() {
    Status error;
@@ -643,7 +644,7 @@ index ac4f187cc37..7dcded6c469 100644
  #ifdef _WIN32
      int err = FlushFileBuffers((HANDLE)_get_osfhandle(m_descriptor));
      if (err == 0)
-@@ -467,6 +477,11 @@ Status File::Write(const void *buf, size_t &num_bytes) {
+@@ -466,6 +476,11 @@ Status File::Write(const void *buf, size_t &num_bytes) {
  Status File::Read(void *buf, size_t &num_bytes, off_t &offset) {
    Status error;
  
@@ -655,7 +656,7 @@ index ac4f187cc37..7dcded6c469 100644
  #if defined(MAX_READ_SIZE)
    if (num_bytes > MAX_READ_SIZE) {
      uint8_t *p = (uint8_t *)buf;
-@@ -527,6 +542,11 @@ Status File::Read(void *buf, size_t &num_bytes, off_t &offset) {
+@@ -526,6 +541,11 @@ Status File::Read(void *buf, size_t &num_bytes, off_t &offset) {
  Status File::Write(const void *buf, size_t &num_bytes, off_t &offset) {
    Status error;
  
@@ -667,7 +668,7 @@ index ac4f187cc37..7dcded6c469 100644
  #if defined(MAX_WRITE_SIZE)
    if (num_bytes > MAX_WRITE_SIZE) {
      const uint8_t *p = (const uint8_t *)buf;
-@@ -600,7 +620,7 @@ size_t File::Printf(const char *format, ...) {
+@@ -599,7 +619,7 @@ size_t File::Printf(const char *format, ...) {
  // Print some formatted output to the stream.
  size_t File::PrintfVarArg(const char *format, va_list args) {
    size_t result = 0;

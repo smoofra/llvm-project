@@ -1,5 +1,5 @@
-Bottom: 6d3bdc8ac4e3c317ef309adc8748d996cde94c97
-Top:    dfc47497678bb6fb6c0c5616ba26ebb88fb5a62f
+Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
+Top:    86c8531e6c68114428e3a9d4e5f05cddb5e489b8
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -24,6 +24,7 @@ Differential Revision: https://reviews.llvm.org/D67793
 
 
 ---
+
 diff --git a/lldb/include/lldb/API/LLDB.h b/lldb/include/lldb/API/LLDB.h
 index 0806ab700a9..75e2d70c0c3 100644
 --- a/lldb/include/lldb/API/LLDB.h
@@ -426,7 +427,7 @@ index 00000000000..a22bca8cf4d
 +  return error;
 +}
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 368dc60759f..ac4f187cc37 100644
+index b79c00378c9..7785ee3921d 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
 @@ -68,6 +68,22 @@ static const char *GetStreamOpenModeFromOptions(uint32_t options) {
