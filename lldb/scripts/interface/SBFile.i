@@ -6,11 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-%include <pybuffer.i>
-
-%pybuffer_binary(const uint8_t *buf, size_t num_bytes);
-%pybuffer_mutable_binary(uint8_t *buf, size_t num_bytes);
-
 namespace lldb {
 
 %feature("docstring",
@@ -34,6 +29,8 @@ public:
     void Flush();
 
     bool IsValid() const;
+
+    operator bool() const;
 
     SBError Close();
 };

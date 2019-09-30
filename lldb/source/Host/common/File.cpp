@@ -69,9 +69,7 @@ static const char *GetStreamOpenModeFromOptions(uint32_t options) {
 }
 
 uint32_t File::GetOptionsFromMode(llvm::StringRef mode) {
-  if (mode.empty())
-    return 0;
-  return llvm::StringSwitch<uint32_t>(mode.str())
+  return llvm::StringSwitch<uint32_t>(mode)
       .Case("r", File::eOpenOptionRead)
       .Case("w", File::eOpenOptionWrite)
       .Case("a", File::eOpenOptionWrite | File::eOpenOptionAppend |
