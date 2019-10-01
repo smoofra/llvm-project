@@ -1,5 +1,5 @@
 Bottom: 967f99bde8ed30e29063f860347e647087d52998
-Top:    3264e900a8fb97285867055b6f7383f0eefdb19b
+Top:    8ef4faddac2b240d168f243782e46cead8025572
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:55 -0700
 
@@ -46,7 +46,7 @@ index 417cead24a8..1f36999c3c4 100644
  
    void RestoreInputTerminalState();
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
-index da330440a99..b3f9b324fca 100644
+index da330440a99..a5fc2cd4121 100644
 --- a/lldb/include/lldb/API/SBFile.h
 +++ b/lldb/include/lldb/API/SBFile.h
 @@ -14,6 +14,8 @@
@@ -62,7 +62,7 @@ index da330440a99..b3f9b324fca 100644
  
  private:
    FileSP m_opaque_sp;
-+  SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
++  SBFile(FileSP file_sp);
  };
  
  } // namespace lldb
@@ -481,6 +481,19 @@ index 893ede5e414..97bc743ae87 100644
    LLDB_REGISTER_METHOD(void, SBDebugger, SaveInputTerminalState, ());
    LLDB_REGISTER_METHOD(void, SBDebugger, RestoreInputTerminalState, ());
    LLDB_REGISTER_METHOD(lldb::SBCommandInterpreter, SBDebugger,
+diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
+index fc4f5572f01..b36dedb628f 100644
+--- a/lldb/source/API/SBFile.cpp
++++ b/lldb/source/API/SBFile.cpp
+@@ -16,6 +16,8 @@ using namespace lldb_private;
+ 
+ SBFile::~SBFile() {}
+ 
++SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
++
+ SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
+ 
+ SBFile::SBFile(FILE *file, bool transfer_ownership) {
 diff --git a/lldb/source/Core/Debugger.cpp b/lldb/source/Core/Debugger.cpp
 index fe2815029ca..3774d75cc7e 100644
 --- a/lldb/source/Core/Debugger.cpp
