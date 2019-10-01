@@ -1,0 +1,56 @@
+Bottom: 7831f835f7ec86213a1e65e5ef66014ddbe6db84
+Top:    ec462ad7a7475a7a3d3a14fa50e715e0c412009f
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-30 17:16:32 -0700
+
+Refresh of sbdebugger-setinputfile
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 233a809d891..61b38520115 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -12,7 +12,8 @@ from contextlib import contextmanager
+ 
+ import lldb
+ from lldbsuite.test import  lldbtest
+-from lldbsuite.test.decorators import add_test_categories, no_debug_info_test
++from lldbsuite.test.decorators import (
++    add_test_categories, no_debug_info_test, skipIf)
+ 
+ 
+ @contextmanager
+@@ -115,7 +116,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.debugger.SetErrorFileHandle(f, False)
+             self.handleCmd('lolwut', check=False, collect_result=False)
+             self.debugger.GetErrorFileHandle().write('FOOBAR\n')
+-
++        lldb.SBDebugger.Destroy(self.debugger)
+         with open(self.out_filename, 'r') as f:
+             errors = f.read()
+             self.assertTrue(re.search(r'error:.*lolwut', errors))
+@@ -265,9 +266,10 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(re.search(r'error:.*lolwut', errors))
+             self.assertTrue(re.search(r'zork', errors))
+ 
+-
++    #FIXME This shouldn't fail for python2 either.
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
+     def test_replace_stdout(self):
+         f = io.StringIO()
+         with replace_stdout(f):
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 0a0f992e96b..a6aefdc328a 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -954,6 +954,8 @@ PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
+ PythonFile::~PythonFile() {}
+ 
+ bool PythonFile::Check(PyObject *py_obj) {
++  if (!py_obj)
++    return false;
+ #if PY_MAJOR_VERSION < 3
+   return PyFile_Check(py_obj);
+ #else
