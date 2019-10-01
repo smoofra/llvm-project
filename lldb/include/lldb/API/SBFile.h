@@ -33,7 +33,7 @@ public:
 
 private:
   FileSP m_opaque_sp;
-  SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
+  SBFile(FileSP file_sp);
 };
 
 } // namespace lldb
