@@ -1,0 +1,104 @@
+Bottom: d8458ef7d1a725cb3bcf85fa19f4c05bd1470751
+Top:    e5a34047e49f8c2c6ea7dded4a4f54cccad8eb36
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-30 17:24:06 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 40854025d23..78ecddf8346 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -171,7 +171,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+-    def test_sbfile_write(self):
++    def test_sbfile_write_fileno(self):
+         with open(self.out_filename, 'w') as f:
+             sbf = lldb.SBFile(f.fileno(), "w", False)
+             self.assertTrue(sbf.IsValid())
+@@ -186,7 +186,21 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+-    def test_sbfile_read(self):
++    def test_sbfile_write(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f)
++            e, n = sbf.Write(b'FOO\n')
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 4)
++            sbf.Close()
++            self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), 'FOO')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_read_fileno(self):
+         with open(self.out_filename, 'w') as f:
+             f.write('FOO')
+         with open(self.out_filename, 'r') as f:
+@@ -198,6 +212,22 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertEqual(buffer[:n], b'FOO')
+ 
+ 
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_read(self):
++        with open(self.out_filename, 'w') as f:
++            f.write('foo')
++        with open(self.out_filename, 'r') as f:
++            sbf = lldb.SBFile(f)
++            buf = bytearray(100)
++            e, n = sbf.Read(buf)
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 3)
++            self.assertEqual(buf[:n], b'foo')
++            sbf.Close()
++            self.assertTrue(f.closed)
++
++
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+     def test_fileno_out(self):
+@@ -303,36 +333,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertEqual(sys.stdout, f)
+ 
+ 
+-    @add_test_categories(['pyapi'])
+-    @no_debug_info_test
+-    def test_sbfile_write2(self):
+-        with open(self.out_filename, 'w') as f:
+-            sbf = lldb.SBFile(f)
+-            e, n = sbf.Write(b'FOO\n')
+-            self.assertTrue(e.Success())
+-            self.assertEqual(n, 4)
+-            sbf.Close()
+-            self.assertTrue(f.closed)
+-        with open(self.out_filename, 'r') as f:
+-            self.assertEqual(f.read().strip(), 'FOO')
+-
+-
+-    @add_test_categories(['pyapi'])
+-    @no_debug_info_test
+-    def test_sbfile_read2(self):
+-        with open(self.out_filename, 'w') as f:
+-            f.write('foo')
+-        with open(self.out_filename, 'r') as f:
+-            sbf = lldb.SBFile(f)
+-            buf = bytearray(100)
+-            e, n = sbf.Read(buf)
+-            self.assertTrue(e.Success())
+-            self.assertEqual(n, 3)
+-            self.assertEqual(buf[:n], b'foo')
+-            sbf.Close()
+-            self.assertTrue(f.closed)
+-
+-
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+     def test_sbfile_write_borrowed(self):
