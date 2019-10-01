@@ -180,8 +180,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f.fileno(), "w", False)
             status = self.debugger.SetOutputFile(sbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
             self.handleCmd('script 1+2')
             self.debugger.GetOutputFile().Write(b'quux')
 
@@ -195,8 +194,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f.fileno(), "w", False)
             status = self.debugger.SetOutputFile(sbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
             self.handleCmd("help help", collect_result=False, check=False)
         with open(self.out_filename, 'r') as f:
             self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
@@ -231,13 +229,11 @@ class FileHandleTestCase(lldbtest.TestBase):
 
             outsbf = lldb.SBFile(outf.fileno(), "w", False)
             status = self.debugger.SetOutputFile(outsbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
 
             insbf = lldb.SBFile(inf.fileno(), "r", False)
             status = self.debugger.SetInputFile(insbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
 
             opts = lldb.SBCommandInterpreterRunOptions()
             self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
@@ -254,8 +250,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
             sbf = lldb.SBFile(f.fileno(), 'w', False)
             status = self.debugger.SetErrorFile(sbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
 
             self.handleCmd('lolwut', check=False, collect_result=False)
 
