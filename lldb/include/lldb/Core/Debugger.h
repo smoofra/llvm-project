@@ -132,12 +132,11 @@ public:
 
   repro::DataRecorder *GetInputRecorder();
 
-  Status SetInputFile(lldb::FileSP file,
-                      repro::DataRecorder *recorder = nullptr);
+  void SetInputFile(lldb::FileSP file, repro::DataRecorder *recorder = nullptr);
 
-  Status SetOutputFile(lldb::FileSP file);
+  void SetOutputFile(lldb::FileSP file);
 
-  Status SetErrorFile(lldb::FileSP file);
+  void SetErrorFile(lldb::FileSP file);
 
   void SaveInputTerminalState();
 

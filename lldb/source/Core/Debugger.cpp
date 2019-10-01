@@ -821,42 +821,23 @@ void Debugger::SetAsyncExecution(bool async_execution) {
 
 repro::DataRecorder *Debugger::GetInputRecorder() { return m_input_recorder; }
 
-Status Debugger::SetInputFile(FileSP file_sp, repro::DataRecorder *recorder) {
-  Status error;
+void Debugger::SetInputFile(FileSP file_sp, repro::DataRecorder *recorder) {
+  assert(file_sp && file_sp->IsValid());
   m_input_recorder = recorder;
-
-  if (!file_sp || !file_sp->IsValid()) {
-    m_input_file_sp = std::make_shared<File>(stdin, false);
-    error.SetErrorString("invalid file");
-  } else {
-    m_input_file_sp = file_sp;
-  }
-
+  m_input_file_sp = file_sp;
   // Save away the terminal state if that is relevant, so that we can restore
   // it in RestoreInputState.
   SaveInputTerminalState();
-
-  return error;
 }
 
-Status Debugger::SetOutputFile(FileSP file_sp) {
-  Status error;
-  if (!file_sp || !file_sp->IsValid()) {
-    file_sp = std::make_shared<File>(stdout, false);
-    error.SetErrorString("invalid file");
-  }
+void Debugger::SetOutputFile(FileSP file_sp) {
+  assert(file_sp && file_sp->IsValid());
   m_output_stream_sp = std::make_shared<StreamFile>(file_sp);
-  return error;
 }
 
-Status Debugger::SetErrorFile(FileSP file_sp) {
-  Status error;
-  if (!file_sp || !file_sp->IsValid()) {
-    file_sp = std::make_shared<File>(stderr, false);
-    error.SetErrorString("invalid file");
-  }
+void Debugger::SetErrorFile(FileSP file_sp) {
+  assert(file_sp && file_sp->IsValid());
   m_error_stream_sp = std::make_shared<StreamFile>(file_sp);
-  return error;
 }
 
 void Debugger::SaveInputTerminalState() {

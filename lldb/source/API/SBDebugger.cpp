@@ -286,32 +286,15 @@ void SBDebugger::SkipAppInitFiles(bool b) {
     m_opaque_sp->GetCommandInterpreter().SkipAppInitFiles(b);
 }
 
-// Shouldn't really be settable after initialization as this could cause lots
-// of problems; don't want users trying to switch modes in the middle of a
-// debugging session.
 void SBDebugger::SetInputFileHandle(FILE *fh, bool transfer_ownership) {
   LLDB_RECORD_METHOD(void, SBDebugger, SetInputFileHandle, (FILE *, bool), fh,
                      transfer_ownership);
-
-  if (!m_opaque_sp)
-    return;
-
-  repro::DataRecorder *recorder = nullptr;
-  if (repro::Generator *g = repro::Reproducer::Instance().GetGenerator())
-    recorder = g->GetOrCreate<repro::CommandProvider>().GetNewDataRecorder();
-
-  static std::unique_ptr<repro::CommandLoader> loader =
-      repro::CommandLoader::Create(repro::Reproducer::Instance().GetLoader());
-  if (loader) {
-    llvm::Optional<std::string> file = loader->GetNextFile();
-    fh = file ? FileSystem::Instance().Fopen(file->c_str(), "r") : nullptr;
-    transfer_ownership = true;
-  }
-
-  m_opaque_sp->SetInputFile(std::make_shared<File>(fh, transfer_ownership),
-                            recorder);
+  SetInputFile(std::make_shared<File>(fh, transfer_ownership));
 }
 
+// Shouldn't really be settable after initialization as this could cause lots
+// of problems; don't want users trying to switch modes in the middle of a
+// debugging session.
 SBError SBDebugger::SetInputFile(SBFile file) {
   LLDB_RECORD_METHOD(SBError, SBDebugger, SetInputFile, (SBFile), file);
 
@@ -333,22 +316,26 @@ SBError SBDebugger::SetInputFile(SBFile file) {
     llvm::Optional<std::string> nextfile = loader->GetNextFile();
     FILE *fh = nextfile ? FileSystem::Instance().Fopen(nextfile->c_str(), "r")
                         : nullptr;
+    // FIXME Jonas Devlieghere: shouldn't this error be propagated out to the
+    // reproducer somehow if fh is NULL?
     if (fh) {
       file_sp = std::make_shared<File>(fh, true);
     }
   }
 
-  error.SetError(m_opaque_sp->SetInputFile(file_sp, recorder));
+  if (!file_sp || !file_sp->IsValid()) {
+    error.ref().SetErrorString("invalid file");
+    return error;
+  }
+
+  m_opaque_sp->SetInputFile(file_sp, recorder);
   return error;
 }
 
 void SBDebugger::SetOutputFileHandle(FILE *fh, bool transfer_ownership) {
   LLDB_RECORD_METHOD(void, SBDebugger, SetOutputFileHandle, (FILE *, bool), fh,
                      transfer_ownership);
-
-  if (m_opaque_sp) {
-    m_opaque_sp->SetOutputFile(std::make_shared<File>(fh, transfer_ownership));
-  }
+  SetOutputFile(std::make_shared<File>(fh, transfer_ownership));
 }
 
 SBError SBDebugger::SetOutputFile(SBFile file) {
@@ -362,16 +349,14 @@ SBError SBDebugger::SetOutputFile(SBFile file) {
     error.ref().SetErrorString("invalid file");
     return error;
   }
-  error.SetError(m_opaque_sp->SetOutputFile(file.m_opaque_sp));
+  m_opaque_sp->SetOutputFile(file.m_opaque_sp);
   return error;
 }
 
 void SBDebugger::SetErrorFileHandle(FILE *fh, bool transfer_ownership) {
   LLDB_RECORD_METHOD(void, SBDebugger, SetErrorFileHandle, (FILE *, bool), fh,
                      transfer_ownership);
-  if (m_opaque_sp) {
-    m_opaque_sp->SetErrorFile(std::make_shared<File>(fh, transfer_ownership));
-  }
+  SetErrorFile(std::make_shared<File>(fh, transfer_ownership));
 }
 
 SBError SBDebugger::SetErrorFile(SBFile file) {
@@ -385,7 +370,7 @@ SBError SBDebugger::SetErrorFile(SBFile file) {
     error.ref().SetErrorString("invalid file");
     return error;
   }
-  error.SetError(m_opaque_sp->SetErrorFile(file.m_opaque_sp));
+  m_opaque_sp->SetErrorFile(file.m_opaque_sp);
   return error;
 }
 
