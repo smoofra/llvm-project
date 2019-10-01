@@ -88,6 +88,16 @@ SBError SBFile::Close() {
   return LLDB_RECORD_RESULT(error);
 }
 
+SBFile::operator bool() const {
+  LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBFile, operator bool);
+  return LLDB_RECORD_RESULT(IsValid());
+}
+
+bool SBFile::operator!() const {
+  LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBFile, operator!);
+  return LLDB_RECORD_RESULT(!IsValid());
+}
+
 namespace lldb_private {
 namespace repro {
 template <> void RegisterMethods<SBFile>(Registry &R) {
@@ -95,6 +105,8 @@ template <> void RegisterMethods<SBFile>(Registry &R) {
   LLDB_REGISTER_CONSTRUCTOR(SBFile, (int, const char *, bool));
   LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Flush, ());
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
+  LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator bool,());
+  LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator!,());
   LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Close, ());
 }
 } // namespace repro

@@ -26,8 +26,8 @@ public:
   bool IsValid() const;
   SBError Close();
 
-  operator bool() const { return IsValid(); }
-  bool operator!() const { return !IsValid(); }
+  operator bool() const;
+  bool operator!() const;
 
 private:
   FileSP m_opaque_sp;
