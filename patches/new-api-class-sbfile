@@ -1,5 +1,5 @@
 Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
-Top:    3039a9d4c9b925eb4842b030710bd5af577589da
+Top:    967f99bde8ed30e29063f860347e647087d52998
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -72,7 +72,7 @@ index b076f87b766..3db2658d9fb 100644
  
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
 new file mode 100644
-index 00000000000..efd70966b9a
+index 00000000000..da330440a99
 --- /dev/null
 +++ b/lldb/include/lldb/API/SBFile.h
 @@ -0,0 +1,38 @@
@@ -104,8 +104,8 @@ index 00000000000..efd70966b9a
 +  bool IsValid() const;
 +  SBError Close();
 +
-+  operator bool() const { return IsValid(); }
-+  bool operator!() const { return !IsValid(); }
++  operator bool() const;
++  bool operator!() const;
 +
 +private:
 +  FileSP m_opaque_sp;
@@ -443,10 +443,10 @@ index d93b8b5e381..f06ed1fcdd0 100644
    SBFunction.cpp
 diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
 new file mode 100644
-index 00000000000..b67078afd0d
+index 00000000000..fc4f5572f01
 --- /dev/null
 +++ b/lldb/source/API/SBFile.cpp
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,113 @@
 +//===-- SBFile.cpp ------------------------------------------*- C++ -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -537,6 +537,16 @@ index 00000000000..b67078afd0d
 +  return LLDB_RECORD_RESULT(error);
 +}
 +
++SBFile::operator bool() const {
++  LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBFile, operator bool);
++  return LLDB_RECORD_RESULT(IsValid());
++}
++
++bool SBFile::operator!() const {
++  LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBFile, operator!);
++  return LLDB_RECORD_RESULT(!IsValid());
++}
++
 +namespace lldb_private {
 +namespace repro {
 +template <> void RegisterMethods<SBFile>(Registry &R) {
@@ -544,6 +554,8 @@ index 00000000000..b67078afd0d
 +  LLDB_REGISTER_CONSTRUCTOR(SBFile, (int, const char *, bool));
 +  LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Flush, ());
 +  LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
++  LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator bool,());
++  LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator!,());
 +  LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Close, ());
 +}
 +} // namespace repro
