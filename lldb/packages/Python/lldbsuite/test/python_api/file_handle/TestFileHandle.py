@@ -171,7 +171,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
-    def test_sbfile_write(self):
+    def test_sbfile_write_fileno(self):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f.fileno(), "w", False)
             self.assertTrue(sbf.IsValid())
@@ -186,7 +186,21 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
-    def test_sbfile_read(self):
+    def test_sbfile_write(self):
+        with open(self.out_filename, 'w') as f:
+            sbf = lldb.SBFile(f)
+            e, n = sbf.Write(b'FOO\n')
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 4)
+            sbf.Close()
+            self.assertTrue(f.closed)
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), 'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_read_fileno(self):
         with open(self.out_filename, 'w') as f:
             f.write('FOO')
         with open(self.out_filename, 'r') as f:
@@ -196,6 +210,22 @@ class FileHandleTestCase(lldbtest.TestBase):
             e, n = sbf.Read(buffer)
             self.assertTrue(e.Success())
             self.assertEqual(buffer[:n], b'FOO')
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_sbfile_read(self):
+        with open(self.out_filename, 'w') as f:
+            f.write('foo')
+        with open(self.out_filename, 'r') as f:
+            sbf = lldb.SBFile(f)
+            buf = bytearray(100)
+            e, n = sbf.Read(buf)
+            self.assertTrue(e.Success())
+            self.assertEqual(n, 3)
+            self.assertEqual(buf[:n], b'foo')
+            sbf.Close()
+            self.assertTrue(f.closed)
 
 
     @add_test_categories(['pyapi'])
@@ -301,36 +331,6 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.handleCmd('script sys.stdout.write("lol")',
                 collect_result=False, check=False)
             self.assertEqual(sys.stdout, f)
-
-
-    @add_test_categories(['pyapi'])
-    @no_debug_info_test
-    def test_sbfile_write2(self):
-        with open(self.out_filename, 'w') as f:
-            sbf = lldb.SBFile(f)
-            e, n = sbf.Write(b'FOO\n')
-            self.assertTrue(e.Success())
-            self.assertEqual(n, 4)
-            sbf.Close()
-            self.assertTrue(f.closed)
-        with open(self.out_filename, 'r') as f:
-            self.assertEqual(f.read().strip(), 'FOO')
-
-
-    @add_test_categories(['pyapi'])
-    @no_debug_info_test
-    def test_sbfile_read2(self):
-        with open(self.out_filename, 'w') as f:
-            f.write('foo')
-        with open(self.out_filename, 'r') as f:
-            sbf = lldb.SBFile(f)
-            buf = bytearray(100)
-            e, n = sbf.Read(buf)
-            self.assertTrue(e.Success())
-            self.assertEqual(n, 3)
-            self.assertEqual(buf[:n], b'foo')
-            sbf.Close()
-            self.assertTrue(f.closed)
 
 
     @add_test_categories(['pyapi'])
