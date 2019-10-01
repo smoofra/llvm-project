@@ -1,5 +1,5 @@
 Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
-Top:    a8166968261d2b2f3fdf2e2f7f9ee43742b49d7c
+Top:    d20aa268d640b43da7c31e73cd8f49c448c0bc0a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -153,10 +153,10 @@ index e48b90e2ee9..75bd4a6760d 100644
      @no_debug_info_test
      def test_SBInstruction(self):
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index e69de29bb2d..76a8441df5d 100644
+index e69de29bb2d..29b0320e062 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -0,0 +1,148 @@
+@@ -0,0 +1,149 @@
 +"""
 +Test lldb Python API for file handles.
 +"""
@@ -240,6 +240,7 @@ index e69de29bb2d..76a8441df5d 100644
 +            # even with collect_result=True.
 +            self.handleCmd('script 1+1')
 +            self.debugger.GetOutputFileHandle().write('FOO\n')
++        lldb.SBDebugger.Destroy(self.debugger)
 +        with open(self.out_filename, 'r') as f:
 +            self.assertEqual(readStrippedLines(f), ['2', 'FOO'])
 +
