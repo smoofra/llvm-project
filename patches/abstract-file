@@ -1,0 +1,10 @@
+Bottom: 8ef4faddac2b240d168f243782e46cead8025572
+Top:    8ef4faddac2b240d168f243782e46cead8025572
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-01 11:45:18 -0700
+
+factor out an abstract base class for File
+
+
+---
+
