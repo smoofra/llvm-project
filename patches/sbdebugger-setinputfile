@@ -1,5 +1,5 @@
 Bottom: 3039a9d4c9b925eb4842b030710bd5af577589da
-Top:    3168f080a293e1e6063b38ead6788d740c24a2d8
+Top:    c55d1a5d60c5a95dcff3c0e34e91791052dacfe4
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:55 -0700
 
@@ -87,7 +87,7 @@ index 90eefe11524..b2f696c2283 100644
    void SaveInputTerminalState();
  
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index fe75521e1b1..61b38520115 100644
+index fe75521e1b1..3231fdfe688 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -12,9 +12,19 @@ from contextlib import contextmanager
@@ -140,7 +140,7 @@ index fe75521e1b1..61b38520115 100644
  
      @add_test_categories(['pyapi'])
      @no_debug_info_test
-@@ -148,3 +173,107 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -148,3 +173,102 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(e.Success())
              self.assertEqual(buffer[:n], b'FOO')
  
@@ -151,8 +151,7 @@ index fe75521e1b1..61b38520115 100644
 +        with open(self.out_filename, 'w') as f:
 +            sbf = lldb.SBFile(f.fileno(), "w", False)
 +            status = self.debugger.SetOutputFile(sbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +            self.handleCmd('script 1+2')
 +            self.debugger.GetOutputFile().Write(b'quux')
 +
@@ -166,8 +165,7 @@ index fe75521e1b1..61b38520115 100644
 +        with open(self.out_filename, 'w') as f:
 +            sbf = lldb.SBFile(f.fileno(), "w", False)
 +            status = self.debugger.SetOutputFile(sbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +            self.handleCmd("help help", collect_result=False, check=False)
 +        with open(self.out_filename, 'r') as f:
 +            self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
@@ -202,13 +200,11 @@ index fe75521e1b1..61b38520115 100644
 +
 +            outsbf = lldb.SBFile(outf.fileno(), "w", False)
 +            status = self.debugger.SetOutputFile(outsbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +
 +            insbf = lldb.SBFile(inf.fileno(), "r", False)
 +            status = self.debugger.SetInputFile(insbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +
 +            opts = lldb.SBCommandInterpreterRunOptions()
 +            self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
@@ -225,8 +221,7 @@ index fe75521e1b1..61b38520115 100644
 +
 +            sbf = lldb.SBFile(f.fileno(), 'w', False)
 +            status = self.debugger.SetErrorFile(sbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +
 +            self.handleCmd('lolwut', check=False, collect_result=False)
 +
