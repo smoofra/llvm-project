@@ -1,5 +1,5 @@
-Bottom: a8166968261d2b2f3fdf2e2f7f9ee43742b49d7c
-Top:    9482fec76c6bc3657b22b244374630c2bf93f2b0
+Bottom: f26dfc75799bcc469343ac76b609e69461c8d34f
+Top:    7831f835f7ec86213a1e65e5ef66014ddbe6db84
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:55 -0700
 
@@ -88,7 +88,7 @@ index 90eefe11524..f57f6cf746e 100644
    void SaveInputTerminalState();
  
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 76a8441df5d..301b6685dbd 100644
+index fe75521e1b1..233a809d891 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -15,6 +15,15 @@ from lldbsuite.test import  lldbtest
@@ -107,7 +107,7 @@ index 76a8441df5d..301b6685dbd 100644
  def readStrippedLines(f):
      def i():
          for line in f:
-@@ -66,10 +75,13 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -66,6 +75,8 @@ class FileHandleTestCase(lldbtest.TestBase):
              interpreter.HandleCommand(cmd, ret)
          else:
              self.debugger.HandleCommand(cmd)
@@ -116,12 +116,7 @@ index 76a8441df5d..301b6685dbd 100644
          if collect_result and check:
              self.assertTrue(ret.Succeeded())
          return ret.GetOutput()
- 
-+
-     @add_test_categories(['pyapi'])
-     @no_debug_info_test
-     def test_legacy_file_out_script(self):
-@@ -95,6 +107,19 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -97,6 +108,19 @@ class FileHandleTestCase(lldbtest.TestBase):
          with open(self.out_filename, 'r') as f:
              self.assertIn('deadbeef', f.read())
  
@@ -141,7 +136,7 @@ index 76a8441df5d..301b6685dbd 100644
  
      @add_test_categories(['pyapi'])
      @no_debug_info_test
-@@ -146,3 +171,106 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -148,3 +172,106 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(e.Success())
              self.assertEqual(buffer[:n], b'FOO')
  
