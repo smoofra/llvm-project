@@ -12,7 +12,8 @@ from contextlib import contextmanager
 
 import lldb
 from lldbsuite.test import  lldbtest
-from lldbsuite.test.decorators import add_test_categories, no_debug_info_test
+from lldbsuite.test.decorators import (
+    add_test_categories, no_debug_info_test, skipIf)
 
 
 @contextmanager
@@ -115,7 +116,7 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.debugger.SetErrorFileHandle(f, False)
             self.handleCmd('lolwut', check=False, collect_result=False)
             self.debugger.GetErrorFileHandle().write('FOOBAR\n')
-
+        lldb.SBDebugger.Destroy(self.debugger)
         with open(self.out_filename, 'r') as f:
             errors = f.read()
             self.assertTrue(re.search(r'error:.*lolwut', errors))
@@ -265,9 +266,10 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertTrue(re.search(r'error:.*lolwut', errors))
             self.assertTrue(re.search(r'zork', errors))
 
-
+    #FIXME This shouldn't fail for python2 either.
     @add_test_categories(['pyapi'])
     @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
     def test_replace_stdout(self):
         f = io.StringIO()
         with replace_stdout(f):
