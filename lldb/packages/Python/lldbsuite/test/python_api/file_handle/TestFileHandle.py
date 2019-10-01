@@ -81,6 +81,7 @@ class FileHandleTestCase(lldbtest.TestBase):
             # even with collect_result=True.
             self.handleCmd('script 1+1')
             self.debugger.GetOutputFileHandle().write('FOO\n')
+        lldb.SBDebugger.Destroy(self.debugger)
         with open(self.out_filename, 'r') as f:
             self.assertEqual(readStrippedLines(f), ['2', 'FOO'])
 
