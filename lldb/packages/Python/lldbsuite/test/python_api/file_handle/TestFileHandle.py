@@ -70,6 +70,7 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertTrue(ret.Succeeded())
         return ret.GetOutput()
 
+
     @add_test_categories(['pyapi'])
     @no_debug_info_test
     def test_legacy_file_out_script(self):
