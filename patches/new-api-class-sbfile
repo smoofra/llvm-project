@@ -1,5 +1,5 @@
 Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
-Top:    f26dfc75799bcc469343ac76b609e69461c8d34f
+Top:    3039a9d4c9b925eb4842b030710bd5af577589da
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -443,10 +443,10 @@ index d93b8b5e381..f06ed1fcdd0 100644
    SBFunction.cpp
 diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
 new file mode 100644
-index 00000000000..a22bca8cf4d
+index 00000000000..b67078afd0d
 --- /dev/null
 +++ b/lldb/source/API/SBFile.cpp
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,101 @@
 +//===-- SBFile.cpp ------------------------------------------*- C++ -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -456,6 +456,7 @@ index 00000000000..a22bca8cf4d
 +//===----------------------------------------------------------------------===//
 +
 +#include "lldb/API/SBFile.h"
++#include "SBReproducerPrivate.h"
 +#include "lldb/API/SBError.h"
 +#include "lldb/Host/File.h"
 +
@@ -464,18 +465,22 @@ index 00000000000..a22bca8cf4d
 +
 +SBFile::~SBFile() {}
 +
-+SBFile::SBFile() {}
++SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
 +
 +SBFile::SBFile(FILE *file, bool transfer_ownership) {
 +  m_opaque_sp = std::make_shared<File>(file, transfer_ownership);
 +}
 +
 +SBFile::SBFile(int fd, const char *mode, bool transfer_owndership) {
++  LLDB_RECORD_CONSTRUCTOR(SBFile, (int, const char *, bool), fd, mode,
++                          transfer_owndership);
 +  auto options = File::GetOptionsFromMode(mode);
 +  m_opaque_sp = std::make_shared<File>(fd, options, transfer_owndership);
 +}
 +
 +SBError SBFile::Read(uint8_t *buf, size_t num_bytes, size_t *bytes_read) {
++  LLDB_RECORD_DUMMY(lldb::SBError, SBFile, Read, (uint8_t *, size_t, size_t *),
++                    buf, num_bytes, bytes_read);
 +  SBError error;
 +  if (!m_opaque_sp) {
 +    error.SetErrorString("invalid SBFile");
@@ -485,11 +490,14 @@ index 00000000000..a22bca8cf4d
 +    error.SetError(status);
 +    *bytes_read = num_bytes;
 +  }
-+  return error;
++  return LLDB_RECORD_RESULT(error);
 +}
 +
 +SBError SBFile::Write(const uint8_t *buf, size_t num_bytes,
 +                      size_t *bytes_written) {
++  LLDB_RECORD_DUMMY(lldb::SBError, SBFile, Write,
++                    (const uint8_t *, size_t, size_t *), buf, num_bytes,
++                    bytes_written);
 +  SBError error;
 +  if (!m_opaque_sp) {
 +    error.SetErrorString("invalid SBFile");
@@ -499,10 +507,11 @@ index 00000000000..a22bca8cf4d
 +    error.SetError(status);
 +    *bytes_written = num_bytes;
 +  }
-+  return error;
++  return LLDB_RECORD_RESULT(error);
 +}
 +
 +SBError SBFile::Flush() {
++  LLDB_RECORD_METHOD_NO_ARGS(lldb::SBError, SBFile, Flush);
 +  SBError error;
 +  if (!m_opaque_sp) {
 +    error.SetErrorString("invalid SBFile");
@@ -510,19 +519,47 @@ index 00000000000..a22bca8cf4d
 +    Status status = m_opaque_sp->Flush();
 +    error.SetError(status);
 +  }
-+  return error;
++  return LLDB_RECORD_RESULT(error);
 +}
 +
-+bool SBFile::IsValid() const { return m_opaque_sp && m_opaque_sp->IsValid(); }
++bool SBFile::IsValid() const {
++  LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBFile, IsValid);
++  return m_opaque_sp && m_opaque_sp->IsValid();
++}
 +
 +SBError SBFile::Close() {
++  LLDB_RECORD_METHOD_NO_ARGS(lldb::SBError, SBFile, Close);
 +  SBError error;
 +  if (m_opaque_sp) {
 +    Status status = m_opaque_sp->Close();
 +    error.SetError(status);
 +  }
-+  return error;
++  return LLDB_RECORD_RESULT(error);
 +}
++
++namespace lldb_private {
++namespace repro {
++template <> void RegisterMethods<SBFile>(Registry &R) {
++  LLDB_REGISTER_CONSTRUCTOR(SBFile, ());
++  LLDB_REGISTER_CONSTRUCTOR(SBFile, (int, const char *, bool));
++  LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Flush, ());
++  LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
++  LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Close, ());
++}
++} // namespace repro
++} // namespace lldb_private
+diff --git a/lldb/source/API/SBReproducer.cpp b/lldb/source/API/SBReproducer.cpp
+index 439ee5a7046..6e11b2c6366 100644
+--- a/lldb/source/API/SBReproducer.cpp
++++ b/lldb/source/API/SBReproducer.cpp
+@@ -52,6 +52,7 @@ SBRegistry::SBRegistry() {
+   RegisterMethods<SBEvent>(R);
+   RegisterMethods<SBExecutionContext>(R);
+   RegisterMethods<SBExpressionOptions>(R);
++  RegisterMethods<SBFile>(R);
+   RegisterMethods<SBFileSpec>(R);
+   RegisterMethods<SBFileSpecList>(R);
+   RegisterMethods<SBFrame>(R);
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
 index b79c00378c9..eff4197db64 100644
 --- a/lldb/source/Host/common/File.cpp
