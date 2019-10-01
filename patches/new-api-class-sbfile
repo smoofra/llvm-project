@@ -1,5 +1,5 @@
 Bottom: 154a91a3179cf44c752f15904df42dc68b9410fa
-Top:    d20aa268d640b43da7c31e73cd8f49c448c0bc0a
+Top:    f26dfc75799bcc469343ac76b609e69461c8d34f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:50 -0700
 
@@ -153,10 +153,10 @@ index e48b90e2ee9..75bd4a6760d 100644
      @no_debug_info_test
      def test_SBInstruction(self):
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index e69de29bb2d..29b0320e062 100644
+index e69de29bb2d..fe75521e1b1 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,150 @@
 +"""
 +Test lldb Python API for file handles.
 +"""
@@ -228,6 +228,7 @@ index e69de29bb2d..29b0320e062 100644
 +        if collect_result and check:
 +            self.assertTrue(ret.Succeeded())
 +        return ret.GetOutput()
++
 +
 +    @add_test_categories(['pyapi'])
 +    @no_debug_info_test
