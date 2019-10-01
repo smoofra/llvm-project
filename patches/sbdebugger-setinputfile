@@ -1,5 +1,5 @@
-Bottom: 3039a9d4c9b925eb4842b030710bd5af577589da
-Top:    c55d1a5d60c5a95dcff3c0e34e91791052dacfe4
+Bottom: 967f99bde8ed30e29063f860347e647087d52998
+Top:    3264e900a8fb97285867055b6f7383f0eefdb19b
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:55 -0700
 
@@ -46,7 +46,7 @@ index 417cead24a8..1f36999c3c4 100644
  
    void RestoreInputTerminalState();
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
-index efd70966b9a..e5c765926a6 100644
+index da330440a99..b3f9b324fca 100644
 --- a/lldb/include/lldb/API/SBFile.h
 +++ b/lldb/include/lldb/API/SBFile.h
 @@ -14,6 +14,8 @@
