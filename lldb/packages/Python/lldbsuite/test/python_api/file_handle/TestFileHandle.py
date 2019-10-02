@@ -402,6 +402,8 @@ class FileHandleTestCase(lldbtest.TestBase):
         self.assertEqual(f.getvalue().strip(), "FOO")
         self.assertTrue(e.Success())
         self.assertEqual(n, 3)
+        sbf.Close()
+        self.assertTrue(f.closed)
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
@@ -413,6 +415,8 @@ class FileHandleTestCase(lldbtest.TestBase):
         self.assertEqual(f.getvalue().strip(), b"FOO")
         self.assertTrue(e.Success())
         self.assertEqual(n, 3)
+        sbf.Close()
+        self.assertTrue(f.closed)
 
     @add_test_categories(['pyapi'])
     @no_debug_info_test
