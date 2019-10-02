@@ -374,12 +374,6 @@ public:
     return DescriptorIsValid() || StreamIsValid();
   }
 
-  template <typename... Args>
-  static std::shared_ptr<File> make_shared(Args... args) {
-    return std::static_pointer_cast<File>(
-        std::make_shared<NativeFile>(args...));
-  }
-
   Status Read(void *buf, size_t &num_bytes) override;
   Status Write(const void *buf, size_t &num_bytes) override;
   Status Close() override;
