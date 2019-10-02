@@ -1,5 +1,5 @@
 Version: 1
-Previous: 295e6f779aa6d205df46bdb3ffbafb02817d9960
+Previous: 8a0c7f8e1d7a1b3ceecbfb76d14f57001bef99d6
 Head: 47a9976185979247ebac211be6da856605b8cf40
 Applied:
   lldbpexpect-make-sure-term-is: 07e8d122dd4ea7dc7e7e856d521090623b9b6152
@@ -8,7 +8,8 @@ Applied:
   file-clear-file: 5173b11c7e65390394bf5bd77632b9480d0a711c
   new-api-class-sbfile: 5bb0ae03ab0d763232439c1a9486d51bfeae04ba
   sbdebugger-setinputfile: d3a013b5938d656f7350bc56f6f617ef63fff249
-  abstract-file: da2d7ce60956e98d53170a6c6e91fdda99db4ed9
+  factor-out-an-abstract-base: 47a9976185979247ebac211be6da856605b8cf40
 Unapplied:
+  abstract-file: da2d7ce60956e98d53170a6c6e91fdda99db4ed9
   allow-arbitrary-python-streams: e0998bfa45adf572223fefd1642d2ec3e39cd6e5
 Hidden:
