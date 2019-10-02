@@ -1,5 +1,5 @@
 Bottom: 56fe6af78fa3668557db9fce5beca9061b60b007
-Top:    7432cef4235ff5c3b6df791309d88bea0948cf73
+Top:    4e3eda399aab90927e2c8b617725163da60bf715
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -533,7 +533,7 @@ index 3cb1f206d1c..27f10c345c0 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 421bacd2ebc..cd599c10ba8 100644
+index 421bacd2ebc..377c6dadb1a 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -666,15 +666,15 @@ index 421bacd2ebc..cd599c10ba8 100644
 +// Abstract base class for python files.   All it knows how to do
 +// is hold a reference to the python object and close or flush it
 +// when the File is closed.
-+class LLDBPythonFile : public File {
++class OwnedPythonFile : public File {
 +public:
-+  LLDBPythonFile(const PythonFile &file, bool borrowed)
++  OwnedPythonFile(const PythonFile &file, bool borrowed)
 +      : m_py_obj(file.get()), m_borrowed(borrowed) {
 +    assert(m_py_obj);
 +    Py_INCREF(m_py_obj);
 +  }
 +
-+  ~LLDBPythonFile() override {
++  ~OwnedPythonFile() override {
 +    assert(m_py_obj);
 +    GIL takeGIL;
 +    Close();
@@ -701,7 +701,7 @@ index 421bacd2ebc..cd599c10ba8 100644
 +  Status Close() override {
 +    assert(m_py_obj);
 +    GIL takeGIL;
-+    if (!LLDBPythonFile::IsValid())
++    if (!OwnedPythonFile::IsValid())
 +      return Status("invalid file");
 +    if (m_borrowed)
 +      PyObject_CallMethod(m_py_obj, "flush", "()");
@@ -717,12 +717,12 @@ index 421bacd2ebc..cd599c10ba8 100644
 +  bool m_borrowed;
 +};
 +
-+// A SimplyPythonFile is a LLDBPythonFile that just delegates all I/O to a
++// A SimplyPythonFile is a OwnedPythonFile that just delegates all I/O to a
 +// NativeFile.
 +class SimplePythonFile
-+    : public DelegatingFile<SimplePythonFile, LLDBPythonFile> {
++    : public DelegatingFile<SimplePythonFile, OwnedPythonFile> {
 +public:
-+  typedef DelegatingFile<SimplePythonFile, LLDBPythonFile> Base;
++  typedef DelegatingFile<SimplePythonFile, OwnedPythonFile> Base;
 +
 +  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
 +                   bool borrowed)
@@ -733,12 +733,12 @@ index 421bacd2ebc..cd599c10ba8 100644
 +  ~SimplePythonFile() override { Close(); };
 +
 +  bool IsValid() const override {
-+    return m_native_file.IsValid() && LLDBPythonFile::IsValid();
++    return m_native_file.IsValid() && OwnedPythonFile::IsValid();
 +  }
 +
 +  Status Close() override {
 +    Status err1 = m_native_file.Close();
-+    Status err2 = LLDBPythonFile::Close();
++    Status err2 = OwnedPythonFile::Close();
 +    if (err2.Fail())
 +      return err2;
 +    return err1;
@@ -799,7 +799,7 @@ index 421bacd2ebc..cd599c10ba8 100644
 +  Py_buffer m_buffer;
 +};
 +
-+class BinaryPythonFile : public LLDBPythonFile {
++class BinaryPythonFile : public OwnedPythonFile {
 +  friend class PythonFile;
 +
 +protected:
@@ -807,7 +807,7 @@ index 421bacd2ebc..cd599c10ba8 100644
 +
 +public:
 +  BinaryPythonFile(int fd, const PythonFile &file, bool borrowed)
-+      : LLDBPythonFile(file, borrowed),
++      : OwnedPythonFile(file, borrowed),
 +        m_descriptor(File::DescriptorIsValid(fd) ? fd
 +                                                 : File::kInvalidDescriptor) {}
 +
@@ -863,7 +863,7 @@ index 421bacd2ebc..cd599c10ba8 100644
 +  }
 +};
 +
-+class TextPythonFile : public LLDBPythonFile {
++class TextPythonFile : public OwnedPythonFile {
 +  friend class PythonFile;
 +
 +protected:
@@ -871,7 +871,7 @@ index 421bacd2ebc..cd599c10ba8 100644
 +
 +public:
 +  TextPythonFile(int fd, const PythonFile &file, bool borrowed)
-+      : LLDBPythonFile(file, borrowed),
++      : OwnedPythonFile(file, borrowed),
 +        m_descriptor(File::DescriptorIsValid(fd) ? fd
 +                                                 : File::kInvalidDescriptor) {}
 +
