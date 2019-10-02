@@ -1,0 +1,30 @@
+Bottom: 291f21e84aafa5084430f9779af419ce9014dbd7
+Top:    7432cef4235ff5c3b6df791309d88bea0948cf73
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-01 20:47:27 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index daa672806c3..831ba1657fc 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -402,6 +402,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+         self.assertEqual(f.getvalue().strip(), "FOO")
+         self.assertTrue(e.Success())
+         self.assertEqual(n, 3)
++        sbf.Close()
++        self.assertTrue(f.closed)
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+@@ -413,6 +415,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+         self.assertEqual(f.getvalue().strip(), b"FOO")
+         self.assertTrue(e.Success())
+         self.assertEqual(n, 3)
++        sbf.Close()
++        self.assertTrue(f.closed)
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
