@@ -1,5 +1,5 @@
 Bottom: 56fe6af78fa3668557db9fce5beca9061b60b007
-Top:    4e3eda399aab90927e2c8b617725163da60bf715
+Top:    188ec6e347e26c061a11b16b62fd7c48bcba6bb6
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -987,7 +987,7 @@ index 421bacd2ebc..377c6dadb1a 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 060a25ff10b..5db339847c3 100644
+index 060a25ff10b..25b4fa1bfc6 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -84,14 +84,19 @@ public:
@@ -1012,7 +1012,16 @@ index 060a25ff10b..5db339847c3 100644
      m_py_obj = nullptr;
    }
  
-@@ -467,8 +472,40 @@ public:
+@@ -123,7 +128,7 @@ public:
+     // an owned reference by incrementing it.  If it is an owned
+     // reference (for example the caller allocated it with PyDict_New()
+     // then we must *not* increment it.
+-    if (Py_IsInitialized() && type == PyRefType::Borrowed)
++    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
+       Py_XINCREF(m_py_obj);
+   }
+ 
+@@ -467,8 +472,38 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
@@ -1020,8 +1029,8 @@ index 060a25ff10b..5db339847c3 100644
 +  llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
 +  llvm::Expected<lldb::FileSP>
 +  ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
-+};
-+
+ };
+ 
 +class PythonException : public llvm::ErrorInfo<PythonException> {
 +private:
 +  PyObject *m_exception_type, *m_exception, *m_traceback;
@@ -1035,19 +1044,17 @@ index 060a25ff10b..5db339847c3 100644
 +  ~PythonException();
 +  void log(llvm::raw_ostream &OS) const override;
 +  std::error_code convertToErrorCode() const override;
- };
- 
++};
++
 +template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
-+  if (expected) {
++  if (expected)
 +    return expected.get();
-+  } else {
-+    llvm::handleAllErrors(
-+        expected.takeError(), [](PythonException &E) { E.Restore(); },
-+        [](const llvm::ErrorInfoBase &E) {
-+          PyErr_SetString(PyExc_Exception, E.message().c_str());
-+        });
-+    return T();
-+  }
++  llvm::handleAllErrors(
++      expected.takeError(), [](PythonException &E) { E.Restore(); },
++      [](const llvm::ErrorInfoBase &E) {
++        PyErr_SetString(PyExc_Exception, E.message().c_str());
++      });
++  return T();
 +}
 +
  } // namespace lldb_private
