@@ -1,5 +1,5 @@
 Bottom: 8add3c4010266dc28a5caafbe887c06c3af920ee
-Top:    495e619b44556b873c9148dbe020169e38479753
+Top:    b711a5a237177f11f38888013288b05fa002d7dc
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -45,78 +45,11 @@ index a5fc2cd4121..872eb1f0f59 100644
  };
  
  } // namespace lldb
-diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index b36b523e320..c2ef6a39cb8 100644
---- a/lldb/include/lldb/Host/File.h
-+++ b/lldb/include/lldb/Host/File.h
-@@ -354,6 +354,62 @@ private:
-   DISALLOW_COPY_AND_ASSIGN(File);
- };
- 
-+// This is a CRTP mixin that just delegates all the virtual functions
-+// to another File.
-+template <typename T, typename B> class DelegatingFile : public B {
-+public:
-+  template <typename... Args> DelegatingFile(Args... args) : B(args...){};
-+
-+  ~DelegatingFile() override { Close(); };
-+
-+  Status Read(void *buf, size_t &num_bytes) override {
-+    return getDelegate().Read(buf, num_bytes);
-+  }
-+  Status Write(const void *buf, size_t &num_bytes) override {
-+    return getDelegate().Write(buf, num_bytes);
-+  }
-+  bool IsValid() const override { return getDelegate().IsValid(); }
-+  Status Close() override { return getDelegate().Close(); }
-+  IOObject::WaitableHandle GetWaitableHandle() override {
-+    return getDelegate().GetWaitableHandle();
-+  }
-+  Status GetFileSpec(FileSpec &file_spec) const override {
-+    return getDelegate().GetFileSpec(file_spec);
-+  }
-+  FILE *TakeStreamAndClear() override {
-+    return getDelegate().TakeStreamAndClear();
-+  }
-+  int GetDescriptor() const override { return getDelegate().GetDescriptor(); }
-+  FILE *GetStream() override { return getDelegate().GetStream(); }
-+  off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr) override {
-+    return getDelegate().SeekFromStart(offset, error_ptr);
-+  }
-+  off_t SeekFromCurrent(off_t offset, Status *error_ptr = nullptr) override {
-+    return getDelegate().SeekFromCurrent(offset, error_ptr);
-+  }
-+  off_t SeekFromEnd(off_t offset, Status *error_ptr = nullptr) override {
-+    return getDelegate().SeekFromEnd(offset, error_ptr);
-+  }
-+  Status Read(void *dst, size_t &num_bytes, off_t &offset) override {
-+    return getDelegate().Read(dst, num_bytes, offset);
-+  }
-+  Status Write(const void *src, size_t &num_bytes, off_t &offset) override {
-+    return getDelegate().Write(src, num_bytes, offset);
-+  }
-+  Status Flush() override { return getDelegate().Flush(); }
-+  Status Sync() override { return getDelegate().Sync(); }
-+  size_t PrintfVarArg(const char *format, va_list args) override {
-+    return getDelegate().PrintfVarArg(format, args);
-+  }
-+
-+protected:
-+  DelegatingFile() {}
-+  File &getDelegate() { return static_cast<T *>(this)->getDelegate(); }
-+  const File &getDelegate() const {
-+    return static_cast<const T *>(this)->getDelegate();
-+  }
-+};
-+
- class NativeFile : public File {
- public:
-   NativeFile()
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 3231fdfe688..5eafab74a9e 100644
+index 3231fdfe688..df1303eb846 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -15,6 +15,34 @@ from lldbsuite.test import  lldbtest
+@@ -15,6 +15,46 @@ from lldbsuite.test import  lldbtest
  from lldbsuite.test.decorators import (
      add_test_categories, no_debug_info_test, skipIf)
  
@@ -148,10 +81,22 @@ index 3231fdfe688..5eafab74a9e 100644
 +        self.value = bool(value)
 +    def __bool__(self):
 +        return self.value
++
++class FlushTestIO(io.StringIO):
++    def __init__(self, mutable_flushed, mutable_closed):
++        super(FlushTestIO, self).__init__()
++        self.mut_flushed = mutable_flushed
++        self.mut_closed = mutable_closed
++    def close(self):
++        self.mut_closed.set(True)
++        return super(FlushTestIO, self).close()
++    def flush(self):
++        self.mut_flushed.set(True)
++        return super(FlushTestIO, self).flush()
  
  @contextmanager
  def replace_stdout(new):
-@@ -147,7 +175,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -147,7 +187,7 @@ class FileHandleTestCase(lldbtest.TestBase):
  
      @add_test_categories(['pyapi'])
      @no_debug_info_test
@@ -160,7 +105,7 @@ index 3231fdfe688..5eafab74a9e 100644
          with open(self.out_filename, 'w') as f:
              sbf = lldb.SBFile(f.fileno(), "w", False)
              self.assertTrue(sbf.IsValid())
-@@ -162,7 +190,21 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -162,7 +202,21 @@ class FileHandleTestCase(lldbtest.TestBase):
  
      @add_test_categories(['pyapi'])
      @no_debug_info_test
@@ -183,7 +128,7 @@ index 3231fdfe688..5eafab74a9e 100644
          with open(self.out_filename, 'w') as f:
              f.write('FOO')
          with open(self.out_filename, 'r') as f:
-@@ -174,6 +216,22 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -174,6 +228,22 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertEqual(buffer[:n], b'FOO')
  
  
@@ -206,7 +151,7 @@ index 3231fdfe688..5eafab74a9e 100644
      @add_test_categories(['pyapi'])
      @no_debug_info_test
      def test_fileno_out(self):
-@@ -272,3 +330,173 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -272,3 +342,225 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.handleCmd('script sys.stdout.write("lol")',
                  collect_result=False, check=False)
              self.assertEqual(sys.stdout, f)
@@ -380,6 +325,58 @@ index 3231fdfe688..5eafab74a9e 100644
 +            self.assertEqual(n, 0)
 +            self.assertTrue(error.Fail())
 +            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_flush(self):
++        flushed = MutableBool(False)
++        closed = MutableBool(False)
++        f = FlushTestIO(flushed, closed)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = lldb.SBFile(f)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = None
++        self.assertFalse(flushed)
++        self.assertTrue(closed)
++        self.assertTrue(f.closed)
++
++        flushed = MutableBool(False)
++        closed = MutableBool(False)
++        f = FlushTestIO(flushed, closed)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = lldb.SBFile.Create(f, borrow=True)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = None
++        self.assertTrue(flushed)
++        self.assertFalse(closed)
++        self.assertFalse(f.closed)
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_flush(self):
++        with open(self.out_filename, 'w') as f:
++            f.write("foo")
++            sbf = lldb.SBFile(f)
++            sbf.Write(b'bar')
++            sbf = None
++            self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read(), 'foobar')
++
++        with open(self.out_filename, 'w+') as f:
++            f.write("foo")
++            sbf = lldb.SBFile.Create(f, borrow=True)
++            sbf.Write(b'bar')
++            sbf = None
++            self.assertFalse(f.closed)
++            f.seek(0)
++            self.assertEqual(f.read(), 'foobar')
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
 index 7eedfdbdb8d..6c261f58953 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
@@ -524,7 +521,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 421bacd2ebc..d1651498387 100644
+index 421bacd2ebc..88acccee9f9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -570,7 +567,7 @@ index 421bacd2ebc..d1651498387 100644
  
    return true;
  #endif
-@@ -1031,4 +1036,406 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1036,408 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -654,13 +651,14 @@ index 421bacd2ebc..d1651498387 100644
 +  return options;
 +}
 +
-+// Abstract base class for python files.   All it knows how to do
++// Base class template for python files.   All it knows how to do
 +// is hold a reference to the python object and close or flush it
 +// when the File is closed.
-+class OwnedPythonFile : public File {
++template <typename Base> class OwnedPythonFile : public Base {
 +public:
-+  OwnedPythonFile(const PythonFile &file, bool borrowed)
-+      : m_py_obj(file.get()), m_borrowed(borrowed) {
++  template <typename... Args>
++  OwnedPythonFile(const PythonFile &file, bool borrowed, Args... args)
++      : Base(args...), m_py_obj(file.get()), m_borrowed(borrowed) {
 +    assert(m_py_obj);
 +    Py_INCREF(m_py_obj);
 +  }
@@ -673,8 +671,6 @@ index 421bacd2ebc..d1651498387 100644
 +    m_py_obj = nullptr;
 +  }
 +
-+  PythonFile GetPythonFile() { return Retain<PythonFile>(m_py_obj); }
-+
 +  bool IsValid() const override {
 +    GIL takeGIL;
 +    auto closed =
@@ -683,24 +679,28 @@ index 421bacd2ebc..d1651498387 100644
 +      PyErr_Clear();
 +      return false;
 +    }
-+    if (PyObject_IsTrue(closed.get())) {
++    if (PyObject_IsTrue(closed.get()))
++      return false;
++    if (PyErr_Occurred()) {
++      PyErr_Clear();
 +      return false;
 +    }
-+    return true;
++    return Base::IsValid();
 +  }
 +
 +  Status Close() override {
 +    assert(m_py_obj);
++    Status py_error, base_error;
 +    GIL takeGIL;
-+    if (!OwnedPythonFile::IsValid())
-+      return Status("invalid file");
-+    if (m_borrowed)
-+      PyObject_CallMethod(m_py_obj, "flush", "()");
-+    else
-+      PyObject_CallMethod(m_py_obj, "close", "()");
-+    if (PyErr_Occurred())
-+      return Status(llvm::make_error<PythonException>("Close"));
-+    return Status();
++    if (!m_borrowed) {
++      Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
++      if (PyErr_Occurred())
++        py_error = llvm::make_error<PythonException>("Close");
++    }
++    base_error = Base::Close();
++    if (py_error.Fail())
++      return py_error;
++    return base_error;
 +  };
 +
 +protected:
@@ -708,39 +708,13 @@ index 421bacd2ebc..d1651498387 100644
 +  bool m_borrowed;
 +};
 +
-+// A SimplyPythonFile is a OwnedPythonFile that just delegates all I/O to a
-+// NativeFile.
-+class SimplePythonFile
-+    : public DelegatingFile<SimplePythonFile, OwnedPythonFile> {
++// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
++// a NativeFile
++class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 +public:
-+  typedef DelegatingFile<SimplePythonFile, OwnedPythonFile> Base;
-+
 +  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
 +                   bool borrowed)
-+      : Base(file, borrowed), m_native_file(fd, options, false) {
-+    Py_INCREF(m_py_obj);
-+  }
-+
-+  ~SimplePythonFile() override { Close(); };
-+
-+  bool IsValid() const override {
-+    return m_native_file.IsValid() && OwnedPythonFile::IsValid();
-+  }
-+
-+  Status Close() override {
-+    Status err1 = m_native_file.Close();
-+    Status err2 = OwnedPythonFile::Close();
-+    if (err2.Fail())
-+      return err2;
-+    return err1;
-+  }
-+
-+  const File &getDelegate() const { return m_native_file; }
-+
-+  File &getDelegate() { return m_native_file; }
-+
-+protected:
-+  NativeFile m_native_file;
++      : OwnedPythonFile(file, borrowed, fd, options, false){};
 +};
 +
 +llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
@@ -755,6 +729,12 @@ index 421bacd2ebc..d1651498387 100644
 +  auto options = GetOptionsForPyObject(*this);
 +  if (!options)
 +    return options.takeError();
++
++  // LLDB and python will not share I/O buffers.  We should probably
++  // flush the python buffers now.
++  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
++  if (PyErr_Occurred())
++    return llvm::make_error<PythonException>("Flush");
 +
 +  FileSP file_sp;
 +  if (borrowed) {
@@ -790,7 +770,46 @@ index 421bacd2ebc..d1651498387 100644
 +  Py_buffer m_buffer;
 +};
 +
-+class BinaryPythonFile : public OwnedPythonFile {
++// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
++// File::IsValid() is false by default, but for the following classes
++// we want the file to be considered valid as long as the python bits
++// are valid.
++class PresumptivelyValidFile : public File {
++public:
++  bool IsValid() const override { return true; };
++};
++
++// Shared methods between TextPythonFile and BinaryPythonFile
++class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
++public:
++  PythonIOFile(const PythonFile &file, bool borrowed)
++      : OwnedPythonFile(file, borrowed){};
++
++  ~PythonIOFile() override { Close(); }
++
++  Status Close() override {
++    assert(m_py_obj);
++    GIL takeGIL;
++    if (m_borrowed)
++      return Flush();
++    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Close"));
++    return Status();
++  };
++
++  Status Flush() override {
++    GIL takeGIL;
++    PyErr_Clear();
++    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
++    Status error;
++    if (PyErr_Occurred())
++      error = llvm::make_error<PythonException>("Flush");
++    return error;
++  }
++};
++
++class BinaryPythonFile : public PythonIOFile {
 +  friend class PythonFile;
 +
 +protected:
@@ -798,7 +817,7 @@ index 421bacd2ebc..d1651498387 100644
 +
 +public:
 +  BinaryPythonFile(int fd, const PythonFile &file, bool borrowed)
-+      : OwnedPythonFile(file, borrowed),
++      : PythonIOFile(file, borrowed),
 +        m_descriptor(File::DescriptorIsValid(fd) ? fd
 +                                                 : File::kInvalidDescriptor) {}
 +
@@ -842,19 +861,9 @@ index 421bacd2ebc..d1651498387 100644
 +    num_bytes = pybuffer.get().len;
 +    return Status();
 +  }
-+
-+  Status Flush() override {
-+    GIL takeGIL;
-+    PyErr_Clear();
-+    PyObject_CallMethod(m_py_obj, "flush", "()");
-+    Status error;
-+    if (PyErr_Occurred())
-+      error = llvm::make_error<PythonException>("Flush");
-+    return error;
-+  }
 +};
 +
-+class TextPythonFile : public OwnedPythonFile {
++class TextPythonFile : public PythonIOFile {
 +  friend class PythonFile;
 +
 +protected:
@@ -862,7 +871,7 @@ index 421bacd2ebc..d1651498387 100644
 +
 +public:
 +  TextPythonFile(int fd, const PythonFile &file, bool borrowed)
-+      : OwnedPythonFile(file, borrowed),
++      : PythonIOFile(file, borrowed),
 +        m_descriptor(File::DescriptorIsValid(fd) ? fd
 +                                                 : File::kInvalidDescriptor) {}
 +
@@ -915,16 +924,6 @@ index 421bacd2ebc..d1651498387 100644
 +    memcpy(buf, utf8, size);
 +    num_bytes = size;
 +    return Status();
-+  }
-+
-+  Status Flush() override {
-+    GIL takeGIL;
-+    PyErr_Clear();
-+    PyObject_CallMethod(m_py_obj, "flush", "()");
-+    Status error;
-+    if (PyErr_Occurred())
-+      error = llvm::make_error<PythonException>("Flush");
-+    return error;
 +  }
 +};
 +
