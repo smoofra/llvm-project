@@ -1,5 +1,5 @@
 Bottom: 8ef4faddac2b240d168f243782e46cead8025572
-Top:    56fe6af78fa3668557db9fce5beca9061b60b007
+Top:    8add3c4010266dc28a5caafbe887c06c3af920ee
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-01 11:45:18 -0700
 
@@ -27,7 +27,7 @@ Differential Revision: https://reviews.llvm.org/D68317
 
 ---
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index effd0bec954..9e1fbaaaeb9 100644
+index effd0bec954..b36b523e320 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
 @@ -22,10 +22,12 @@
@@ -218,15 +218,15 @@ index effd0bec954..9e1fbaaaeb9 100644
 +  virtual int GetDescriptor() const;
  
 -  /// Write bytes to a file at the current file position.
-+  /// Get the underlying libc stream for this file, or NULL.
-   ///
+-  ///
 -  /// NOTE: This function is NOT thread safe. Use the write function
 -  /// that takes an "off_t &offset" to ensure correct operation in multi-
 -  /// threaded environments.
 -  ///
 -  /// \param[in] buf
 -  ///     A buffer where to put the bytes that are read.
--  ///
++  /// Get the underlying libc stream for this file, or NULL.
+   ///
 -  /// \param[in,out] num_bytes
 -  ///     The number of bytes to write to the current file position
 -  ///     which gets modified with the number of bytes that were
@@ -332,31 +332,31 @@ index effd0bec954..9e1fbaaaeb9 100644
  
    /// Get the permissions for a this file.
    ///
-@@ -327,44 +333,86 @@ public:
+@@ -327,44 +333,80 @@ public:
    ///     a non-zero width and height, false otherwise.
    bool GetIsRealTerminal();
  
--  bool GetIsTerminalWithColors();
--
++  /// Return true if this file is a terminal which supports colors.
++  ///
++  /// \return
++  ///    True iff this is a terminal and it supports colors.
+   bool GetIsTerminalWithColors();
+ 
 -  /// Output printf formatted output to the stream.
 -  ///
 -  /// Print some formatted output to the stream.
 -  ///
 -  /// \param[in] format
 -  ///     A printf style format string.
-+  /// Return true if this file is a terminal which supports colors.
-   ///
+-  ///
 -  /// \param[in] ...
 -  ///     Variable arguments that are needed for the printf style
 -  ///     format string \a format.
 -  size_t Printf(const char *format, ...) __attribute__((format(printf, 2, 3)));
-+  /// \return
-+  ///    True iff this is a terminal and it supports colors.
-+  bool GetIsTerminalWithColors();
- 
--  size_t PrintfVarArg(const char *format, va_list args);
 +  operator bool() const { return IsValid(); };
  
+-  size_t PrintfVarArg(const char *format, va_list args);
+-
 -  static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
 +  bool operator!() const { return !IsValid(); };
  
@@ -392,12 +392,6 @@ index effd0bec954..9e1fbaaaeb9 100644
 +
 +  bool IsValid() const override {
 +    return DescriptorIsValid() || StreamIsValid();
-+  }
-+
-+  template <typename... Args>
-+  static std::shared_ptr<File> make_shared(Args... args) {
-+    return std::static_pointer_cast<File>(
-+        std::make_shared<NativeFile>(args...));
 +  }
 +
 +  Status Read(void *buf, size_t &num_bytes) override;
@@ -454,7 +448,7 @@ index 9c43ef18ac1..7eedfdbdb8d 100644
     $result = py_file.release();
     if (!$result)
 diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
-index 97bc743ae87..92b249135b9 100644
+index 97bc743ae87..b9ee5047545 100644
 --- a/lldb/source/API/SBDebugger.cpp
 +++ b/lldb/source/API/SBDebugger.cpp
 @@ -289,7 +289,7 @@ void SBDebugger::SkipAppInitFiles(bool b) {
@@ -462,7 +456,7 @@ index 97bc743ae87..92b249135b9 100644
    LLDB_RECORD_METHOD(void, SBDebugger, SetInputFileHandle, (FILE *, bool), fh,
                       transfer_ownership);
 -  SetInputFile(std::make_shared<File>(fh, transfer_ownership));
-+  SetInputFile(NativeFile::make_shared(fh, transfer_ownership));
++  SetInputFile((FileSP)std::make_shared<NativeFile>(fh, transfer_ownership));
  }
  
  // Shouldn't really be settable after initialization as this could cause lots
@@ -471,7 +465,7 @@ index 97bc743ae87..92b249135b9 100644
      // reproducer somehow if fh is NULL?
      if (fh) {
 -      file_sp = std::make_shared<File>(fh, true);
-+      file_sp = NativeFile::make_shared(fh, true);
++      file_sp = std::make_shared<NativeFile>(fh, true);
      }
    }
  
@@ -480,7 +474,7 @@ index 97bc743ae87..92b249135b9 100644
    LLDB_RECORD_METHOD(void, SBDebugger, SetOutputFileHandle, (FILE *, bool), fh,
                       transfer_ownership);
 -  SetOutputFile(std::make_shared<File>(fh, transfer_ownership));
-+  SetOutputFile(NativeFile::make_shared(fh, transfer_ownership));
++  SetOutputFile((FileSP)std::make_shared<NativeFile>(fh, transfer_ownership));
  }
  
  SBError SBDebugger::SetOutputFile(SBFile file) {
@@ -489,12 +483,12 @@ index 97bc743ae87..92b249135b9 100644
    LLDB_RECORD_METHOD(void, SBDebugger, SetErrorFileHandle, (FILE *, bool), fh,
                       transfer_ownership);
 -  SetErrorFile(std::make_shared<File>(fh, transfer_ownership));
-+  SetErrorFile(NativeFile::make_shared(fh, transfer_ownership));
++  SetErrorFile((FileSP)std::make_shared<NativeFile>(fh, transfer_ownership));
  }
  
  SBError SBDebugger::SetErrorFile(SBFile file) {
 diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
-index b36dedb628f..3cb1f206d1c 100644
+index b36dedb628f..07122916d23 100644
 --- a/lldb/source/API/SBFile.cpp
 +++ b/lldb/source/API/SBFile.cpp
 @@ -21,14 +21,14 @@ SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
@@ -502,7 +496,7 @@ index b36dedb628f..3cb1f206d1c 100644
  
  SBFile::SBFile(FILE *file, bool transfer_ownership) {
 -  m_opaque_sp = std::make_shared<File>(file, transfer_ownership);
-+  m_opaque_sp = NativeFile::make_shared(file, transfer_ownership);
++  m_opaque_sp = std::make_shared<NativeFile>(file, transfer_ownership);
  }
  
  SBFile::SBFile(int fd, const char *mode, bool transfer_owndership) {
@@ -510,12 +504,12 @@ index b36dedb628f..3cb1f206d1c 100644
                            transfer_owndership);
    auto options = File::GetOptionsFromMode(mode);
 -  m_opaque_sp = std::make_shared<File>(fd, options, transfer_owndership);
-+  m_opaque_sp = NativeFile::make_shared(fd, options, transfer_owndership);
++  m_opaque_sp = std::make_shared<NativeFile>(fd, options, transfer_owndership);
  }
  
  SBError SBFile::Read(uint8_t *buf, size_t num_bytes, size_t *bytes_read) {
 diff --git a/lldb/source/Core/Debugger.cpp b/lldb/source/Core/Debugger.cpp
-index 3774d75cc7e..206fefcb797 100644
+index 3774d75cc7e..6a3604c098d 100644
 --- a/lldb/source/Core/Debugger.cpp
 +++ b/lldb/source/Core/Debugger.cpp
 @@ -698,7 +698,7 @@ TargetSP Debugger::FindTargetWithProcess(Process *process) {
@@ -523,7 +517,7 @@ index 3774d75cc7e..206fefcb797 100644
      : UserID(g_unique_id++),
        Properties(std::make_shared<OptionValueProperties>()),
 -      m_input_file_sp(std::make_shared<File>(stdin, false)),
-+      m_input_file_sp(NativeFile::make_shared(stdin, false)),
++      m_input_file_sp(std::make_shared<NativeFile>(stdin, false)),
        m_output_stream_sp(std::make_shared<StreamFile>(stdout, false)),
        m_error_stream_sp(std::make_shared<StreamFile>(stderr, false)),
        m_input_recorder(nullptr),
@@ -532,12 +526,12 @@ index 3774d75cc7e..206fefcb797 100644
      // If there is nothing, use stdin
      if (!in)
 -      in = std::make_shared<File>(stdin, false);
-+      in = NativeFile::make_shared(stdin, false);
++      in = std::make_shared<NativeFile>(stdin, false);
    }
    // If no STDOUT has been set, then set it appropriately
    if (!out) {
 diff --git a/lldb/source/Core/StreamFile.cpp b/lldb/source/Core/StreamFile.cpp
-index fe5d7413114..ff72677bdbd 100644
+index fe5d7413114..d12541c9af5 100644
 --- a/lldb/source/Core/StreamFile.cpp
 +++ b/lldb/source/Core/StreamFile.cpp
 @@ -25,11 +25,11 @@ StreamFile::StreamFile(uint32_t flags, uint32_t addr_size, ByteOrder byte_order)
@@ -545,12 +539,12 @@ index fe5d7413114..ff72677bdbd 100644
  StreamFile::StreamFile(int fd, bool transfer_ownership) : Stream() {
    m_file_sp =
 -      std::make_shared<File>(fd, File::eOpenOptionWrite, transfer_ownership);
-+      NativeFile::make_shared(fd, File::eOpenOptionWrite, transfer_ownership);
++      std::make_shared<NativeFile>(fd, File::eOpenOptionWrite, transfer_ownership);
  }
  
  StreamFile::StreamFile(FILE *fh, bool transfer_ownership) : Stream() {
 -  m_file_sp = std::make_shared<File>(fh, transfer_ownership);
-+  m_file_sp = NativeFile::make_shared(fh, transfer_ownership);
++  m_file_sp = std::make_shared<NativeFile>(fh, transfer_ownership);
  }
  
  StreamFile::StreamFile(const char *path) : Stream() {
@@ -973,7 +967,7 @@ index b3442770f01..ba581ae4168 100644
    return std::move(file);
  }
 diff --git a/lldb/source/Host/posix/ConnectionFileDescriptorPosix.cpp b/lldb/source/Host/posix/ConnectionFileDescriptorPosix.cpp
-index f9759ec3caf..9b7458e7cf0 100644
+index f9759ec3caf..325d854921e 100644
 --- a/lldb/source/Host/posix/ConnectionFileDescriptorPosix.cpp
 +++ b/lldb/source/Host/posix/ConnectionFileDescriptorPosix.cpp
 @@ -86,8 +86,8 @@ ConnectionFileDescriptor::ConnectionFileDescriptor(bool child_processes_inherit)
@@ -982,8 +976,8 @@ index f9759ec3caf..9b7458e7cf0 100644
        m_waiting_for_accept(false), m_child_processes_inherit(false) {
 -  m_write_sp = std::make_shared<File>(fd, File::eOpenOptionWrite, owns_fd);
 -  m_read_sp = std::make_shared<File>(fd, File::eOpenOptionRead, false);
-+  m_write_sp = NativeFile::make_shared(fd, File::eOpenOptionWrite, owns_fd);
-+  m_read_sp = NativeFile::make_shared(fd, File::eOpenOptionRead, false);
++  m_write_sp = std::make_shared<NativeFile>(fd, File::eOpenOptionWrite, owns_fd);
++  m_read_sp = std::make_shared<NativeFile>(fd, File::eOpenOptionRead, false);
  
    Log *log(lldb_private::GetLogIfAnyCategoriesSet(LIBLLDB_LOG_CONNECTION |
                                                    LIBLLDB_LOG_OBJECT));
@@ -992,10 +986,10 @@ index f9759ec3caf..9b7458e7cf0 100644
            } else {
              m_read_sp =
 -                std::make_shared<File>(fd, File::eOpenOptionRead, false);
-+                NativeFile::make_shared(fd, File::eOpenOptionRead, false);
++                std::make_shared<NativeFile>(fd, File::eOpenOptionRead, false);
              m_write_sp =
 -                std::make_shared<File>(fd, File::eOpenOptionWrite, false);
-+                NativeFile::make_shared(fd, File::eOpenOptionWrite, false);
++                std::make_shared<NativeFile>(fd, File::eOpenOptionWrite, false);
            }
            m_uri = *addr;
            return eConnectionStatusSuccess;
@@ -1005,8 +999,8 @@ index f9759ec3caf..9b7458e7cf0 100644
        }
 -      m_read_sp = std::make_shared<File>(fd, File::eOpenOptionRead, true);
 -      m_write_sp = std::make_shared<File>(fd, File::eOpenOptionWrite, false);
-+      m_read_sp = NativeFile::make_shared(fd, File::eOpenOptionRead, true);
-+      m_write_sp = NativeFile::make_shared(fd, File::eOpenOptionWrite, false);
++      m_read_sp = std::make_shared<NativeFile>(fd, File::eOpenOptionRead, true);
++      m_write_sp = std::make_shared<NativeFile>(fd, File::eOpenOptionWrite, false);
        return eConnectionStatusSuccess;
      }
  #endif
@@ -1024,7 +1018,7 @@ index d632805a96f..64e0bc20433 100644
        size_t bytes_written = expr_text_len;
        if (file.Write(expr_text, bytes_written).Success()) {
 diff --git a/lldb/source/Plugins/Platform/MacOSX/objcxx/PlatformiOSSimulatorCoreSimulatorSupport.mm b/lldb/source/Plugins/Platform/MacOSX/objcxx/PlatformiOSSimulatorCoreSimulatorSupport.mm
-index 1d259554fbc..ec5fcfde264 100644
+index 1d259554fbc..622df136752 100644
 --- a/lldb/source/Plugins/Platform/MacOSX/objcxx/PlatformiOSSimulatorCoreSimulatorSupport.mm
 +++ b/lldb/source/Plugins/Platform/MacOSX/objcxx/PlatformiOSSimulatorCoreSimulatorSupport.mm
 @@ -434,7 +434,7 @@ static Status HandleFileAction(ProcessLaunchInfo &launch_info,
@@ -1032,7 +1026,7 @@ index 1d259554fbc..ec5fcfde264 100644
            if ((oflag & O_RDWR) || (oflag & O_RDONLY))
              file_options |= File::eOpenOptionWrite;
 -          file = std::make_shared<File>(created_fd, file_options, true);
-+          file = NativeFile::make_shared(created_fd, file_options, true);
++          file = std::make_shared<NativeFile>(created_fd, file_options, true);
            [options setValue:[NSNumber numberWithInteger:created_fd] forKey:key];
            return error; // Success
          } else {
