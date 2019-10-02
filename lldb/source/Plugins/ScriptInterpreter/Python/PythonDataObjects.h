@@ -128,7 +128,7 @@ public:
     // an owned reference by incrementing it.  If it is an owned
     // reference (for example the caller allocated it with PyDict_New()
     // then we must *not* increment it.
-    if (Py_IsInitialized() && type == PyRefType::Borrowed)
+    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
       Py_XINCREF(m_py_obj);
   }
 
@@ -494,16 +494,14 @@ public:
 };
 
 template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
-  if (expected) {
+  if (expected)
     return expected.get();
-  } else {
-    llvm::handleAllErrors(
-        expected.takeError(), [](PythonException &E) { E.Restore(); },
-        [](const llvm::ErrorInfoBase &E) {
-          PyErr_SetString(PyExc_Exception, E.message().c_str());
-        });
-    return T();
-  }
+  llvm::handleAllErrors(
+      expected.takeError(), [](PythonException &E) { E.Restore(); },
+      [](const llvm::ErrorInfoBase &E) {
+        PyErr_SetString(PyExc_Exception, E.message().c_str());
+      });
+  return T();
 }
 
 } // namespace lldb_private
