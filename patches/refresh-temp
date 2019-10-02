@@ -1,0 +1,106 @@
+Bottom: 7432cef4235ff5c3b6df791309d88bea0948cf73
+Top:    4e3eda399aab90927e2c8b617725163da60bf715
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-01 21:06:42 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index cd599c10ba8..377c6dadb1a 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1119,15 +1119,15 @@ llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
+ // Abstract base class for python files.   All it knows how to do
+ // is hold a reference to the python object and close or flush it
+ // when the File is closed.
+-class LLDBPythonFile : public File {
++class OwnedPythonFile : public File {
+ public:
+-  LLDBPythonFile(const PythonFile &file, bool borrowed)
++  OwnedPythonFile(const PythonFile &file, bool borrowed)
+       : m_py_obj(file.get()), m_borrowed(borrowed) {
+     assert(m_py_obj);
+     Py_INCREF(m_py_obj);
+   }
+ 
+-  ~LLDBPythonFile() override {
++  ~OwnedPythonFile() override {
+     assert(m_py_obj);
+     GIL takeGIL;
+     Close();
+@@ -1154,7 +1154,7 @@ public:
+   Status Close() override {
+     assert(m_py_obj);
+     GIL takeGIL;
+-    if (!LLDBPythonFile::IsValid())
++    if (!OwnedPythonFile::IsValid())
+       return Status("invalid file");
+     if (m_borrowed)
+       PyObject_CallMethod(m_py_obj, "flush", "()");
+@@ -1170,12 +1170,12 @@ protected:
+   bool m_borrowed;
+ };
+ 
+-// A SimplyPythonFile is a LLDBPythonFile that just delegates all I/O to a
++// A SimplyPythonFile is a OwnedPythonFile that just delegates all I/O to a
+ // NativeFile.
+ class SimplePythonFile
+-    : public DelegatingFile<SimplePythonFile, LLDBPythonFile> {
++    : public DelegatingFile<SimplePythonFile, OwnedPythonFile> {
+ public:
+-  typedef DelegatingFile<SimplePythonFile, LLDBPythonFile> Base;
++  typedef DelegatingFile<SimplePythonFile, OwnedPythonFile> Base;
+ 
+   SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
+                    bool borrowed)
+@@ -1186,12 +1186,12 @@ public:
+   ~SimplePythonFile() override { Close(); };
+ 
+   bool IsValid() const override {
+-    return m_native_file.IsValid() && LLDBPythonFile::IsValid();
++    return m_native_file.IsValid() && OwnedPythonFile::IsValid();
+   }
+ 
+   Status Close() override {
+     Status err1 = m_native_file.Close();
+-    Status err2 = LLDBPythonFile::Close();
++    Status err2 = OwnedPythonFile::Close();
+     if (err2.Fail())
+       return err2;
+     return err1;
+@@ -1252,7 +1252,7 @@ protected:
+   Py_buffer m_buffer;
+ };
+ 
+-class BinaryPythonFile : public LLDBPythonFile {
++class BinaryPythonFile : public OwnedPythonFile {
+   friend class PythonFile;
+ 
+ protected:
+@@ -1260,7 +1260,7 @@ protected:
+ 
+ public:
+   BinaryPythonFile(int fd, const PythonFile &file, bool borrowed)
+-      : LLDBPythonFile(file, borrowed),
++      : OwnedPythonFile(file, borrowed),
+         m_descriptor(File::DescriptorIsValid(fd) ? fd
+                                                  : File::kInvalidDescriptor) {}
+ 
+@@ -1316,7 +1316,7 @@ public:
+   }
+ };
+ 
+-class TextPythonFile : public LLDBPythonFile {
++class TextPythonFile : public OwnedPythonFile {
+   friend class PythonFile;
+ 
+ protected:
+@@ -1324,7 +1324,7 @@ protected:
+ 
+ public:
+   TextPythonFile(int fd, const PythonFile &file, bool borrowed)
+-      : LLDBPythonFile(file, borrowed),
++      : OwnedPythonFile(file, borrowed),
+         m_descriptor(File::DescriptorIsValid(fd) ? fd
+                                                  : File::kInvalidDescriptor) {}
