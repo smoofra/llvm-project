@@ -1,6 +1,6 @@
 Version: 1
-Previous: 0a88e2c78c0e32929cca0498ccd325fb9ab28530
-Head: 47a9976185979247ebac211be6da856605b8cf40
+Previous: 21a17c1559260f52549ab261332a7c167f5e138b
+Head: 6be23fb1f62897e6dc46c50c2e728ba084af8751
 Applied:
   lldbpexpect-make-sure-term-is: 07e8d122dd4ea7dc7e7e856d521090623b9b6152
   fix-python-library-path-on: 3265a62ecfa9c7078c418981c7474ce7bf64bfa6
@@ -9,6 +9,6 @@ Applied:
   new-api-class-sbfile: 5bb0ae03ab0d763232439c1a9486d51bfeae04ba
   sbdebugger-setinputfile: d3a013b5938d656f7350bc56f6f617ef63fff249
   factor-out-an-abstract-base: 47a9976185979247ebac211be6da856605b8cf40
+  allow-arbitrary-python-streams: 6be23fb1f62897e6dc46c50c2e728ba084af8751
 Unapplied:
-  allow-arbitrary-python-streams: e0998bfa45adf572223fefd1642d2ec3e39cd6e5
 Hidden:
