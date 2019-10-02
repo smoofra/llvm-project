@@ -1222,7 +1222,7 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
   if (borrowed) {
     // In this case we we don't need to retain the python
     // object at all.
-    file_sp = NativeFile::make_shared(fd, options.get(), false);
+    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
   } else {
     file_sp = std::static_pointer_cast<File>(
         std::make_shared<SimplePythonFile>(fd, options.get(), *this, borrowed));
