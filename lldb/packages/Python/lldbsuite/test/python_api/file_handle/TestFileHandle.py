@@ -336,7 +336,7 @@ class FileHandleTestCase(lldbtest.TestBase):
     @no_debug_info_test
     def test_sbfile_write_borrowed(self):
         with open(self.out_filename, 'w') as f:
-            sbf = lldb.SBFile(lldb.FileBorrow(), f)
+            sbf = lldb.SBFile.Create(f, borrow=True)
             e, n = sbf.Write(b'FOO')
             self.assertTrue(e.Success())
             self.assertEqual(n, 3)
@@ -359,7 +359,7 @@ class FileHandleTestCase(lldbtest.TestBase):
                 written.set(True)
                 return orig_write(x)
             f.write = mywrite
-            sbf = lldb.SBFile(lldb.FileForceScriptingIO(), f)
+            sbf = lldb.SBFile.Create(f, force_io_methods=True)
             e, n = sbf.Write(b'FOO')
             self.assertTrue(written)
             self.assertTrue(e.Success())
@@ -381,7 +381,7 @@ class FileHandleTestCase(lldbtest.TestBase):
                 written.set(True)
                 return orig_write(x)
             f.write = mywrite
-            sbf = lldb.SBFile(lldb.FileBorrowAndForceScriptingIO(), f)
+            sbf = lldb.SBFile.Create(f, borrow=True, force_io_methods=True)
             e, n = sbf.Write(b'FOO')
             self.assertTrue(written)
             self.assertTrue(e.Success())
