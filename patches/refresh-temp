@@ -1,0 +1,45 @@
+Bottom: 4e3eda399aab90927e2c8b617725163da60bf715
+Top:    188ec6e347e26c061a11b16b62fd7c48bcba6bb6
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-01 21:11:23 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 5db339847c3..25b4fa1bfc6 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -128,7 +128,7 @@ public:
+     // an owned reference by incrementing it.  If it is an owned
+     // reference (for example the caller allocated it with PyDict_New()
+     // then we must *not* increment it.
+-    if (Py_IsInitialized() && type == PyRefType::Borrowed)
++    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
+       Py_XINCREF(m_py_obj);
+   }
+ 
+@@ -494,16 +494,14 @@ public:
+ };
+ 
+ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+-  if (expected) {
++  if (expected)
+     return expected.get();
+-  } else {
+-    llvm::handleAllErrors(
+-        expected.takeError(), [](PythonException &E) { E.Restore(); },
+-        [](const llvm::ErrorInfoBase &E) {
+-          PyErr_SetString(PyExc_Exception, E.message().c_str());
+-        });
+-    return T();
+-  }
++  llvm::handleAllErrors(
++      expected.takeError(), [](PythonException &E) { E.Restore(); },
++      [](const llvm::ErrorInfoBase &E) {
++        PyErr_SetString(PyExc_Exception, E.message().c_str());
++      });
++  return T();
+ }
+ 
+ } // namespace lldb_private
