@@ -1,5 +1,5 @@
-Bottom: 56fe6af78fa3668557db9fce5beca9061b60b007
-Top:    6a0b77bbd144cdc815c084d3eb0b51c15419f76a
+Bottom: 8add3c4010266dc28a5caafbe887c06c3af920ee
+Top:    8310e1bb41a021b1a95d280143e66b5a91812187
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -46,7 +46,7 @@ index a5fc2cd4121..872eb1f0f59 100644
  
  } // namespace lldb
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index 9e1fbaaaeb9..d054172e6df 100644
+index b36b523e320..c2ef6a39cb8 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
 @@ -354,6 +354,62 @@ private:
@@ -509,7 +509,7 @@ index 6cdb192f26e..179446d5a53 100644
  
      %feature("autodoc", "Read(buffer) -> SBError, bytes_read") Read;
 diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
-index 3cb1f206d1c..4648e6cf3f6 100644
+index 07122916d23..e9e6987a8ff 100644
 --- a/lldb/source/API/SBFile.cpp
 +++ b/lldb/source/API/SBFile.cpp
 @@ -16,7 +16,9 @@ using namespace lldb_private;
