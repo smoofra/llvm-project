@@ -354,62 +354,6 @@ private:
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
-// This is a CRTP mixin that just delegates all the virtual functions
-// to another File.
-template <typename T, typename B> class DelegatingFile : public B {
-public:
-  template <typename... Args> DelegatingFile(Args... args) : B(args...){};
-
-  ~DelegatingFile() override { Close(); };
-
-  Status Read(void *buf, size_t &num_bytes) override {
-    return getDelegate().Read(buf, num_bytes);
-  }
-  Status Write(const void *buf, size_t &num_bytes) override {
-    return getDelegate().Write(buf, num_bytes);
-  }
-  bool IsValid() const override { return getDelegate().IsValid(); }
-  Status Close() override { return getDelegate().Close(); }
-  IOObject::WaitableHandle GetWaitableHandle() override {
-    return getDelegate().GetWaitableHandle();
-  }
-  Status GetFileSpec(FileSpec &file_spec) const override {
-    return getDelegate().GetFileSpec(file_spec);
-  }
-  FILE *TakeStreamAndClear() override {
-    return getDelegate().TakeStreamAndClear();
-  }
-  int GetDescriptor() const override { return getDelegate().GetDescriptor(); }
-  FILE *GetStream() override { return getDelegate().GetStream(); }
-  off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr) override {
-    return getDelegate().SeekFromStart(offset, error_ptr);
-  }
-  off_t SeekFromCurrent(off_t offset, Status *error_ptr = nullptr) override {
-    return getDelegate().SeekFromCurrent(offset, error_ptr);
-  }
-  off_t SeekFromEnd(off_t offset, Status *error_ptr = nullptr) override {
-    return getDelegate().SeekFromEnd(offset, error_ptr);
-  }
-  Status Read(void *dst, size_t &num_bytes, off_t &offset) override {
-    return getDelegate().Read(dst, num_bytes, offset);
-  }
-  Status Write(const void *src, size_t &num_bytes, off_t &offset) override {
-    return getDelegate().Write(src, num_bytes, offset);
-  }
-  Status Flush() override { return getDelegate().Flush(); }
-  Status Sync() override { return getDelegate().Sync(); }
-  size_t PrintfVarArg(const char *format, va_list args) override {
-    return getDelegate().PrintfVarArg(format, args);
-  }
-
-protected:
-  DelegatingFile() {}
-  File &getDelegate() { return static_cast<T *>(this)->getDelegate(); }
-  const File &getDelegate() const {
-    return static_cast<const T *>(this)->getDelegate();
-  }
-};
-
 class NativeFile : public File {
 public:
   NativeFile()

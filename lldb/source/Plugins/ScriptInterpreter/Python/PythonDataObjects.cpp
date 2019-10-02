@@ -1116,13 +1116,14 @@ llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
   return options;
 }
 
-// Abstract base class for python files.   All it knows how to do
+// Base class template for python files.   All it knows how to do
 // is hold a reference to the python object and close or flush it
 // when the File is closed.
-class OwnedPythonFile : public File {
+template <typename Base> class OwnedPythonFile : public Base {
 public:
-  OwnedPythonFile(const PythonFile &file, bool borrowed)
-      : m_py_obj(file.get()), m_borrowed(borrowed) {
+  template <typename... Args>
+  OwnedPythonFile(const PythonFile &file, bool borrowed, Args... args)
+      : Base(args...), m_py_obj(file.get()), m_borrowed(borrowed) {
     assert(m_py_obj);
     Py_INCREF(m_py_obj);
   }
@@ -1135,8 +1136,6 @@ public:
     m_py_obj = nullptr;
   }
 
-  PythonFile GetPythonFile() { return Retain<PythonFile>(m_py_obj); }
-
   bool IsValid() const override {
     GIL takeGIL;
     auto closed =
@@ -1145,24 +1144,28 @@ public:
       PyErr_Clear();
       return false;
     }
-    if (PyObject_IsTrue(closed.get())) {
+    if (PyObject_IsTrue(closed.get()))
+      return false;
+    if (PyErr_Occurred()) {
+      PyErr_Clear();
       return false;
     }
-    return true;
+    return Base::IsValid();
   }
 
   Status Close() override {
     assert(m_py_obj);
+    Status py_error, base_error;
     GIL takeGIL;
-    if (!OwnedPythonFile::IsValid())
-      return Status("invalid file");
-    if (m_borrowed)
-      PyObject_CallMethod(m_py_obj, "flush", "()");
-    else
-      PyObject_CallMethod(m_py_obj, "close", "()");
-    if (PyErr_Occurred())
-      return Status(llvm::make_error<PythonException>("Close"));
-    return Status();
+    if (!m_borrowed) {
+      Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
+      if (PyErr_Occurred())
+        py_error = llvm::make_error<PythonException>("Close");
+    }
+    base_error = Base::Close();
+    if (py_error.Fail())
+      return py_error;
+    return base_error;
   };
 
 protected:
@@ -1170,39 +1173,13 @@ protected:
   bool m_borrowed;
 };
 
-// A SimplyPythonFile is a OwnedPythonFile that just delegates all I/O to a
-// NativeFile.
-class SimplePythonFile
-    : public DelegatingFile<SimplePythonFile, OwnedPythonFile> {
+// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
+// a NativeFile
+class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
-  typedef DelegatingFile<SimplePythonFile, OwnedPythonFile> Base;
-
   SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
                    bool borrowed)
-      : Base(file, borrowed), m_native_file(fd, options, false) {
-    Py_INCREF(m_py_obj);
-  }
-
-  ~SimplePythonFile() override { Close(); };
-
-  bool IsValid() const override {
-    return m_native_file.IsValid() && OwnedPythonFile::IsValid();
-  }
-
-  Status Close() override {
-    Status err1 = m_native_file.Close();
-    Status err2 = OwnedPythonFile::Close();
-    if (err2.Fail())
-      return err2;
-    return err1;
-  }
-
-  const File &getDelegate() const { return m_native_file; }
-
-  File &getDelegate() { return m_native_file; }
-
-protected:
-  NativeFile m_native_file;
+      : OwnedPythonFile(file, borrowed, fd, options, false){};
 };
 
 llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
@@ -1217,6 +1194,12 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
   auto options = GetOptionsForPyObject(*this);
   if (!options)
     return options.takeError();
+
+  // LLDB and python will not share I/O buffers.  We should probably
+  // flush the python buffers now.
+  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
+  if (PyErr_Occurred())
+    return llvm::make_error<PythonException>("Flush");
 
   FileSP file_sp;
   if (borrowed) {
@@ -1252,7 +1235,46 @@ protected:
   Py_buffer m_buffer;
 };
 
-class BinaryPythonFile : public OwnedPythonFile {
+// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
+// File::IsValid() is false by default, but for the following classes
+// we want the file to be considered valid as long as the python bits
+// are valid.
+class PresumptivelyValidFile : public File {
+public:
+  bool IsValid() const override { return true; };
+};
+
+// Shared methods between TextPythonFile and BinaryPythonFile
+class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
+public:
+  PythonIOFile(const PythonFile &file, bool borrowed)
+      : OwnedPythonFile(file, borrowed){};
+
+  ~PythonIOFile() override { Close(); }
+
+  Status Close() override {
+    assert(m_py_obj);
+    GIL takeGIL;
+    if (m_borrowed)
+      return Flush();
+    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
+    if (PyErr_Occurred())
+      return Status(llvm::make_error<PythonException>("Close"));
+    return Status();
+  };
+
+  Status Flush() override {
+    GIL takeGIL;
+    PyErr_Clear();
+    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
+    Status error;
+    if (PyErr_Occurred())
+      error = llvm::make_error<PythonException>("Flush");
+    return error;
+  }
+};
+
+class BinaryPythonFile : public PythonIOFile {
   friend class PythonFile;
 
 protected:
@@ -1260,7 +1282,7 @@ protected:
 
 public:
   BinaryPythonFile(int fd, const PythonFile &file, bool borrowed)
-      : OwnedPythonFile(file, borrowed),
+      : PythonIOFile(file, borrowed),
         m_descriptor(File::DescriptorIsValid(fd) ? fd
                                                  : File::kInvalidDescriptor) {}
 
@@ -1304,19 +1326,9 @@ public:
     num_bytes = pybuffer.get().len;
     return Status();
   }
-
-  Status Flush() override {
-    GIL takeGIL;
-    PyErr_Clear();
-    PyObject_CallMethod(m_py_obj, "flush", "()");
-    Status error;
-    if (PyErr_Occurred())
-      error = llvm::make_error<PythonException>("Flush");
-    return error;
-  }
 };
 
-class TextPythonFile : public OwnedPythonFile {
+class TextPythonFile : public PythonIOFile {
   friend class PythonFile;
 
 protected:
@@ -1324,7 +1336,7 @@ protected:
 
 public:
   TextPythonFile(int fd, const PythonFile &file, bool borrowed)
-      : OwnedPythonFile(file, borrowed),
+      : PythonIOFile(file, borrowed),
         m_descriptor(File::DescriptorIsValid(fd) ? fd
                                                  : File::kInvalidDescriptor) {}
 
@@ -1377,16 +1389,6 @@ public:
     memcpy(buf, utf8, size);
     num_bytes = size;
     return Status();
-  }
-
-  Status Flush() override {
-    GIL takeGIL;
-    PyErr_Clear();
-    PyObject_CallMethod(m_py_obj, "flush", "()");
-    Status error;
-    if (PyErr_Occurred())
-      error = llvm::make_error<PythonException>("Flush");
-    return error;
   }
 };
 

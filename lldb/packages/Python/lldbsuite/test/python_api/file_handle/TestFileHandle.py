@@ -44,6 +44,18 @@ class MutableBool():
     def __bool__(self):
         return self.value
 
+class FlushTestIO(io.StringIO):
+    def __init__(self, mutable_flushed, mutable_closed):
+        super(FlushTestIO, self).__init__()
+        self.mut_flushed = mutable_flushed
+        self.mut_closed = mutable_closed
+    def close(self):
+        self.mut_closed.set(True)
+        return super(FlushTestIO, self).close()
+    def flush(self):
+        self.mut_flushed.set(True)
+        return super(FlushTestIO, self).flush()
+
 @contextmanager
 def replace_stdout(new):
     old = sys.stdout
@@ -500,3 +512,55 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertEqual(n, 0)
             self.assertTrue(error.Fail())
             self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    @skipIf(py_version=['<', (3,)])
+    def test_flush(self):
+        flushed = MutableBool(False)
+        closed = MutableBool(False)
+        f = FlushTestIO(flushed, closed)
+        self.assertFalse(flushed)
+        self.assertFalse(closed)
+        sbf = lldb.SBFile(f)
+        self.assertFalse(flushed)
+        self.assertFalse(closed)
+        sbf = None
+        self.assertFalse(flushed)
+        self.assertTrue(closed)
+        self.assertTrue(f.closed)
+
+        flushed = MutableBool(False)
+        closed = MutableBool(False)
+        f = FlushTestIO(flushed, closed)
+        self.assertFalse(flushed)
+        self.assertFalse(closed)
+        sbf = lldb.SBFile.Create(f, borrow=True)
+        self.assertFalse(flushed)
+        self.assertFalse(closed)
+        sbf = None
+        self.assertTrue(flushed)
+        self.assertFalse(closed)
+        self.assertFalse(f.closed)
+
+
+    @add_test_categories(['pyapi'])
+    @no_debug_info_test
+    def test_fileno_flush(self):
+        with open(self.out_filename, 'w') as f:
+            f.write("foo")
+            sbf = lldb.SBFile(f)
+            sbf.Write(b'bar')
+            sbf = None
+            self.assertTrue(f.closed)
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read(), 'foobar')
+
+        with open(self.out_filename, 'w+') as f:
+            f.write("foo")
+            sbf = lldb.SBFile.Create(f, borrow=True)
+            sbf.Write(b'bar')
+            sbf = None
+            self.assertFalse(f.closed)
+            f.seek(0)
+            self.assertEqual(f.read(), 'foobar')
