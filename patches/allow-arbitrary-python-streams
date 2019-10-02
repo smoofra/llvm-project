@@ -1,5 +1,5 @@
 Bottom: 8add3c4010266dc28a5caafbe887c06c3af920ee
-Top:    8310e1bb41a021b1a95d280143e66b5a91812187
+Top:    495e619b44556b873c9148dbe020169e38479753
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -524,7 +524,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 421bacd2ebc..377c6dadb1a 100644
+index 421bacd2ebc..d1651498387 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -760,7 +760,7 @@ index 421bacd2ebc..377c6dadb1a 100644
 +  if (borrowed) {
 +    // In this case we we don't need to retain the python
 +    // object at all.
-+    file_sp = NativeFile::make_shared(fd, options.get(), false);
++    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
 +  } else {
 +    file_sp = std::static_pointer_cast<File>(
 +        std::make_shared<SimplePythonFile>(fd, options.get(), *this, borrowed));
