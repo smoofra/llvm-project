@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    3d3889d8244aed7b46246e53cbf15e5c02406069
+Top:    2b7e02c4135fa3d5ec0db28c5fce13ba86ca6b0d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -605,7 +605,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..33662efea80 100644
+index fedd8f66a1f..26f18e42f26 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -657,10 +657,11 @@ index fedd8f66a1f..33662efea80 100644
  
    return true;
  #endif
-@@ -1031,4 +1039,429 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1039,445 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
++namespace {
 +class GIL {
 +public:
 +  GIL() {
@@ -672,6 +673,7 @@ index fedd8f66a1f..33662efea80 100644
 +protected:
 +  PyGILState_STATE m_state;
 +};
++}
 +
 +const char *PythonException::toCString() const {
 +  if (m_repr_bytes) {
@@ -748,6 +750,7 @@ index fedd8f66a1f..33662efea80 100644
 +// Base class template for python files.   All it knows how to do
 +// is hold a reference to the python object and close or flush it
 +// when the File is closed.
++namespace{
 +template <typename Base> class OwnedPythonFile : public Base {
 +public:
 +  template <typename... Args>
@@ -801,15 +804,18 @@ index fedd8f66a1f..33662efea80 100644
 +  PyObject *m_py_obj;
 +  bool m_borrowed;
 +};
++}
 +
 +// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
 +// a NativeFile
++namespace {
 +class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 +public:
 +  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
 +                   bool borrowed)
 +      : OwnedPythonFile(file, borrowed, fd, options, false){};
 +};
++}
 +
 +llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
 +  if (!IsValid())
@@ -849,6 +855,7 @@ index fedd8f66a1f..33662efea80 100644
 +
 +#if PY_MAJOR_VERSION >= 3
 +
++namespace {
 +class PythonBuffer {
 +public:
 +  // you must check PyErr_Occurred() after calling this constructor.
@@ -865,17 +872,21 @@ index fedd8f66a1f..33662efea80 100644
 +protected:
 +  Py_buffer m_buffer;
 +};
++}
 +
 +// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
 +// File::IsValid() is false by default, but for the following classes
 +// we want the file to be considered valid as long as the python bits
 +// are valid.
++namespace {
 +class PresumptivelyValidFile : public File {
 +public:
 +  bool IsValid() const override { return true; };
 +};
++}
 +
 +// Shared methods between TextPythonFile and BinaryPythonFile
++namespace {
 +class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
 +public:
 +  PythonIOFile(const PythonFile &file, bool borrowed)
@@ -903,7 +914,9 @@ index fedd8f66a1f..33662efea80 100644
 +    return error;
 +  }
 +};
++}
 +
++namespace {
 +class BinaryPythonFile : public PythonIOFile {
 +  friend class PythonFile;
 +
@@ -957,7 +970,9 @@ index fedd8f66a1f..33662efea80 100644
 +    return Status();
 +  }
 +};
++}
 +
++namespace {
 +class TextPythonFile : public PythonIOFile {
 +  friend class PythonFile;
 +
@@ -1023,6 +1038,7 @@ index fedd8f66a1f..33662efea80 100644
 +    return Status();
 +  }
 +};
++}
 +
 +#endif
 +
