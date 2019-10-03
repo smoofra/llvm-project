@@ -1,0 +1,99 @@
+Bottom: b95c0c97dfd0b74958b72c461bc268fc924eec1b
+Top:    108773485dfe27114cc1c92e2fbb97f7d16a0520
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 13:22:27 -0700
+
+Refresh of remove-file-use-from
+
+---
+diff --git a/lldb/include/lldb/API/SBCommandReturnObject.h b/lldb/include/lldb/API/SBCommandReturnObject.h
+index 39c67e58a51..e1bcaf2236f 100644
+--- a/lldb/include/lldb/API/SBCommandReturnObject.h
++++ b/lldb/include/lldb/API/SBCommandReturnObject.h
+@@ -84,9 +84,9 @@ public:
+ 
+   void SetImmediateErrorFile(SBFile file);
+ 
+-  void SetImmediateOutputFile(lldb_private::File &file);
++  void SetImmediateOutputFile(FileSP file);
+ 
+-  void SetImmediateErrorFile(lldb_private::File &file);
++  void SetImmediateErrorFile(FileSP file);
+ 
+   void PutCString(const char *string, int len = -1);
+ 
+diff --git a/lldb/scripts/interface/SBCommandReturnObject.i b/lldb/scripts/interface/SBCommandReturnObject.i
+index cc2c83270d1..38d9cea2214 100644
+--- a/lldb/scripts/interface/SBCommandReturnObject.i
++++ b/lldb/scripts/interface/SBCommandReturnObject.i
+@@ -49,16 +49,16 @@ public:
+     GetError (bool if_no_immediate);
+ 
+     size_t
+-    PutOutput (SBFile file);
++    PutOutput (lldb::SBFile file);
+ 
+     size_t
+-    PutError (SBFile file);
++    PutError (lldb::SBFile file);
+ 
+     size_t
+-    PutOutput (FileSP BORROWED);
++    PutOutput (lldb::FileSP BORROWED);
+ 
+     size_t
+-    PutError (fileSP BORROWED);
++    PutError (lldb::FileSP BORROWED);
+ 
+     void
+     Clear();
+@@ -91,19 +91,19 @@ public:
+     bool
+     GetDescription (lldb::SBStream &description);
+ 
+-    void SetImmediateOutputFile(SBFile file);
+-    void SetImmediateErrorFile(SBFile file);
+-    void SetImmediateOutputFile(FileSP BORROWED);
+-    void SetImmediateErrorFile(FileSP BORROWED);
++    void SetImmediateOutputFile(lldb::SBFile file);
++    void SetImmediateErrorFile(lldb::SBFile file);
++    void SetImmediateOutputFile(lldb::FileSP BORROWED);
++    void SetImmediateErrorFile(lldb::FileSP BORROWED);
+ 
+     %extend {
+         // transfer_ownership does nothing, and is here for compatibility with
+         // old scripts.  Ownership is tracked by reference count in the ordinary way.
+  
+-        void SetImmediateOutputFile(FileSP BORROWED, bool transfer_ownership) {
++        void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
+             self->SetImmediateOutputFile(BORROWED);
+         }
+-        void SetImmediateErrorFile(FileSP BORROWED, bool transfer_ownership) {
++        void SetImmediateErrorFile(lldb::FileSP BORROWED, bool transfer_ownership) {
+             self->SetImmediateErrorFile(BORROWED);
+         }
+     }
+diff --git a/lldb/source/API/SBCommandReturnObject.cpp b/lldb/source/API/SBCommandReturnObject.cpp
+index b3b9260a1d4..9795392d389 100644
+--- a/lldb/source/API/SBCommandReturnObject.cpp
++++ b/lldb/source/API/SBCommandReturnObject.cpp
+@@ -108,7 +108,8 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
+ }
+ 
+ size_t SBCommandReturnObject::PutOutput(FileSP file_sp) {
+-  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP), file_sp);
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP),
++                     file_sp);
+   if (!file_sp)
+     return 0;
+   return file_sp->Printf("%s", GetOutput());
+@@ -133,7 +134,8 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
+ }
+ 
+ size_t SBCommandReturnObject::PutError(FileSP file_sp) {
+-  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP), file_sp);
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP),
++                     file_sp);
+   if (!file_sp)
+     return 0;
+   return file_sp->Printf("%s", GetError());
