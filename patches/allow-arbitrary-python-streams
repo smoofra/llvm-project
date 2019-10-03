@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    c15fd32b31beab089b75db8ffd3adcfb788c5c73
+Top:    4c5821cdf3ef4483a569a1affb2118ccbbfcd140
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -620,7 +620,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..2a5f831b335 100644
+index fedd8f66a1f..7cbca083abe 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -672,7 +672,7 @@ index fedd8f66a1f..2a5f831b335 100644
  
    return true;
  #endif
-@@ -1031,4 +1039,444 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1039,445 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -831,41 +831,6 @@ index fedd8f66a1f..2a5f831b335 100644
 +};
 +}
 +
-+llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
-+  if (!IsValid())
-+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-+                                   "invalid PythonFile");
-+
-+  int fd = PyObject_AsFileDescriptor(m_py_obj);
-+  if (fd < 0) {
-+    PyErr_Clear();
-+    return ConvertToFileForcingUseOfScriptingIOMethods(borrowed);
-+  }
-+  auto options = GetOptionsForPyObject(*this);
-+  if (!options)
-+    return options.takeError();
-+
-+  // LLDB and python will not share I/O buffers.  We should probably
-+  // flush the python buffers now.
-+  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
-+  if (PyErr_Occurred())
-+    return llvm::make_error<PythonException>("Flush");
-+
-+  FileSP file_sp;
-+  if (borrowed) {
-+    // In this case we we don't need to retain the python
-+    // object at all.
-+    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
-+  } else {
-+    file_sp = std::static_pointer_cast<File>(
-+        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
-+  }
-+  if (!file_sp->IsValid())
-+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-+                                   "invalid File");
-+
-+  return file_sp;
-+}
 +
 +#if PY_MAJOR_VERSION >= 3
 +
@@ -1055,6 +1020,42 @@ index fedd8f66a1f..2a5f831b335 100644
 +}
 +
 +#endif
++
++llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
++  if (!IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid PythonFile");
++
++  int fd = PyObject_AsFileDescriptor(m_py_obj);
++  if (fd < 0) {
++    PyErr_Clear();
++    return ConvertToFileForcingUseOfScriptingIOMethods(borrowed);
++  }
++  auto options = GetOptionsForPyObject(*this);
++  if (!options)
++    return options.takeError();
++
++  // LLDB and python will not share I/O buffers.  We should probably
++  // flush the python buffers now.
++  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
++  if (PyErr_Occurred())
++    return llvm::make_error<PythonException>("Flush");
++
++  FileSP file_sp;
++  if (borrowed) {
++    // In this case we we don't need to retain the python
++    // object at all.
++    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
++  } else {
++    file_sp = std::static_pointer_cast<File>(
++        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
++  }
++  if (!file_sp->IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid File");
++
++  return file_sp;
++}
 +
 +llvm::Expected<FileSP> PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(
 +    bool borrowed) {
