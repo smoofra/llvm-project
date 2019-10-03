@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    2b7e02c4135fa3d5ec0db28c5fce13ba86ca6b0d
+Top:    b4e14070b1eb5e20167e14bbf82f43a506666aa2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -46,7 +46,7 @@ index a5fc2cd4121..872eb1f0f59 100644
  
  } // namespace lldb
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 3231fdfe688..306bb9b33a6 100644
+index 3231fdfe688..c33101ee162 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -13,8 +13,48 @@ from contextlib import contextmanager
@@ -248,7 +248,7 @@ index 3231fdfe688..306bb9b33a6 100644
      @skipIf(py_version=['<', (3,)])
      def test_replace_stdout(self):
          f = io.StringIO()
-@@ -272,3 +332,212 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -272,3 +332,210 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.handleCmd('script sys.stdout.write("lol")',
                  collect_result=False, check=False)
              self.assertEqual(sys.stdout, f)
@@ -375,8 +375,7 @@ index 3231fdfe688..306bb9b33a6 100644
 +        with open(self.out_filename, 'w') as f:
 +            sbf = lldb.SBFile(f)
 +            status = self.debugger.SetOutputFile(sbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +            self.handleCmd('script 2+2')
 +        with open(self.out_filename, 'r') as f:
 +            self.assertEqual(f.read().strip(), '4')
@@ -387,8 +386,7 @@ index 3231fdfe688..306bb9b33a6 100644
 +        with open(self.out_filename, 'w') as f:
 +            sbf = lldb.SBFile(f)
 +            status = self.debugger.SetErrorFile(sbf)
-+            if status.Fail():
-+                raise Exception(status)
++            self.assertTrue(status.Success())
 +            self.handleCmd('lolwut', check=False, collect_result=False)
 +        with open(self.out_filename, 'r') as f:
 +            errors = f.read()
