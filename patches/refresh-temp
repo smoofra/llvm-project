@@ -1,0 +1,69 @@
+Bottom: 1e615992ff9ab98d8784cddbfb22f6467a63a227
+Top:    822d59e10439ef497d43eec17007c6ecbdcb2b5d
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 13:14:00 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 005bac5a0cf..b3e364302fc 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1145,8 +1145,7 @@ public:
+     m_py_obj = nullptr;
+   }
+ 
+-  bool IsValid() const override {
+-    GIL takeGIL;
++  bool IsPythonSideValid() const {
+     auto closed =
+         Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
+     if (!closed.IsValid() || PyErr_Occurred()) {
+@@ -1159,7 +1158,12 @@ public:
+       PyErr_Clear();
+       return false;
+     }
+-    return Base::IsValid();
++    return true;
++  }
++
++  bool IsValid() const override {
++    GIL takeGIL;
++    return IsPythonSideValid() && Base::IsValid();
+   }
+ 
+   Status Close() override {
+@@ -1216,26 +1220,20 @@ protected:
+ };
+ }
+ 
+-// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
+-// File::IsValid() is false by default, but for the following classes
+-// we want the file to be considered valid as long as the python bits
+-// are valid.
+-namespace {
+-class PresumptivelyValidFile : public File {
+-public:
+-  bool IsValid() const override { return true; };
+-};
+-}
+-
+ // Shared methods between TextPythonFile and BinaryPythonFile
+ namespace {
+-class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
++class PythonIOFile : public OwnedPythonFile<File> {
+ public:
+   PythonIOFile(const PythonFile &file, bool borrowed)
+       : OwnedPythonFile(file, borrowed) {}
+ 
+   ~PythonIOFile() override { Close(); }
+ 
++  bool IsValid() const override {
++    GIL takeGIL;
++    return IsPythonSideValid();
++  }
++
+   Status Close() override {
+     assert(m_py_obj);
+     GIL takeGIL;
