@@ -1,0 +1,32 @@
+Bottom: d8021fc697c781a957c119aaec91ed2a62c87eb8
+Top:    cf66416703f3bb1a4ca7fff56b86a2b4ef324710
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 00:06:17 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index f7fb0a994a8..326e2c91185 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -32,14 +32,15 @@ using namespace lldb;
+ 
+ void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
+   s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
++}
+ 
+-  template <typename T> static T Take(PyObject * obj) {
++template <typename T> static T Take(PyObject * obj) {
+     return T(PyRefType::Owned, obj);
+-  }
++}
+ 
+-  template <typename T> static T Retain(PyObject * obj) {
+-    return T(PyRefType::Borrowed, obj);
+-  }
++template <typename T> static T Retain(PyObject * obj) {
++  return T(PyRefType::Borrowed, obj);
++}
+ 
+ // PythonObject
