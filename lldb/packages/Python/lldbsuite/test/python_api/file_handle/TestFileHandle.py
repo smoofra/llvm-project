@@ -338,6 +338,56 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    def test_inout(self):
+        with open(self.in_filename, 'w') as f:
+            f.write("help help\n")
+        with  open(self.out_filename, 'w') as outf, \
+              open(self.in_filename, 'r') as inf:
+            status = self.debugger.SetOutputFile(lldb.SBFile(outf))
+            self.assertTrue(status.Success())
+            status = self.debugger.SetInputFile(lldb.SBFile(inf))
+            self.assertTrue(status.Success())
+            opts = lldb.SBCommandInterpreterRunOptions()
+            self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
+            self.debugger.GetOutputFile().Flush()
+        with open(self.out_filename, 'r') as f:
+            output = f.read()
+            self.assertIn('Show a list of all debugger commands', output)
+
+
+    @add_test_categories(['pyapi'])
+    @skipIf(True) # FIXME IOHandler still using FILE*
+    def test_string_inout(self):
+        inf = io.StringIO("help help\n")
+        outf = io.StringIO()
+        status = self.debugger.SetOutputFile(lldb.SBFile(outf))
+        self.assertTrue(status.Success())
+        status = self.debugger.SetInputFile(lldb.SBFile(inf))
+        self.assertTrue(status.Success())
+        opts = lldb.SBCommandInterpreterRunOptions()
+        self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
+        self.debugger.GetOutputFile().Flush()
+        output = outf.getvalue()
+        self.assertIn('Show a list of all debugger commands', output)
+
+
+    @add_test_categories(['pyapi'])
+    @skipIf(True) # FIXME IOHandler still using FILE*
+    def test_binary_inout(self):
+        inf = io.BytesIO(b"help help\n")
+        outf = io.BytesIO()
+        status = self.debugger.SetOutputFile(lldb.SBFile(outf))
+        self.assertTrue(status.Success())
+        status = self.debugger.SetInputFile(lldb.SBFile(inf))
+        self.assertTrue(status.Success())
+        opts = lldb.SBCommandInterpreterRunOptions()
+        self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
+        self.debugger.GetOutputFile().Flush()
+        output = outf.getvalue()
+        self.assertIn(b'Show a list of all debugger commands', output)
+
+
+    @add_test_categories(['pyapi'])
     def test_fileno_error(self):
         with open(self.out_filename, 'w') as f:
 
@@ -498,6 +548,17 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f)
             status = self.debugger.SetErrorFile(sbf)
+            self.assertTrue(status.Success())
+            self.handleCmd('lolwut', check=False, collect_result=False)
+        with open(self.out_filename, 'r') as f:
+            errors = f.read()
+            self.assertTrue(re.search(r'error:.*lolwut', errors))
+
+
+    @add_test_categories(['pyapi'])
+    def test_file_error(self):
+        with open(self.out_filename, 'w') as f:
+            status = self.debugger.SetErrorFile(f)
             self.assertTrue(status.Success())
             self.handleCmd('lolwut', check=False, collect_result=False)
         with open(self.out_filename, 'r') as f:
