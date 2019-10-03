@@ -1,12 +1,12 @@
 Version: 1
-Previous: 9ee8f6c5e67dab9047443cb029db30b707e30fd8
-Head: ee157dc64a5aa5b98a7aef1129f5d9bd43da2864
+Previous: b7f52be9039d29c5f54f9517de2111f17115687a
+Head: a457fbc592be2077eb1beef6225de6281339478f
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
-  add-tests: ee157dc64a5aa5b98a7aef1129f5d9bd43da2864
+  add-tests: a457fbc592be2077eb1beef6225de6281339478f
 Unapplied:
   remove-file-use-from: 75512d23a0635a5c70abcc204bf0d45ab20bbaca
   remove-a-smattering-of: fad3a667fa787545c15f55c7a18471caa328b7b5

@@ -14,6 +14,10 @@ This patch just imports all my tests.   A bunch of them don't
 work yet, so they are marked to be skipped.   They'll be
 unmarked as I fix them.
 
+One of these tests will actually trip an assert in the SWIG
+code now instead of just failing, so I'm fixing that here too.
+
+
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
