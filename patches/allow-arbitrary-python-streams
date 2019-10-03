@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    4366c6b41de065db17c498ec5637b0ff9ad1d05c
+Top:    3d3889d8244aed7b46246e53cbf15e5c02406069
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -46,7 +46,7 @@ index a5fc2cd4121..872eb1f0f59 100644
  
  } // namespace lldb
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 3231fdfe688..2d034034b89 100644
+index 3231fdfe688..306bb9b33a6 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -13,8 +13,48 @@ from contextlib import contextmanager
@@ -55,7 +55,7 @@ index 3231fdfe688..2d034034b89 100644
  from lldbsuite.test.decorators import (
 -    add_test_categories, no_debug_info_test, skipIf)
 -
-+    add_test_categories, skipIf)
++    add_test_categories, skipIf, skipIfWindows)
 +
 +class OhNoe(Exception):
 +    pass
@@ -108,15 +108,17 @@ index 3231fdfe688..2d034034b89 100644
      mydir = lldbtest.Base.compute_mydir(__file__)
  
      # The way this class interacts with the debugger is different
-@@ -84,7 +125,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -84,7 +125,8 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
 -    @no_debug_info_test
++    @skipIfWindows # FIXME pre-existing bug, should be fixed
++                   # when we delete the FILE* typemaps.
      def test_legacy_file_out_script(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetOutputFileHandle(f, False)
-@@ -100,7 +140,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -100,7 +142,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -124,15 +126,17 @@ index 3231fdfe688..2d034034b89 100644
      def test_legacy_file_out(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetOutputFileHandle(f, False)
-@@ -110,7 +149,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -110,7 +151,8 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertIn('deadbeef', f.read())
  
      @add_test_categories(['pyapi'])
 -    @no_debug_info_test
++    @skipIfWindows # FIXME pre-existing bug, should be fixed
++                   # when we delete the FILE* typemaps.
      def test_legacy_file_err_with_get(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetErrorFileHandle(f, False)
-@@ -124,7 +162,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -124,7 +166,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -140,7 +144,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_legacy_file_err(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetErrorFileHandle(f, False)
-@@ -135,7 +172,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -135,7 +176,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -148,7 +152,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_sbfile_type_errors(self):
          sbf = lldb.SBFile()
          self.assertRaises(TypeError, sbf.Write, None)
-@@ -146,8 +182,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -146,8 +186,7 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -158,7 +162,7 @@ index 3231fdfe688..2d034034b89 100644
          with open(self.out_filename, 'w') as f:
              sbf = lldb.SBFile(f.fileno(), "w", False)
              self.assertTrue(sbf.IsValid())
-@@ -161,8 +196,20 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -161,8 +200,20 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -181,7 +185,7 @@ index 3231fdfe688..2d034034b89 100644
          with open(self.out_filename, 'w') as f:
              f.write('FOO')
          with open(self.out_filename, 'r') as f:
-@@ -175,7 +222,21 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -175,7 +226,21 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -204,7 +208,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_fileno_out(self):
          with open(self.out_filename, 'w') as f:
              sbf = lldb.SBFile(f.fileno(), "w", False)
-@@ -189,7 +250,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -189,7 +254,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -212,7 +216,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_fileno_help(self):
          with open(self.out_filename, 'w') as f:
              sbf = lldb.SBFile(f.fileno(), "w", False)
-@@ -201,7 +261,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -201,7 +265,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -220,7 +224,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_immediate(self):
          with open(self.out_filename, 'w') as f:
              ret = lldb.SBCommandReturnObject()
-@@ -220,7 +279,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -220,7 +283,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -228,7 +232,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_fileno_inout(self):
          with open(self.in_filename, 'w') as f:
              f.write("help help\n")
-@@ -244,7 +302,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -244,7 +306,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -236,7 +240,7 @@ index 3231fdfe688..2d034034b89 100644
      def test_fileno_error(self):
          with open(self.out_filename, 'w') as f:
  
-@@ -263,7 +320,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -263,7 +324,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
      #FIXME This shouldn't fail for python2 either.
      @add_test_categories(['pyapi'])
@@ -244,7 +248,7 @@ index 3231fdfe688..2d034034b89 100644
      @skipIf(py_version=['<', (3,)])
      def test_replace_stdout(self):
          f = io.StringIO()
-@@ -272,3 +328,212 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -272,3 +332,212 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.handleCmd('script sys.stdout.write("lol")',
                  collect_result=False, check=False)
              self.assertEqual(sys.stdout, f)
@@ -601,7 +605,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..84171ba4270 100644
+index fedd8f66a1f..33662efea80 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -627,7 +631,7 @@ index fedd8f66a1f..84171ba4270 100644
  // PythonObject
  
  void PythonObject::Dump(Stream &strm) const {
-@@ -963,9 +972,7 @@ bool PythonFile::Check(PyObject *py_obj) {
+@@ -963,20 +972,19 @@ bool PythonFile::Check(PyObject *py_obj) {
    // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
    // over `io.open()`, which returns some object derived from `io.IOBase`. As a
    // result, the only way to detect a file in Python 3 is to check whether it
@@ -638,16 +642,22 @@ index fedd8f66a1f..84171ba4270 100644
    PythonObject io_module(PyRefType::Owned, PyImport_ImportModule("io"));
    PythonDictionary io_dict(PyRefType::Borrowed,
                             PyModule_GetDict(io_module.get()));
-@@ -975,8 +982,6 @@ bool PythonFile::Check(PyObject *py_obj) {
+   PythonObject io_base_class = io_dict.GetItemForKey(PythonString("IOBase"));
++  assert(!PyErr_Occurred());
  
-   if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
-     return false;
--  if (!object_type.HasAttribute("fileno"))
+   PythonObject object_type(PyRefType::Owned, PyObject_Type(py_obj));
+ 
+-  if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
 -    return false;
+-  if (!object_type.HasAttribute("fileno"))
++  if (!PyObject_IsSubclass(object_type.get(), io_base_class.get())) {
++    PyErr_Clear();
+     return false;
++  }
  
    return true;
  #endif
-@@ -1031,4 +1036,429 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1039,429 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
