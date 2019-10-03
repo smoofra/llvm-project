@@ -1183,13 +1183,13 @@ protected:
 };
 }
 
-// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
+// A SimplePythonFile is a OwnedPythonFile that just does all I/O as
 // a NativeFile
 namespace {
 class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
-  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
-                   bool borrowed)
+  SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
+                   uint32_t options)
       : OwnedPythonFile(file, borrowed, fd, options, false){};
 };
 }
@@ -1221,7 +1221,7 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
     file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
   } else {
     file_sp = std::static_pointer_cast<File>(
-        std::make_shared<SimplePythonFile>(fd, options.get(), *this, borrowed));
+        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
   }
   if (!file_sp->IsValid())
     return llvm::createStringError(llvm::inconvertibleErrorCode(),
