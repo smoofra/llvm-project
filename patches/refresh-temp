@@ -1,0 +1,59 @@
+Bottom: 4366c6b41de065db17c498ec5637b0ff9ad1d05c
+Top:    3d3889d8244aed7b46246e53cbf15e5c02406069
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 10:50:29 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 2d034034b89..306bb9b33a6 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -13,7 +13,7 @@ from contextlib import contextmanager
+ import lldb
+ from lldbsuite.test import  lldbtest
+ from lldbsuite.test.decorators import (
+-    add_test_categories, skipIf)
++    add_test_categories, skipIf, skipIfWindows)
+ 
+ class OhNoe(Exception):
+     pass
+@@ -125,6 +125,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
++    @skipIfWindows # FIXME pre-existing bug, should be fixed
++                   # when we delete the FILE* typemaps.
+     def test_legacy_file_out_script(self):
+         with open(self.out_filename, 'w') as f:
+             self.debugger.SetOutputFileHandle(f, False)
+@@ -149,6 +151,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertIn('deadbeef', f.read())
+ 
+     @add_test_categories(['pyapi'])
++    @skipIfWindows # FIXME pre-existing bug, should be fixed
++                   # when we delete the FILE* typemaps.
+     def test_legacy_file_err_with_get(self):
+         with open(self.out_filename, 'w') as f:
+             self.debugger.SetErrorFileHandle(f, False)
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 84171ba4270..33662efea80 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -977,11 +977,14 @@ bool PythonFile::Check(PyObject *py_obj) {
+   PythonDictionary io_dict(PyRefType::Borrowed,
+                            PyModule_GetDict(io_module.get()));
+   PythonObject io_base_class = io_dict.GetItemForKey(PythonString("IOBase"));
++  assert(!PyErr_Occurred());
+ 
+   PythonObject object_type(PyRefType::Owned, PyObject_Type(py_obj));
+ 
+-  if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
++  if (!PyObject_IsSubclass(object_type.get(), io_base_class.get())) {
++    PyErr_Clear();
+     return false;
++  }
+ 
+   return true;
+ #endif
