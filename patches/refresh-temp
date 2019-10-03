@@ -1,0 +1,39 @@
+Bottom: c930834bb3a700407da2fc2315f21177e53011c5
+Top:    1de239ed79038a749555d37e6f243a984e0ab8ad
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 14:26:32 -0700
+
+Refresh of remove-file-use-from
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 635ff6405af..49b7043f0c7 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -543,6 +543,18 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertEqual(f.read().strip(), '4')
+ 
+ 
++    @add_test_categories(['pyapi'])
++    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
++    @skipIf(py_version=['<', (3,)])
++    def test_file_out(self):
++        with open(self.out_filename, 'w') as f:
++            status = self.debugger.SetOutputFile(f)
++            self.assertTrue(status.Success())
++            self.handleCmd('script 2+2')
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), '4')
++
++
+     @add_test_categories(['pyapi'])
+     def test_sbfile_error(self):
+         with open(self.out_filename, 'w') as f:
+@@ -556,6 +568,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
++    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
+     def test_file_error(self):
+         with open(self.out_filename, 'w') as f:
+             status = self.debugger.SetErrorFile(f)
