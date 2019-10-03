@@ -455,8 +455,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f)
             status = self.debugger.SetOutputFile(sbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
             self.handleCmd('script 2+2')
         with open(self.out_filename, 'r') as f:
             self.assertEqual(f.read().strip(), '4')
@@ -467,8 +466,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f)
             status = self.debugger.SetErrorFile(sbf)
-            if status.Fail():
-                raise Exception(status)
+            self.assertTrue(status.Success())
             self.handleCmd('lolwut', check=False, collect_result=False)
         with open(self.out_filename, 'r') as f:
             errors = f.read()
