@@ -1194,41 +1194,6 @@ public:
 };
 }
 
-llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
-  if (!IsValid())
-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                   "invalid PythonFile");
-
-  int fd = PyObject_AsFileDescriptor(m_py_obj);
-  if (fd < 0) {
-    PyErr_Clear();
-    return ConvertToFileForcingUseOfScriptingIOMethods(borrowed);
-  }
-  auto options = GetOptionsForPyObject(*this);
-  if (!options)
-    return options.takeError();
-
-  // LLDB and python will not share I/O buffers.  We should probably
-  // flush the python buffers now.
-  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
-  if (PyErr_Occurred())
-    return llvm::make_error<PythonException>("Flush");
-
-  FileSP file_sp;
-  if (borrowed) {
-    // In this case we we don't need to retain the python
-    // object at all.
-    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
-  } else {
-    file_sp = std::static_pointer_cast<File>(
-        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
-  }
-  if (!file_sp->IsValid())
-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                   "invalid File");
-
-  return file_sp;
-}
 
 #if PY_MAJOR_VERSION >= 3
 
@@ -1418,6 +1383,42 @@ public:
 }
 
 #endif
+
+llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
+  if (!IsValid())
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "invalid PythonFile");
+
+  int fd = PyObject_AsFileDescriptor(m_py_obj);
+  if (fd < 0) {
+    PyErr_Clear();
+    return ConvertToFileForcingUseOfScriptingIOMethods(borrowed);
+  }
+  auto options = GetOptionsForPyObject(*this);
+  if (!options)
+    return options.takeError();
+
+  // LLDB and python will not share I/O buffers.  We should probably
+  // flush the python buffers now.
+  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
+  if (PyErr_Occurred())
+    return llvm::make_error<PythonException>("Flush");
+
+  FileSP file_sp;
+  if (borrowed) {
+    // In this case we we don't need to retain the python
+    // object at all.
+    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
+  } else {
+    file_sp = std::static_pointer_cast<File>(
+        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
+  }
+  if (!file_sp->IsValid())
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "invalid File");
+
+  return file_sp;
+}
 
 llvm::Expected<FileSP> PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(
     bool borrowed) {
