@@ -483,6 +483,8 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    using namespace lldb_private;
    NativeFile file($1, false);
    PythonFile py_file(file, mode);
+   if (PyErr_Occurred())
+      return nullptr;
    $result = py_file.release();
    if (!$result)
    {

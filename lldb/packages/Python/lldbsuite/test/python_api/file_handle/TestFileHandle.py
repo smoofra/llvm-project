@@ -133,7 +133,8 @@ class FileHandleTestCase(lldbtest.TestBase):
             # it's been for a long time.  That's why this test works
             # even with collect_result=True.
             self.handleCmd('script 1+1')
-            self.debugger.GetOutputFileHandle().write('FOO\n')
+            ofh = self.debugger.GetOutputFileHandle()
+            ofh.write("FOO\n")
         lldb.SBDebugger.Destroy(self.debugger)
         with open(self.out_filename, 'r') as f:
             self.assertEqual(readStrippedLines(f), ['2', 'FOO'])

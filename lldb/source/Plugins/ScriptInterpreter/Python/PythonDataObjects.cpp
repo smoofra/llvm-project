@@ -977,11 +977,14 @@ bool PythonFile::Check(PyObject *py_obj) {
   PythonDictionary io_dict(PyRefType::Borrowed,
                            PyModule_GetDict(io_module.get()));
   PythonObject io_base_class = io_dict.GetItemForKey(PythonString("IOBase"));
+  assert(!PyErr_Occurred());
 
   PythonObject object_type(PyRefType::Owned, PyObject_Type(py_obj));
 
-  if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
+  if (!PyObject_IsSubclass(object_type.get(), io_base_class.get())) {
+    PyErr_Clear();
     return false;
+  }
 
   return true;
 #endif
