@@ -3,7 +3,10 @@ Top:    1d860c252c3cd2967b6161685356403fe20b2339
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:23:09 -0700
 
-remove FILE* use from CommandReturnObject
+SBFile support in SBCommandReturnObject
+
+This patch add SBFile interfaces to SBCommandReturnObject, and
+removes the internal callers of its FILE* interfaces.
 
 
 ---
