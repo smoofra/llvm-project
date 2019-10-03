@@ -49,16 +49,16 @@ public:
     GetError (bool if_no_immediate);
 
     size_t
-    PutOutput (SBFile file);
+    PutOutput (lldb::SBFile file);
 
     size_t
-    PutError (SBFile file);
+    PutError (lldb::SBFile file);
 
     size_t
-    PutOutput (FileSP BORROWED);
+    PutOutput (lldb::FileSP BORROWED);
 
     size_t
-    PutError (fileSP BORROWED);
+    PutError (lldb::FileSP BORROWED);
 
     void
     Clear();
@@ -91,19 +91,19 @@ public:
     bool
     GetDescription (lldb::SBStream &description);
 
-    void SetImmediateOutputFile(SBFile file);
-    void SetImmediateErrorFile(SBFile file);
-    void SetImmediateOutputFile(FileSP BORROWED);
-    void SetImmediateErrorFile(FileSP BORROWED);
+    void SetImmediateOutputFile(lldb::SBFile file);
+    void SetImmediateErrorFile(lldb::SBFile file);
+    void SetImmediateOutputFile(lldb::FileSP BORROWED);
+    void SetImmediateErrorFile(lldb::FileSP BORROWED);
 
     %extend {
         // transfer_ownership does nothing, and is here for compatibility with
         // old scripts.  Ownership is tracked by reference count in the ordinary way.
  
-        void SetImmediateOutputFile(FileSP BORROWED, bool transfer_ownership) {
+        void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
             self->SetImmediateOutputFile(BORROWED);
         }
-        void SetImmediateErrorFile(FileSP BORROWED, bool transfer_ownership) {
+        void SetImmediateErrorFile(lldb::FileSP BORROWED, bool transfer_ownership) {
             self->SetImmediateErrorFile(BORROWED);
         }
     }

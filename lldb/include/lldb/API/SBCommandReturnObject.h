@@ -84,9 +84,9 @@ public:
 
   void SetImmediateErrorFile(SBFile file);
 
-  void SetImmediateOutputFile(lldb_private::File &file);
+  void SetImmediateOutputFile(FileSP file);
 
-  void SetImmediateErrorFile(lldb_private::File &file);
+  void SetImmediateErrorFile(FileSP file);
 
   void PutCString(const char *string, int len = -1);
 

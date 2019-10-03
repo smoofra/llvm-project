@@ -108,7 +108,8 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
 }
 
 size_t SBCommandReturnObject::PutOutput(FileSP file_sp) {
-  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP), file_sp);
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP),
+                     file_sp);
   if (!file_sp)
     return 0;
   return file_sp->Printf("%s", GetOutput());
@@ -133,7 +134,8 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
 }
 
 size_t SBCommandReturnObject::PutError(FileSP file_sp) {
-  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP), file_sp);
+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP),
+                     file_sp);
   if (!file_sp)
     return 0;
   return file_sp->Printf("%s", GetError());
