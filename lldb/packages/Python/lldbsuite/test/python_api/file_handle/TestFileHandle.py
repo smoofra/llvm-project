@@ -278,13 +278,40 @@ class FileHandleTestCase(lldbtest.TestBase):
             interpreter.HandleCommand("help help", ret)
             # make sure the file wasn't closed early.
             f.write("\nQUUX\n")
-
         ret = None # call destructor and flush streams
-
         with open(self.out_filename, 'r') as f:
             output = f.read()
             self.assertTrue(re.search(r'Show a list of all debugger commands', output))
             self.assertTrue(re.search(r'QUUX', output))
+
+
+    @add_test_categories(['pyapi'])
+    def test_immediate_string(self):
+        f = io.StringIO()
+        ret = lldb.SBCommandReturnObject()
+        ret.SetImmediateOutputFile(f)
+        interpreter = self.debugger.GetCommandInterpreter()
+        interpreter.HandleCommand("help help", ret)
+        # make sure the file wasn't closed early.
+        f.write("\nQUUX\n")
+        ret = None # call destructor and flush streams
+        output = f.getvalue()
+        self.assertTrue(re.search(r'Show a list of all debugger commands', output))
+        self.assertTrue(re.search(r'QUUX', output))
+
+
+    @add_test_categories(['pyapi'])
+    def test_immediate_sbfile_string(self):
+        f = io.StringIO()
+        ret = lldb.SBCommandReturnObject()
+        ret.SetImmediateOutputFile(lldb.SBFile(f))
+        interpreter = self.debugger.GetCommandInterpreter()
+        interpreter.HandleCommand("help help", ret)
+        output = f.getvalue()
+        ret = None # call destructor and flush streams
+        # sbfile default constructor doesn't borrow the file
+        self.assertTrue(f.closed)
+        self.assertTrue(re.search(r'Show a list of all debugger commands', output))
 
 
     @add_test_categories(['pyapi'])
