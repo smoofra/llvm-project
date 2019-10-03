@@ -19,6 +19,9 @@ class OhNoe(Exception):
     pass
 
 class BadIO(io.TextIOBase):
+    @property
+    def closed(self):
+        return False
     def writable(self):
         return True
     def readable(self):
@@ -27,6 +30,8 @@ class BadIO(io.TextIOBase):
         raise OhNoe('OH NOE')
     def read(self, n):
         raise OhNoe("OH NOE")
+    def flush(self):
+        raise OhNoe('OH NOE')
 
 # This class will raise an exception while it's being
 # converted into a C++ object by swig
@@ -489,6 +494,18 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertEqual(n, 0)
             self.assertTrue(error.Fail())
             self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
+
+
+    @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
+    def test_exceptions_logged(self):
+        messages = list()
+        self.debugger.SetLoggingCallback(messages.append)
+        self.handleCmd('log enable lldb script')
+        self.debugger.SetOutputFile(lldb.SBFile(BadIO()))
+        self.handleCmd('script 1+1')
+        self.assertTrue(any('OH NOE' in msg for msg in messages))
+
 
     @add_test_categories(['pyapi'])
     @skipIf(py_version=['<', (3,)])

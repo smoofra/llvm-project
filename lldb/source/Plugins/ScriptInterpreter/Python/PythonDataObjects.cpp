@@ -1073,10 +1073,9 @@ PythonException::PythonException(const char *caller) {
       Py_XDECREF(repr);
     }
   }
+
   Log *log = GetLogIfAllCategoriesSet(LIBLLDB_LOG_SCRIPT);
-  if (log) {
-    log->Printf("%s failed with exception: %s", caller, toCString());
-  }
+  LLDB_LOGF(log, "%s failed with exception: %s", caller, toCString());
   PyErr_Clear();
 }
 void PythonException::Restore() {
