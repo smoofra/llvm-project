@@ -1,0 +1,147 @@
+Bottom: e0f3aa606b602fef4177558996519cf1ba95ac29
+Top:    c930834bb3a700407da2fc2315f21177e53011c5
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 14:20:39 -0700
+
+Refresh of remove-file-use-from
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index aa015fae208..635ff6405af 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -337,6 +337,56 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
+ 
+ 
++    @add_test_categories(['pyapi'])
++    def test_inout(self):
++        with open(self.in_filename, 'w') as f:
++            f.write("help help\n")
++        with  open(self.out_filename, 'w') as outf, \
++              open(self.in_filename, 'r') as inf:
++            status = self.debugger.SetOutputFile(lldb.SBFile(outf))
++            self.assertTrue(status.Success())
++            status = self.debugger.SetInputFile(lldb.SBFile(inf))
++            self.assertTrue(status.Success())
++            opts = lldb.SBCommandInterpreterRunOptions()
++            self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
++            self.debugger.GetOutputFile().Flush()
++        with open(self.out_filename, 'r') as f:
++            output = f.read()
++            self.assertIn('Show a list of all debugger commands', output)
++
++
++    @add_test_categories(['pyapi'])
++    @skipIf(True) # FIXME IOHandler still using FILE*
++    def test_string_inout(self):
++        inf = io.StringIO("help help\n")
++        outf = io.StringIO()
++        status = self.debugger.SetOutputFile(lldb.SBFile(outf))
++        self.assertTrue(status.Success())
++        status = self.debugger.SetInputFile(lldb.SBFile(inf))
++        self.assertTrue(status.Success())
++        opts = lldb.SBCommandInterpreterRunOptions()
++        self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
++        self.debugger.GetOutputFile().Flush()
++        output = outf.getvalue()
++        self.assertIn('Show a list of all debugger commands', output)
++
++
++    @add_test_categories(['pyapi'])
++    @skipIf(True) # FIXME IOHandler still using FILE*
++    def test_binary_inout(self):
++        inf = io.BytesIO(b"help help\n")
++        outf = io.BytesIO()
++        status = self.debugger.SetOutputFile(lldb.SBFile(outf))
++        self.assertTrue(status.Success())
++        status = self.debugger.SetInputFile(lldb.SBFile(inf))
++        self.assertTrue(status.Success())
++        opts = lldb.SBCommandInterpreterRunOptions()
++        self.debugger.RunCommandInterpreter(True, False, opts, 0, False, False)
++        self.debugger.GetOutputFile().Flush()
++        output = outf.getvalue()
++        self.assertIn(b'Show a list of all debugger commands', output)
++
++
+     @add_test_categories(['pyapi'])
+     def test_fileno_error(self):
+         with open(self.out_filename, 'w') as f:
+@@ -505,6 +555,17 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(re.search(r'error:.*lolwut', errors))
+ 
+ 
++    @add_test_categories(['pyapi'])
++    def test_file_error(self):
++        with open(self.out_filename, 'w') as f:
++            status = self.debugger.SetErrorFile(f)
++            self.assertTrue(status.Success())
++            self.handleCmd('lolwut', check=False, collect_result=False)
++        with open(self.out_filename, 'r') as f:
++            errors = f.read()
++            self.assertTrue(re.search(r'error:.*lolwut', errors))
++
++
+     @add_test_categories(['pyapi'])
+     def test_exceptions(self):
+         self.assertRaises(TypeError, lldb.SBFile, None)
+diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
+index b9ee5047545..928149a13e2 100644
+--- a/lldb/source/API/SBDebugger.cpp
++++ b/lldb/source/API/SBDebugger.cpp
+@@ -468,9 +468,9 @@ void SBDebugger::HandleCommand(const char *command) {
+     sb_interpreter.HandleCommand(command, result, false);
+ 
+     if (GetErrorFileHandle() != nullptr)
+-      result.PutError(GetErrorFileHandle());
++      result.PutError(GetErrorFile());
+     if (GetOutputFileHandle() != nullptr)
+-      result.PutOutput(GetOutputFileHandle());
++      result.PutOutput(GetOutputFile());
+ 
+     if (!m_opaque_sp->GetAsyncExecution()) {
+       SBProcess process(GetCommandInterpreter().GetProcess());
+diff --git a/lldb/tools/driver/Driver.cpp b/lldb/tools/driver/Driver.cpp
+index ec70784457d..661c10a7b35 100644
+--- a/lldb/tools/driver/Driver.cpp
++++ b/lldb/tools/driver/Driver.cpp
+@@ -11,6 +11,7 @@
+ #include "lldb/API/SBCommandInterpreter.h"
+ #include "lldb/API/SBCommandReturnObject.h"
+ #include "lldb/API/SBDebugger.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBHostOS.h"
+ #include "lldb/API/SBLanguageRuntime.h"
+ #include "lldb/API/SBReproducer.h"
+@@ -499,16 +500,16 @@ int Driver::MainLoop() {
+   SBCommandReturnObject result;
+   sb_interpreter.SourceInitFileInHomeDirectory(result);
+   if (m_option_data.m_debug_mode) {
+-    result.PutError(m_debugger.GetErrorFileHandle());
+-    result.PutOutput(m_debugger.GetOutputFileHandle());
++    result.PutError(m_debugger.GetErrorFile());
++    result.PutOutput(m_debugger.GetOutputFile());
+   }
+ 
+   // Source the local .lldbinit file if it exists and we're allowed to source.
+   // Here we want to always print the return object because it contains the
+   // warning and instructions to load local lldbinit files.
+   sb_interpreter.SourceInitFileInCurrentWorkingDirectory(result);
+-  result.PutError(m_debugger.GetErrorFileHandle());
+-  result.PutOutput(m_debugger.GetOutputFileHandle());
++  result.PutError(m_debugger.GetErrorFile());
++  result.PutOutput(m_debugger.GetOutputFile());
+ 
+   // We allow the user to specify an exit code when calling quit which we will
+   // return when exiting.
+@@ -574,8 +575,8 @@ int Driver::MainLoop() {
+   }
+ 
+   if (m_option_data.m_debug_mode) {
+-    result.PutError(m_debugger.GetErrorFileHandle());
+-    result.PutOutput(m_debugger.GetOutputFileHandle());
++    result.PutError(m_debugger.GetErrorFile());
++    result.PutOutput(m_debugger.GetOutputFile());
+   }
+ 
+   const bool handle_events = true;
