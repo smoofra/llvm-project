@@ -544,6 +544,18 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
+    @skipIf(py_version=['<', (3,)])
+    def test_file_out(self):
+        with open(self.out_filename, 'w') as f:
+            status = self.debugger.SetOutputFile(f)
+            self.assertTrue(status.Success())
+            self.handleCmd('script 2+2')
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), '4')
+
+
+    @add_test_categories(['pyapi'])
     def test_sbfile_error(self):
         with open(self.out_filename, 'w') as f:
             sbf = lldb.SBFile(f)
@@ -556,6 +568,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
     def test_file_error(self):
         with open(self.out_filename, 'w') as f:
             status = self.debugger.SetErrorFile(f)
