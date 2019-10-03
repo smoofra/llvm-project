@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    d8021fc697c781a957c119aaec91ed2a62c87eb8
+Top:    cf66416703f3bb1a4ca7fff56b86a2b4ef324710
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -521,7 +521,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..f7fb0a994a8 100644
+index fedd8f66a1f..326e2c91185 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -532,23 +532,22 @@ index fedd8f66a1f..f7fb0a994a8 100644
  #include "lldb/Utility/Stream.h"
  
  #include "llvm/ADT/StringSwitch.h"
-@@ -31,7 +32,14 @@ using namespace lldb;
- 
- void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
+@@ -33,6 +34,14 @@ void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
    s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
--}
-+
-+  template <typename T> static T Take(PyObject * obj) {
-+    return T(PyRefType::Owned, obj);
-+  }
-+
-+  template <typename T> static T Retain(PyObject * obj) {
-+    return T(PyRefType::Borrowed, obj);
-+  }
+ }
  
++template <typename T> static T Take(PyObject * obj) {
++    return T(PyRefType::Owned, obj);
++}
++
++template <typename T> static T Retain(PyObject * obj) {
++  return T(PyRefType::Borrowed, obj);
++}
++
  // PythonObject
  
-@@ -963,9 +971,7 @@ bool PythonFile::Check(PyObject *py_obj) {
+ void PythonObject::Dump(Stream &strm) const {
+@@ -963,9 +972,7 @@ bool PythonFile::Check(PyObject *py_obj) {
    // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
    // over `io.open()`, which returns some object derived from `io.IOBase`. As a
    // result, the only way to detect a file in Python 3 is to check whether it
@@ -559,7 +558,7 @@ index fedd8f66a1f..f7fb0a994a8 100644
    PythonObject io_module(PyRefType::Owned, PyImport_ImportModule("io"));
    PythonDictionary io_dict(PyRefType::Borrowed,
                             PyModule_GetDict(io_module.get()));
-@@ -975,8 +981,6 @@ bool PythonFile::Check(PyObject *py_obj) {
+@@ -975,8 +982,6 @@ bool PythonFile::Check(PyObject *py_obj) {
  
    if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
      return false;
@@ -568,7 +567,7 @@ index fedd8f66a1f..f7fb0a994a8 100644
  
    return true;
  #endif
-@@ -1031,4 +1035,408 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1036,408 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
