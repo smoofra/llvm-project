@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    a99495a6983d2309f8fd55bd20ca37d21a902676
+Top:    c15fd32b31beab089b75db8ffd3adcfb788c5c73
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -620,7 +620,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..d00f6156054 100644
+index fedd8f66a1f..2a5f831b335 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -820,13 +820,13 @@ index fedd8f66a1f..d00f6156054 100644
 +};
 +}
 +
-+// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
++// A SimplePythonFile is a OwnedPythonFile that just does all I/O as
 +// a NativeFile
 +namespace {
 +class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 +public:
-+  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
-+                   bool borrowed)
++  SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
++                   uint32_t options)
 +      : OwnedPythonFile(file, borrowed, fd, options, false){};
 +};
 +}
@@ -858,7 +858,7 @@ index fedd8f66a1f..d00f6156054 100644
 +    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
 +  } else {
 +    file_sp = std::static_pointer_cast<File>(
-+        std::make_shared<SimplePythonFile>(fd, options.get(), *this, borrowed));
++        std::make_shared<SimplePythonFile>(*this, borrowed, fd, options.get()));
 +  }
 +  if (!file_sp->IsValid())
 +    return llvm::createStringError(llvm::inconvertibleErrorCode(),
