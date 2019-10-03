@@ -1,5 +1,5 @@
 Bottom: 822d59e10439ef497d43eec17007c6ecbdcb2b5d
-Top:    b95c0c97dfd0b74958b72c461bc268fc924eec1b
+Top:    108773485dfe27114cc1c92e2fbb97f7d16a0520
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:23:09 -0700
 
@@ -8,7 +8,7 @@ remove FILE* use from CommandReturnObject
 
 ---
 diff --git a/lldb/include/lldb/API/SBCommandReturnObject.h b/lldb/include/lldb/API/SBCommandReturnObject.h
-index 95eed2e3f62..39c67e58a51 100644
+index 95eed2e3f62..e1bcaf2236f 100644
 --- a/lldb/include/lldb/API/SBCommandReturnObject.h
 +++ b/lldb/include/lldb/API/SBCommandReturnObject.h
 @@ -40,13 +40,21 @@ public:
@@ -55,10 +55,10 @@ index 95eed2e3f62..39c67e58a51 100644
 +  void SetImmediateErrorFile(SBFile file);
  
 -  void SetImmediateOutputFile(FILE *fh, bool transfer_ownership);
-+  void SetImmediateOutputFile(lldb_private::File &file);
++  void SetImmediateOutputFile(FileSP file);
  
 -  void SetImmediateErrorFile(FILE *fh, bool transfer_ownership);
-+  void SetImmediateErrorFile(lldb_private::File &file);
++  void SetImmediateErrorFile(FileSP file);
  
    void PutCString(const char *string, int len = -1);
  
@@ -97,7 +97,7 @@ index 670002dada8..61e57fb798a 100644
    }
  
 diff --git a/lldb/scripts/interface/SBCommandReturnObject.i b/lldb/scripts/interface/SBCommandReturnObject.i
-index 1e04a8fa1bf..cc2c83270d1 100644
+index 1e04a8fa1bf..38d9cea2214 100644
 --- a/lldb/scripts/interface/SBCommandReturnObject.i
 +++ b/lldb/scripts/interface/SBCommandReturnObject.i
 @@ -49,10 +49,16 @@ public:
@@ -105,17 +105,17 @@ index 1e04a8fa1bf..cc2c83270d1 100644
  
      size_t
 -    PutOutput (FILE *fh);
-+    PutOutput (SBFile file);
++    PutOutput (lldb::SBFile file);
  
      size_t
 -    PutError (FILE *fh);
-+    PutError (SBFile file);
++    PutError (lldb::SBFile file);
 +
 +    size_t
-+    PutOutput (FileSP BORROWED);
++    PutOutput (lldb::FileSP BORROWED);
 +
 +    size_t
-+    PutError (fileSP BORROWED);
++    PutError (lldb::FileSP BORROWED);
  
      void
      Clear();
@@ -123,10 +123,10 @@ index 1e04a8fa1bf..cc2c83270d1 100644
      bool
      GetDescription (lldb::SBStream &description);
  
-+    void SetImmediateOutputFile(SBFile file);
-+    void SetImmediateErrorFile(SBFile file);
-+    void SetImmediateOutputFile(FileSP BORROWED);
-+    void SetImmediateErrorFile(FileSP BORROWED);
++    void SetImmediateOutputFile(lldb::SBFile file);
++    void SetImmediateErrorFile(lldb::SBFile file);
++    void SetImmediateOutputFile(lldb::FileSP BORROWED);
++    void SetImmediateErrorFile(lldb::FileSP BORROWED);
  
 -    // wrapping here so that lldb takes ownership of the
 -    // new FILE* created inside of the swig interface
@@ -136,18 +136,18 @@ index 1e04a8fa1bf..cc2c83270d1 100644
 +        // transfer_ownership does nothing, and is here for compatibility with
 +        // old scripts.  Ownership is tracked by reference count in the ordinary way.
 + 
-+        void SetImmediateOutputFile(FileSP BORROWED, bool transfer_ownership) {
++        void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
 +            self->SetImmediateOutputFile(BORROWED);
          }
 -        void SetImmediateErrorFile(FILE *fh) {
 -            self->SetImmediateErrorFile(fh, true);
-+        void SetImmediateErrorFile(FileSP BORROWED, bool transfer_ownership) {
++        void SetImmediateErrorFile(lldb::FileSP BORROWED, bool transfer_ownership) {
 +            self->SetImmediateErrorFile(BORROWED);
          }
      }
  
 diff --git a/lldb/source/API/SBCommandReturnObject.cpp b/lldb/source/API/SBCommandReturnObject.cpp
-index 6e01843944c..b3b9260a1d4 100644
+index 6e01843944c..9795392d389 100644
 --- a/lldb/source/API/SBCommandReturnObject.cpp
 +++ b/lldb/source/API/SBCommandReturnObject.cpp
 @@ -10,6 +10,7 @@
@@ -166,12 +166,13 @@ index 6e01843944c..b3b9260a1d4 100644
    if (fh) {
      size_t num_bytes = GetOutputSize();
      if (num_bytes)
-@@ -107,6 +107,20 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
+@@ -107,6 +107,21 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
    return 0;
  }
  
 +size_t SBCommandReturnObject::PutOutput(FileSP file_sp) {
-+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP), file_sp);
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP),
++                     file_sp);
 +  if (!file_sp)
 +    return 0;
 +  return file_sp->Printf("%s", GetOutput());
@@ -187,12 +188,13 @@ index 6e01843944c..b3b9260a1d4 100644
  size_t SBCommandReturnObject::PutError(FILE *fh) {
    LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *), fh);
  
-@@ -118,6 +132,20 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
+@@ -118,6 +133,21 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
    return 0;
  }
  
 +size_t SBCommandReturnObject::PutError(FileSP file_sp) {
-+  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP), file_sp);
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP),
++                     file_sp);
 +  if (!file_sp)
 +    return 0;
 +  return file_sp->Printf("%s", GetError());
@@ -208,7 +210,7 @@ index 6e01843944c..b3b9260a1d4 100644
  void SBCommandReturnObject::Clear() {
    LLDB_RECORD_METHOD_NO_ARGS(void, SBCommandReturnObject, Clear);
  
-@@ -227,7 +255,10 @@ void SBCommandReturnObject::SetImmediateOutputFile(FILE *fh,
+@@ -227,7 +257,10 @@ void SBCommandReturnObject::SetImmediateOutputFile(FILE *fh,
    LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
                       (FILE *, bool), fh, transfer_ownership);
  
@@ -220,7 +222,7 @@ index 6e01843944c..b3b9260a1d4 100644
  }
  
  void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
-@@ -235,7 +266,38 @@ void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
+@@ -235,7 +268,38 @@ void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
    LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
                       (FILE *, bool), fh, transfer_ownership);
  
@@ -260,7 +262,7 @@ index 6e01843944c..b3b9260a1d4 100644
  }
  
  void SBCommandReturnObject::PutCString(const char *string, int len) {
-@@ -322,6 +384,10 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
+@@ -322,6 +386,10 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
    LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, GetErrorSize, ());
    LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (FILE *));
    LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *));
@@ -271,7 +273,7 @@ index 6e01843944c..b3b9260a1d4 100644
    LLDB_REGISTER_METHOD(void, SBCommandReturnObject, Clear, ());
    LLDB_REGISTER_METHOD(lldb::ReturnStatus, SBCommandReturnObject, GetStatus,
                         ());
-@@ -339,6 +405,14 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
+@@ -339,6 +407,14 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
                         (FILE *));
    LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
                         (FILE *));
