@@ -1232,7 +1232,7 @@ namespace {
 class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
 public:
   PythonIOFile(const PythonFile &file, bool borrowed)
-      : OwnedPythonFile(file, borrowed){};
+      : OwnedPythonFile(file, borrowed) {}
 
   ~PythonIOFile() override { Close(); }
 
@@ -1245,7 +1245,7 @@ public:
     if (PyErr_Occurred())
       return Status(llvm::make_error<PythonException>("Close"));
     return Status();
-  };
+  }
 
   Status Flush() override {
     GIL takeGIL;
