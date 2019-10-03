@@ -33,13 +33,13 @@ using namespace lldb;
 void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
   s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
 
-template <typename T> static T Take(PyObject *obj) {
-  return T(PyRefType::Owned, obj);
-}
+  template <typename T> static T Take(PyObject * obj) {
+    return T(PyRefType::Owned, obj);
+  }
 
-template <typename T> static T Retain(PyObject *obj) {
-  return T(PyRefType::Borrowed, obj);
-}
+  template <typename T> static T Retain(PyObject * obj) {
+    return T(PyRefType::Borrowed, obj);
+  }
 
 // PythonObject
 
@@ -1086,7 +1086,7 @@ PythonException::~PythonException() {
   Py_XDECREF(m_repr_bytes);
 }
 
-void PythonException::log(llvm::raw_ostream &OS) const { OS << toCString(); }
+void PythonException::log(llvm::raw_ostream & OS) const { OS << toCString(); }
 
 std::error_code PythonException::convertToErrorCode() const {
   return llvm::inconvertibleErrorCode();
@@ -1094,7 +1094,7 @@ std::error_code PythonException::convertToErrorCode() const {
 
 char PythonException::ID = 0;
 
-llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
+llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject & obj) {
   uint32_t options = 0;
 #if PY_MAJOR_VERSION >= 3
   auto readable =
@@ -1393,8 +1393,8 @@ public:
 
 #endif
 
-llvm::Expected<FileSP>
-PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
+llvm::Expected<FileSP> PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(
+    bool borrowed) {
   if (!IsValid())
     return llvm::createStringError(llvm::inconvertibleErrorCode(),
                                    "invalid PythonFile");
