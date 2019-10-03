@@ -1,0 +1,57 @@
+Bottom: 7788080f6e64d6d9c1d0d69376ba0f8917d40fb1
+Top:    e0f3aa606b602fef4177558996519cf1ba95ac29
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 13:56:53 -0700
+
+Refresh of remove-file-use-from
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index c6bfc35f0ac..aa015fae208 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -278,15 +278,42 @@ class FileHandleTestCase(lldbtest.TestBase):
+             interpreter.HandleCommand("help help", ret)
+             # make sure the file wasn't closed early.
+             f.write("\nQUUX\n")
+-
+         ret = None # call destructor and flush streams
+-
+         with open(self.out_filename, 'r') as f:
+             output = f.read()
+             self.assertTrue(re.search(r'Show a list of all debugger commands', output))
+             self.assertTrue(re.search(r'QUUX', output))
+ 
+ 
++    @add_test_categories(['pyapi'])
++    def test_immediate_string(self):
++        f = io.StringIO()
++        ret = lldb.SBCommandReturnObject()
++        ret.SetImmediateOutputFile(f)
++        interpreter = self.debugger.GetCommandInterpreter()
++        interpreter.HandleCommand("help help", ret)
++        # make sure the file wasn't closed early.
++        f.write("\nQUUX\n")
++        ret = None # call destructor and flush streams
++        output = f.getvalue()
++        self.assertTrue(re.search(r'Show a list of all debugger commands', output))
++        self.assertTrue(re.search(r'QUUX', output))
++
++
++    @add_test_categories(['pyapi'])
++    def test_immediate_sbfile_string(self):
++        f = io.StringIO()
++        ret = lldb.SBCommandReturnObject()
++        ret.SetImmediateOutputFile(lldb.SBFile(f))
++        interpreter = self.debugger.GetCommandInterpreter()
++        interpreter.HandleCommand("help help", ret)
++        output = f.getvalue()
++        ret = None # call destructor and flush streams
++        # sbfile default constructor doesn't borrow the file
++        self.assertTrue(f.closed)
++        self.assertTrue(re.search(r'Show a list of all debugger commands', output))
++
++
+     @add_test_categories(['pyapi'])
+     def test_fileno_inout(self):
+         with open(self.in_filename, 'w') as f:
