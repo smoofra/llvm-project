@@ -1145,8 +1145,7 @@ public:
     m_py_obj = nullptr;
   }
 
-  bool IsValid() const override {
-    GIL takeGIL;
+  bool IsPythonSideValid() const {
     auto closed =
         Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
     if (!closed.IsValid() || PyErr_Occurred()) {
@@ -1159,7 +1158,12 @@ public:
       PyErr_Clear();
       return false;
     }
-    return Base::IsValid();
+    return true;
+  }
+
+  bool IsValid() const override {
+    GIL takeGIL;
+    return IsPythonSideValid() && Base::IsValid();
   }
 
   Status Close() override {
@@ -1216,25 +1220,19 @@ protected:
 };
 }
 
-// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
-// File::IsValid() is false by default, but for the following classes
-// we want the file to be considered valid as long as the python bits
-// are valid.
-namespace {
-class PresumptivelyValidFile : public File {
-public:
-  bool IsValid() const override { return true; };
-};
-}
-
 // Shared methods between TextPythonFile and BinaryPythonFile
 namespace {
-class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
+class PythonIOFile : public OwnedPythonFile<File> {
 public:
   PythonIOFile(const PythonFile &file, bool borrowed)
       : OwnedPythonFile(file, borrowed) {}
 
   ~PythonIOFile() override { Close(); }
+
+  bool IsValid() const override {
+    GIL takeGIL;
+    return IsPythonSideValid();
+  }
 
   Status Close() override {
     assert(m_py_obj);
