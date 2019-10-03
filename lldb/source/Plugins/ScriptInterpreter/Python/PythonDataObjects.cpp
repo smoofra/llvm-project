@@ -1260,8 +1260,6 @@ public:
 
 namespace {
 class BinaryPythonFile : public PythonIOFile {
-  friend class PythonFile;
-
 protected:
   int m_descriptor;
 
@@ -1316,8 +1314,6 @@ public:
 
 namespace {
 class TextPythonFile : public PythonIOFile {
-  friend class PythonFile;
-
 protected:
   int m_descriptor;
 
