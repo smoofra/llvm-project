@@ -1039,6 +1039,7 @@ FileUP PythonFile::GetUnderlyingFile() const {
   return file;
 }
 
+namespace {
 class GIL {
 public:
   GIL() {
@@ -1050,6 +1051,7 @@ public:
 protected:
   PyGILState_STATE m_state;
 };
+}
 
 const char *PythonException::toCString() const {
   if (m_repr_bytes) {
@@ -1126,6 +1128,7 @@ llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject & obj) {
 // Base class template for python files.   All it knows how to do
 // is hold a reference to the python object and close or flush it
 // when the File is closed.
+namespace{
 template <typename Base> class OwnedPythonFile : public Base {
 public:
   template <typename... Args>
@@ -1179,15 +1182,18 @@ protected:
   PyObject *m_py_obj;
   bool m_borrowed;
 };
+}
 
 // A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
 // a NativeFile
+namespace {
 class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
   SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
                    bool borrowed)
       : OwnedPythonFile(file, borrowed, fd, options, false){};
 };
+}
 
 llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
   if (!IsValid())
@@ -1227,6 +1233,7 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
 
 #if PY_MAJOR_VERSION >= 3
 
+namespace {
 class PythonBuffer {
 public:
   // you must check PyErr_Occurred() after calling this constructor.
@@ -1243,17 +1250,21 @@ public:
 protected:
   Py_buffer m_buffer;
 };
+}
 
 // OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
 // File::IsValid() is false by default, but for the following classes
 // we want the file to be considered valid as long as the python bits
 // are valid.
+namespace {
 class PresumptivelyValidFile : public File {
 public:
   bool IsValid() const override { return true; };
 };
+}
 
 // Shared methods between TextPythonFile and BinaryPythonFile
+namespace {
 class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
 public:
   PythonIOFile(const PythonFile &file, bool borrowed)
@@ -1281,7 +1292,9 @@ public:
     return error;
   }
 };
+}
 
+namespace {
 class BinaryPythonFile : public PythonIOFile {
   friend class PythonFile;
 
@@ -1335,7 +1348,9 @@ public:
     return Status();
   }
 };
+}
 
+namespace {
 class TextPythonFile : public PythonIOFile {
   friend class PythonFile;
 
@@ -1401,6 +1416,7 @@ public:
     return Status();
   }
 };
+}
 
 #endif
 
