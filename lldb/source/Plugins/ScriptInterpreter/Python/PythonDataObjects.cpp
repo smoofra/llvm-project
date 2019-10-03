@@ -32,14 +32,15 @@ using namespace lldb;
 
 void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
   s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
+}
 
-  template <typename T> static T Take(PyObject * obj) {
+template <typename T> static T Take(PyObject * obj) {
     return T(PyRefType::Owned, obj);
-  }
+}
 
-  template <typename T> static T Retain(PyObject * obj) {
-    return T(PyRefType::Borrowed, obj);
-  }
+template <typename T> static T Retain(PyObject * obj) {
+  return T(PyRefType::Borrowed, obj);
+}
 
 // PythonObject
 
