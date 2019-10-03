@@ -1,5 +1,5 @@
 Bottom: 1e615992ff9ab98d8784cddbfb22f6467a63a227
-Top:    09bcadd49897c978d21091ec740fc61bb7f0e9d2
+Top:    82ee6da793ea9ebb9cb16308460c508e1fbdb574
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:38:33 -0700
 
@@ -29,7 +29,7 @@ index b9ee5047545..1117c09a57f 100644
      if (!m_opaque_sp->GetAsyncExecution()) {
        SBProcess process(GetCommandInterpreter().GetProcess());
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index 6f4b1df6ad4..ac7afaab0fe 100644
+index 6f4b1df6ad4..5b9c760ad21 100644
 --- a/lldb/source/Core/IOHandler.cpp
 +++ b/lldb/source/Core/IOHandler.cpp
 @@ -328,10 +328,9 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
@@ -55,9 +55,9 @@ index 6f4b1df6ad4..ac7afaab0fe 100644
 -          ::fprintf(out, "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
 -                    GetPrompt() == nullptr ? " " : "");
 +        if (m_output_sp) {
-+          m_output_sp->GetFile().Printf("%u%s",
-+            m_base_line_number + (uint32_t)lines.GetSize(),
-+            GetPrompt() == nullptr ? " " : "");
++          m_output_sp->GetFile().Printf(
++              "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
++              GetPrompt() == nullptr ? " " : "");
 +        }
        }
  
