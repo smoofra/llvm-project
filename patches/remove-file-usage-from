@@ -1,0 +1,257 @@
+Bottom: 1b73461ea781fbfe135bb0a9853edabda3e35070
+Top:    632e44316a0e06b3852d42bdf71aff4ff8b42075
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-18 01:43:36 -0700
+
+remove FILE* usage from ReportEventState() and HandleProcessEvent()
+
+
+---
+diff --git a/lldb/include/lldb/API/SBDebugger.h b/lldb/include/lldb/API/SBDebugger.h
+index 1f36999c3c4..517a3f7e62d 100644
+--- a/lldb/include/lldb/API/SBDebugger.h
++++ b/lldb/include/lldb/API/SBDebugger.h
+@@ -111,7 +111,21 @@ public:
+   lldb::SBListener GetListener();
+ 
+   void HandleProcessEvent(const lldb::SBProcess &process,
+-                          const lldb::SBEvent &event, FILE *out, FILE *err);
++                          const lldb::SBEvent &event, FILE *out,
++                          FILE *err); // DEPRECATED
++
++  void HandleProcessEvent(const lldb::SBProcess &process,
++                          const lldb::SBEvent &event, SBFile &out, SBFile &err);
++
++  void HandleProcessEvent(const lldb::SBProcess &process,
++                          const lldb::SBEvent &event, lldb_private::File &out,
++                          lldb_private::File &err);
++
++  void HandleProcessEvent(const lldb::SBProcess &process,
++                          const lldb::SBEvent &event, SBFile &&out,
++                          SBFile &&err) {
++    HandleProcessEvent(process, event, out, err);
++  }
+ 
+   lldb::SBTarget CreateTarget(const char *filename, const char *target_triple,
+                               const char *platform_name,
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+index 4c4b2e0c1ae..747e2eaad13 100644
+--- a/lldb/include/lldb/API/SBFile.h
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -16,6 +16,7 @@ namespace lldb {
+ class LLDB_API SBFile {
+   friend class SBDebugger;
+   friend class SBCommandReturnObject;
++  friend class SBProcess;
+ 
+ public:
+   SBFile();
+diff --git a/lldb/include/lldb/API/SBProcess.h b/lldb/include/lldb/API/SBProcess.h
+index 863cb3ced67..db03fed6256 100644
+--- a/lldb/include/lldb/API/SBProcess.h
++++ b/lldb/include/lldb/API/SBProcess.h
+@@ -67,6 +67,11 @@ public:
+ 
+   void ReportEventState(const lldb::SBEvent &event, FILE *out) const;
+ 
++  void ReportEventState(const lldb::SBEvent &event, SBFile &file) const;
++
++  void ReportEventState(const lldb::SBEvent &event,
++                        lldb_private::File &file) const;
++
+   void AppendEventStateReport(const lldb::SBEvent &event,
+                               lldb::SBCommandReturnObject &result);
+ 
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index c4eb11ea356..7fcf20e080b 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -213,8 +213,14 @@ public:
+     void
+     HandleProcessEvent (const lldb::SBProcess &process,
+                         const lldb::SBEvent &event,
+-                        FILE *out,
+-                        FILE *err);
++                        SBFile &out,
++                        SBFile &err);
++
++    void
++    HandleProcessEvent (const lldb::SBProcess &process,
++                        const lldb::SBEvent &event,
++                        lldb_private::File &BORROWED,
++                        lldb_private::File &BORROWED);
+ 
+     lldb::SBTarget
+     CreateTarget (const char *filename,
+diff --git a/lldb/scripts/interface/SBProcess.i b/lldb/scripts/interface/SBProcess.i
+index cbe67ad3b7d..64c91e1805c 100644
+--- a/lldb/scripts/interface/SBProcess.i
++++ b/lldb/scripts/interface/SBProcess.i
+@@ -97,7 +97,10 @@ public:
+     GetAsyncProfileData(char *dst, size_t dst_len) const;
+ 
+     void
+-    ReportEventState (const lldb::SBEvent &event, FILE *out) const;
++    ReportEventState (const lldb::SBEvent &event, SBFile &out) const;
++
++    void
++    ReportEventState (const lldb::SBEvent &event, lldb_private::File &BORROWED) const;
+ 
+     void
+     AppendEventStateReport (const lldb::SBEvent &event, lldb::SBCommandReturnObject &result);
+diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
+index 89179fc4f17..fff162be9d8 100644
+--- a/lldb/source/API/SBDebugger.cpp
++++ b/lldb/source/API/SBDebugger.cpp
+@@ -479,8 +479,7 @@ void SBDebugger::HandleCommand(const char *command) {
+         while (lldb_listener_sp->GetEventForBroadcaster(
+             process_sp.get(), event_sp, std::chrono::seconds(0))) {
+           SBEvent event(event_sp);
+-          HandleProcessEvent(process, event, GetOutputFileHandle(),
+-                             GetErrorFileHandle());
++          HandleProcessEvent(process, event, GetOutputFile(), GetErrorFile());
+         }
+       }
+     }
+@@ -497,6 +496,18 @@ SBListener SBDebugger::GetListener() {
+   return LLDB_RECORD_RESULT(sb_listener);
+ }
+ 
++void SBDebugger::HandleProcessEvent(const SBProcess &process,
++                                    const SBEvent &event, SBFile &out,
++                                    SBFile &err) {
++
++  LLDB_RECORD_METHOD(
++      void, SBDebugger, HandleProcessEvent,
++      (const lldb::SBProcess &, const lldb::SBEvent &, SBFile &, SBFile &),
++      process, event, out, err);
++
++  return HandleProcessEvent(process, event, out.GetFile(), err.GetFile());
++}
++
+ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+                                     const SBEvent &event, FILE *out,
+                                     FILE *err) {
+@@ -505,6 +516,20 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+       (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *), process,
+       event, out, err);
+ 
++  File outfile(out, false);
++  File errfile(err, false);
++  return HandleProcessEvent(process, event, outfile, errfile);
++}
++
++void SBDebugger::HandleProcessEvent(const SBProcess &process,
++                                    const SBEvent &event, File &out,
++                                    File &err) {
++
++  LLDB_RECORD_METHOD(
++      void, SBDebugger, HandleProcessEvent,
++      (const lldb::SBProcess &, const lldb::SBEvent &, File &, File &), process,
++      event, out, err);
++
+   if (!process.IsValid())
+     return;
+ 
+@@ -522,16 +547,14 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+       (Process::eBroadcastBitSTDOUT | Process::eBroadcastBitStateChanged)) {
+     // Drain stdout when we stop just in case we have any bytes
+     while ((len = process.GetSTDOUT(stdio_buffer, sizeof(stdio_buffer))) > 0)
+-      if (out != nullptr)
+-        ::fwrite(stdio_buffer, 1, len, out);
++      out.Write(stdio_buffer, len);
+   }
+ 
+   if (event_type &
+       (Process::eBroadcastBitSTDERR | Process::eBroadcastBitStateChanged)) {
+     // Drain stderr when we stop just in case we have any bytes
+     while ((len = process.GetSTDERR(stdio_buffer, sizeof(stdio_buffer))) > 0)
+-      if (err != nullptr)
+-        ::fwrite(stdio_buffer, 1, len, err);
++      err.Write(stdio_buffer, len);
+   }
+ 
+   if (event_type & Process::eBroadcastBitStateChanged) {
+@@ -1643,6 +1666,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+   LLDB_REGISTER_METHOD(
+       void, SBDebugger, HandleProcessEvent,
+       (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *));
++  LLDB_REGISTER_METHOD(
++      void, SBDebugger, HandleProcessEvent,
++      (const lldb::SBProcess &, const lldb::SBEvent &, SBFile &, SBFile &));
++  LLDB_REGISTER_METHOD(
++      void, SBDebugger, HandleProcessEvent,
++      (const lldb::SBProcess &, const lldb::SBEvent &, File &, File &));
+   LLDB_REGISTER_METHOD(lldb::SBSourceManager, SBDebugger, GetSourceManager, ());
+   LLDB_REGISTER_STATIC_METHOD(bool, SBDebugger, SetDefaultArchitecture,
+                               (const char *));
+diff --git a/lldb/source/API/SBProcess.cpp b/lldb/source/API/SBProcess.cpp
+index 4226ff77ecd..37ac49678d1 100644
+--- a/lldb/source/API/SBProcess.cpp
++++ b/lldb/source/API/SBProcess.cpp
+@@ -29,11 +29,11 @@
+ #include "lldb/Utility/State.h"
+ #include "lldb/Utility/Stream.h"
+ 
+-
+ #include "lldb/API/SBBroadcaster.h"
+ #include "lldb/API/SBCommandReturnObject.h"
+ #include "lldb/API/SBDebugger.h"
+ #include "lldb/API/SBEvent.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBFileSpec.h"
+ #include "lldb/API/SBMemoryRegionInfo.h"
+ #include "lldb/API/SBMemoryRegionInfoList.h"
+@@ -331,23 +331,37 @@ lldb::SBTrace SBProcess::StartTrace(SBTraceOptions &options,
+   return LLDB_RECORD_RESULT(trace_instance);
+ }
+ 
++void SBProcess::ReportEventState(const SBEvent &event, SBFile &out) const {
++  LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
++                           (const SBEvent &, SBFile &), event, out);
++
++  return ReportEventState(event, out.GetFile());
++}
++
+ void SBProcess::ReportEventState(const SBEvent &event, FILE *out) const {
+   LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
+                            (const lldb::SBEvent &, FILE *), event, out);
++  File outfile(out, false);
++  return ReportEventState(event, outfile);
++}
+ 
+-  if (out == nullptr)
++void SBProcess::ReportEventState(const SBEvent &event, File &out) const {
++
++  LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
++                           (const SBEvent &, File &), event, out);
++
++  if (!out.IsValid())
+     return;
+ 
+   ProcessSP process_sp(GetSP());
+   if (process_sp) {
+     const StateType event_state = SBProcess::GetStateFromEvent(event);
+     char message[1024];
+-    int message_len = ::snprintf(
++    size_t message_len = ::snprintf(
+         message, sizeof(message), "Process %" PRIu64 " %s\n",
+         process_sp->GetID(), SBDebugger::StateAsCString(event_state));
+-
+     if (message_len > 0)
+-      ::fwrite(message, 1, message_len, out);
++      out.Write((void *)message, message_len);
+   }
+ }
+ 
+@@ -1307,6 +1321,10 @@ void RegisterMethods<SBProcess>(Registry &R) {
+                        (lldb::SBTraceOptions &, lldb::SBError &));
+   LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
+                              (const lldb::SBEvent &, FILE *));
++  LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
++                             (const lldb::SBEvent &, File &));
++  LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
++                             (const lldb::SBEvent &, SBFile &));
+   LLDB_REGISTER_METHOD(
+       void, SBProcess, AppendEventStateReport,
+       (const lldb::SBEvent &, lldb::SBCommandReturnObject &));
