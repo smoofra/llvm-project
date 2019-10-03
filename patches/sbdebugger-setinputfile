@@ -1,0 +1,13 @@
+Bottom: 1b73461ea781fbfe135bb0a9853edabda3e35070
+Top:    1b73461ea781fbfe135bb0a9853edabda3e35070
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-14 14:01:55 -0700
+
+SBDebugger::SetInputFile, SetOutputFile, etc.
+
+Add new methods to SBDebugger to set IO files as SBFiles instead of
+as FILE* streams.
+
+
+---
+
