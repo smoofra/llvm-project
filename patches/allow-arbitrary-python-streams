@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    4c5821cdf3ef4483a569a1affb2118ccbbfcd140
+Top:    95e5672b22649506129764ac6624328970ee6a54
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -620,7 +620,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..7cbca083abe 100644
+index fedd8f66a1f..643e4612118 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -672,7 +672,7 @@ index fedd8f66a1f..7cbca083abe 100644
  
    return true;
  #endif
-@@ -1031,4 +1039,445 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1039,441 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -897,8 +897,6 @@ index fedd8f66a1f..7cbca083abe 100644
 +
 +namespace {
 +class BinaryPythonFile : public PythonIOFile {
-+  friend class PythonFile;
-+
 +protected:
 +  int m_descriptor;
 +
@@ -953,8 +951,6 @@ index fedd8f66a1f..7cbca083abe 100644
 +
 +namespace {
 +class TextPythonFile : public PythonIOFile {
-+  friend class PythonFile;
-+
 +protected:
 +  int m_descriptor;
 +
