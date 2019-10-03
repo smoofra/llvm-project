@@ -1,0 +1,385 @@
+Bottom: cd8cab0ac07255aa19fc973f66f4d8506781392d
+Top:    1d860c252c3cd2967b6161685356403fe20b2339
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 16:32:57 -0700
+
+Refresh of remove-file-use-from
+
+---
+diff --git a/lldb/include/lldb/API/SBCommandReturnObject.h b/lldb/include/lldb/API/SBCommandReturnObject.h
+index 95eed2e3f62..e1bcaf2236f 100644
+--- a/lldb/include/lldb/API/SBCommandReturnObject.h
++++ b/lldb/include/lldb/API/SBCommandReturnObject.h
+@@ -40,13 +40,21 @@ public:
+ 
+   const char *GetError();
+ 
+-  size_t PutOutput(FILE *fh);
++  size_t PutOutput(FILE *fh); // DEPRECATED
++
++  size_t PutOutput(SBFile file);
++
++  size_t PutOutput(FileSP file);
+ 
+   size_t GetOutputSize();
+ 
+   size_t GetErrorSize();
+ 
+-  size_t PutError(FILE *fh);
++  size_t PutError(FILE *fh); // DEPRECATED
++
++  size_t PutError(SBFile file);
++
++  size_t PutError(FileSP file);
+ 
+   void Clear();
+ 
+@@ -64,14 +72,21 @@ public:
+ 
+   bool GetDescription(lldb::SBStream &description);
+ 
+-  // deprecated, these two functions do not take ownership of file handle
+-  void SetImmediateOutputFile(FILE *fh);
++  void SetImmediateOutputFile(FILE *fh); // DEPRECATED
++
++  void SetImmediateErrorFile(FILE *fh); // DEPRECATED
++
++  void SetImmediateOutputFile(FILE *fh, bool transfer_ownership); // DEPRECATED
++
++  void SetImmediateErrorFile(FILE *fh, bool transfer_ownership); // DEPRECATED
++
++  void SetImmediateOutputFile(SBFile file);
+ 
+-  void SetImmediateErrorFile(FILE *fh);
++  void SetImmediateErrorFile(SBFile file);
+ 
+-  void SetImmediateOutputFile(FILE *fh, bool transfer_ownership);
++  void SetImmediateOutputFile(FileSP file);
+ 
+-  void SetImmediateErrorFile(FILE *fh, bool transfer_ownership);
++  void SetImmediateErrorFile(FileSP file);
+ 
+   void PutCString(const char *string, int len = -1);
+ 
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+index 872eb1f0f59..4c4b2e0c1ae 100644
+--- a/lldb/include/lldb/API/SBFile.h
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -15,6 +15,7 @@ namespace lldb {
+ 
+ class LLDB_API SBFile {
+   friend class SBDebugger;
++  friend class SBCommandReturnObject;
+ 
+ public:
+   SBFile();
+diff --git a/lldb/include/lldb/Interpreter/CommandReturnObject.h b/lldb/include/lldb/Interpreter/CommandReturnObject.h
+index 670002dada8..61e57fb798a 100644
+--- a/lldb/include/lldb/Interpreter/CommandReturnObject.h
++++ b/lldb/include/lldb/Interpreter/CommandReturnObject.h
+@@ -62,13 +62,13 @@ public:
+     return m_err_stream;
+   }
+ 
+-  void SetImmediateOutputFile(FILE *fh, bool transfer_fh_ownership = false) {
+-    lldb::StreamSP stream_sp(new StreamFile(fh, transfer_fh_ownership));
++  void SetImmediateOutputFile(lldb::FileSP file_sp) {
++    lldb::StreamSP stream_sp(new StreamFile(file_sp));
+     m_out_stream.SetStreamAtIndex(eImmediateStreamIndex, stream_sp);
+   }
+ 
+-  void SetImmediateErrorFile(FILE *fh, bool transfer_fh_ownership = false) {
+-    lldb::StreamSP stream_sp(new StreamFile(fh, transfer_fh_ownership));
++  void SetImmediateErrorFile(lldb::FileSP file_sp) {
++    lldb::StreamSP stream_sp(new StreamFile(file_sp));
+     m_err_stream.SetStreamAtIndex(eImmediateStreamIndex, stream_sp);
+   }
+ 
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 42572a32bd4..45fafcfc4cc 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -310,7 +310,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need SBFile interfaces on SBCommandReturnObject
+     def test_immediate_string(self):
+         f = io.StringIO()
+         ret = lldb.SBCommandReturnObject()
+@@ -326,7 +325,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need SBFile interfaces on SBCommandReturnObject
+     def test_immediate_sbfile_string(self):
+         f = io.StringIO()
+         ret = lldb.SBCommandReturnObject()
+diff --git a/lldb/scripts/interface/SBCommandReturnObject.i b/lldb/scripts/interface/SBCommandReturnObject.i
+index 1e04a8fa1bf..73d4001aaba 100644
+--- a/lldb/scripts/interface/SBCommandReturnObject.i
++++ b/lldb/scripts/interface/SBCommandReturnObject.i
+@@ -49,10 +49,16 @@ public:
+     GetError (bool if_no_immediate);
+ 
+     size_t
+-    PutOutput (FILE *fh);
++    PutOutput (lldb::SBFile file);
+ 
+     size_t
+-    PutError (FILE *fh);
++    PutError (lldb::SBFile file);
++
++    size_t
++    PutOutput (lldb::FileSP BORROWED);
++
++    size_t
++    PutError (lldb::FileSP BORROWED);
+ 
+     void
+     Clear();
+@@ -85,15 +91,20 @@ public:
+     bool
+     GetDescription (lldb::SBStream &description);
+ 
++    void SetImmediateOutputFile(lldb::SBFile file);
++    void SetImmediateErrorFile(lldb::SBFile file);
++    void SetImmediateOutputFile(lldb::FileSP BORROWED);
++    void SetImmediateErrorFile(lldb::FileSP BORROWED);
+ 
+-    // wrapping here so that lldb takes ownership of the
+-    // new FILE* created inside of the swig interface
+     %extend {
+-        void SetImmediateOutputFile(FILE *fh) {
+-            self->SetImmediateOutputFile(fh, true);
++        // transfer_ownership does nothing, and is here for compatibility with
++        // old scripts.  Ownership is tracked by reference count in the ordinary way.
++
++        void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
++            self->SetImmediateOutputFile(BORROWED);
+         }
+-        void SetImmediateErrorFile(FILE *fh) {
+-            self->SetImmediateErrorFile(fh, true);
++        void SetImmediateErrorFile(lldb::FileSP BORROWED, bool transfer_ownership) {
++            self->SetImmediateErrorFile(BORROWED);
+         }
+     }
+ 
+diff --git a/lldb/source/API/SBCommandReturnObject.cpp b/lldb/source/API/SBCommandReturnObject.cpp
+index 6e01843944c..9795392d389 100644
+--- a/lldb/source/API/SBCommandReturnObject.cpp
++++ b/lldb/source/API/SBCommandReturnObject.cpp
+@@ -10,6 +10,7 @@
+ #include "SBReproducerPrivate.h"
+ #include "Utils.h"
+ #include "lldb/API/SBError.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBStream.h"
+ #include "lldb/Interpreter/CommandReturnObject.h"
+ #include "lldb/Utility/ConstString.h"
+@@ -98,7 +99,6 @@ size_t SBCommandReturnObject::GetErrorSize() {
+ 
+ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
+   LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FILE *), fh);
+-
+   if (fh) {
+     size_t num_bytes = GetOutputSize();
+     if (num_bytes)
+@@ -107,6 +107,21 @@ size_t SBCommandReturnObject::PutOutput(FILE *fh) {
+   return 0;
+ }
+ 
++size_t SBCommandReturnObject::PutOutput(FileSP file_sp) {
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP),
++                     file_sp);
++  if (!file_sp)
++    return 0;
++  return file_sp->Printf("%s", GetOutput());
++}
++
++size_t SBCommandReturnObject::PutOutput(SBFile file) {
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutOutput, (SBFile), file);
++  if (!file.m_opaque_sp)
++    return 0;
++  return file.m_opaque_sp->Printf("%s", GetOutput());
++}
++
+ size_t SBCommandReturnObject::PutError(FILE *fh) {
+   LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *), fh);
+ 
+@@ -118,6 +133,21 @@ size_t SBCommandReturnObject::PutError(FILE *fh) {
+   return 0;
+ }
+ 
++size_t SBCommandReturnObject::PutError(FileSP file_sp) {
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP),
++                     file_sp);
++  if (!file_sp)
++    return 0;
++  return file_sp->Printf("%s", GetError());
++}
++
++size_t SBCommandReturnObject::PutError(SBFile file) {
++  LLDB_RECORD_METHOD(size_t, SBCommandReturnObject, PutError, (SBFile), file);
++  if (!file.m_opaque_sp)
++    return 0;
++  return file.m_opaque_sp->Printf("%s", GetError());
++}
++
+ void SBCommandReturnObject::Clear() {
+   LLDB_RECORD_METHOD_NO_ARGS(void, SBCommandReturnObject, Clear);
+ 
+@@ -227,7 +257,10 @@ void SBCommandReturnObject::SetImmediateOutputFile(FILE *fh,
+   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
+                      (FILE *, bool), fh, transfer_ownership);
+ 
+-  m_opaque_up->SetImmediateOutputFile(fh, transfer_ownership);
++  if (m_opaque_up) {
++    FileSP file = std::make_shared<NativeFile>(fh, transfer_ownership);
++    m_opaque_up->SetImmediateOutputFile(file);
++  }
+ }
+ 
+ void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
+@@ -235,7 +268,38 @@ void SBCommandReturnObject::SetImmediateErrorFile(FILE *fh,
+   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
+                      (FILE *, bool), fh, transfer_ownership);
+ 
+-  m_opaque_up->SetImmediateErrorFile(fh, transfer_ownership);
++  if (m_opaque_up) {
++    FileSP file = std::make_shared<NativeFile>(fh, transfer_ownership);
++    m_opaque_up->SetImmediateErrorFile(file);
++  }
++}
++
++void SBCommandReturnObject::SetImmediateOutputFile(SBFile file) {
++  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
++                     (SBFile), file);
++  if (m_opaque_up) {
++    m_opaque_up->SetImmediateOutputFile(file.m_opaque_sp);
++  }
++}
++
++void SBCommandReturnObject::SetImmediateErrorFile(SBFile file) {
++  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
++                     (SBFile), file);
++  if (m_opaque_up) {
++    m_opaque_up->SetImmediateErrorFile(file.m_opaque_sp);
++  }
++}
++
++void SBCommandReturnObject::SetImmediateOutputFile(FileSP file_sp) {
++  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
++                     (FileSP), file_sp);
++  return SetImmediateOutputFile(SBFile(file_sp));
++}
++
++void SBCommandReturnObject::SetImmediateErrorFile(FileSP file_sp) {
++  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
++                     (FileSP), file_sp);
++  return SetImmediateErrorFile(SBFile(file_sp));
+ }
+ 
+ void SBCommandReturnObject::PutCString(const char *string, int len) {
+@@ -322,6 +386,10 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
+   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, GetErrorSize, ());
+   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (FILE *));
+   LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (FILE *));
++  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (SBFile));
++  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (SBFile));
++  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutOutput, (FileSP));
++  LLDB_REGISTER_METHOD(size_t, SBCommandReturnObject, PutError, (FileSP));
+   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, Clear, ());
+   LLDB_REGISTER_METHOD(lldb::ReturnStatus, SBCommandReturnObject, GetStatus,
+                        ());
+@@ -339,6 +407,14 @@ void RegisterMethods<SBCommandReturnObject>(Registry &R) {
+                        (FILE *));
+   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
+                        (FILE *));
++  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
++                       (SBFile));
++  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
++                       (SBFile));
++  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
++                       (FileSP));
++  LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
++                       (FileSP));
+   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
+                        (FILE *, bool));
+   LLDB_REGISTER_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
+diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
+index b9ee5047545..928149a13e2 100644
+--- a/lldb/source/API/SBDebugger.cpp
++++ b/lldb/source/API/SBDebugger.cpp
+@@ -468,9 +468,9 @@ void SBDebugger::HandleCommand(const char *command) {
+     sb_interpreter.HandleCommand(command, result, false);
+ 
+     if (GetErrorFileHandle() != nullptr)
+-      result.PutError(GetErrorFileHandle());
++      result.PutError(GetErrorFile());
+     if (GetOutputFileHandle() != nullptr)
+-      result.PutOutput(GetOutputFileHandle());
++      result.PutOutput(GetOutputFile());
+ 
+     if (!m_opaque_sp->GetAsyncExecution()) {
+       SBProcess process(GetCommandInterpreter().GetProcess());
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+index dc13ed71c42..f911ad81759 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+@@ -893,8 +893,9 @@ bool ScriptInterpreterPythonImpl::ExecuteOneLine(
+               ::setbuf(outfile_handle, nullptr);
+ 
+             result->SetImmediateOutputFile(
+-                debugger.GetOutputFile().GetStream());
+-            result->SetImmediateErrorFile(debugger.GetErrorFile().GetStream());
++                debugger.GetOutputStream().GetFileSP());
++            result->SetImmediateErrorFile(
++                debugger.GetErrorStream().GetFileSP());
+           }
+         }
+       }
+diff --git a/lldb/tools/driver/Driver.cpp b/lldb/tools/driver/Driver.cpp
+index ec70784457d..661c10a7b35 100644
+--- a/lldb/tools/driver/Driver.cpp
++++ b/lldb/tools/driver/Driver.cpp
+@@ -11,6 +11,7 @@
+ #include "lldb/API/SBCommandInterpreter.h"
+ #include "lldb/API/SBCommandReturnObject.h"
+ #include "lldb/API/SBDebugger.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/API/SBHostOS.h"
+ #include "lldb/API/SBLanguageRuntime.h"
+ #include "lldb/API/SBReproducer.h"
+@@ -499,16 +500,16 @@ int Driver::MainLoop() {
+   SBCommandReturnObject result;
+   sb_interpreter.SourceInitFileInHomeDirectory(result);
+   if (m_option_data.m_debug_mode) {
+-    result.PutError(m_debugger.GetErrorFileHandle());
+-    result.PutOutput(m_debugger.GetOutputFileHandle());
++    result.PutError(m_debugger.GetErrorFile());
++    result.PutOutput(m_debugger.GetOutputFile());
+   }
+ 
+   // Source the local .lldbinit file if it exists and we're allowed to source.
+   // Here we want to always print the return object because it contains the
+   // warning and instructions to load local lldbinit files.
+   sb_interpreter.SourceInitFileInCurrentWorkingDirectory(result);
+-  result.PutError(m_debugger.GetErrorFileHandle());
+-  result.PutOutput(m_debugger.GetOutputFileHandle());
++  result.PutError(m_debugger.GetErrorFile());
++  result.PutOutput(m_debugger.GetOutputFile());
+ 
+   // We allow the user to specify an exit code when calling quit which we will
+   // return when exiting.
+@@ -574,8 +575,8 @@ int Driver::MainLoop() {
+   }
+ 
+   if (m_option_data.m_debug_mode) {
+-    result.PutError(m_debugger.GetErrorFileHandle());
+-    result.PutOutput(m_debugger.GetOutputFileHandle());
++    result.PutError(m_debugger.GetErrorFile());
++    result.PutOutput(m_debugger.GetOutputFile());
+   }
+ 
+   const bool handle_events = true;
