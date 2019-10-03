@@ -99,7 +99,7 @@ public:
     %extend {
         // transfer_ownership does nothing, and is here for compatibility with
         // old scripts.  Ownership is tracked by reference count in the ordinary way.
- 
+
         void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
             self->SetImmediateOutputFile(BORROWED);
         }
