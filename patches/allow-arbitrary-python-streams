@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    f0db9c3f7be09df1647947c726aa77882bbf6a50
+Top:    c05b7022e63ded089dfe52051a96ede92f715c23
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -25,4 +25,1027 @@ Differential Revision: https://reviews.llvm.org/D68188
 
 
 ---
-
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+index a5fc2cd4121..872eb1f0f59 100644
+--- a/lldb/include/lldb/API/SBFile.h
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -18,6 +18,7 @@ class LLDB_API SBFile {
+ 
+ public:
+   SBFile();
++  SBFile(FileSP file_sp);
+   SBFile(FILE *file, bool transfer_ownership);
+   SBFile(int fd, const char *mode, bool transfer_ownership);
+   ~SBFile();
+@@ -33,7 +34,6 @@ public:
+ 
+ private:
+   FileSP m_opaque_sp;
+-  SBFile(FileSP file_sp);
+ };
+ 
+ } // namespace lldb
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 3231fdfe688..df1303eb846 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -15,6 +15,46 @@ from lldbsuite.test import  lldbtest
+ from lldbsuite.test.decorators import (
+     add_test_categories, no_debug_info_test, skipIf)
+ 
++class OhNoe(Exception):
++    pass
++
++class BadIO(io.TextIOBase):
++    def writable(self):
++        return True
++    def readable(self):
++        return True
++    def write(self, s):
++        raise OhNoe('OH NOE')
++    def read(self, n):
++        raise OhNoe("OH NOE")
++
++# This class will raise an exception while it's being
++# converted into a C++ object by swig
++class ReallyBadIO(io.TextIOBase):
++    def fileno(self):
++        return 999
++    def writable(self):
++        raise OhNoe("OH NOE!!!")
++
++class MutableBool():
++    def __init__(self, value):
++        self.value = value
++    def set(self, value):
++        self.value = bool(value)
++    def __bool__(self):
++        return self.value
++
++class FlushTestIO(io.StringIO):
++    def __init__(self, mutable_flushed, mutable_closed):
++        super(FlushTestIO, self).__init__()
++        self.mut_flushed = mutable_flushed
++        self.mut_closed = mutable_closed
++    def close(self):
++        self.mut_closed.set(True)
++        return super(FlushTestIO, self).close()
++    def flush(self):
++        self.mut_flushed.set(True)
++        return super(FlushTestIO, self).flush()
+ 
+ @contextmanager
+ def replace_stdout(new):
+@@ -147,7 +187,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+-    def test_sbfile_write(self):
++    def test_sbfile_write_fileno(self):
+         with open(self.out_filename, 'w') as f:
+             sbf = lldb.SBFile(f.fileno(), "w", False)
+             self.assertTrue(sbf.IsValid())
+@@ -162,7 +202,21 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+-    def test_sbfile_read(self):
++    def test_sbfile_write(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f)
++            e, n = sbf.Write(b'FOO\n')
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 4)
++            sbf.Close()
++            self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), 'FOO')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_read_fileno(self):
+         with open(self.out_filename, 'w') as f:
+             f.write('FOO')
+         with open(self.out_filename, 'r') as f:
+@@ -174,6 +228,22 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertEqual(buffer[:n], b'FOO')
+ 
+ 
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_read(self):
++        with open(self.out_filename, 'w') as f:
++            f.write('foo')
++        with open(self.out_filename, 'r') as f:
++            sbf = lldb.SBFile(f)
++            buf = bytearray(100)
++            e, n = sbf.Read(buf)
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 3)
++            self.assertEqual(buf[:n], b'foo')
++            sbf.Close()
++            self.assertTrue(f.closed)
++
++
+     @add_test_categories(['pyapi'])
+     @no_debug_info_test
+     def test_fileno_out(self):
+@@ -272,3 +342,225 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.handleCmd('script sys.stdout.write("lol")',
+                 collect_result=False, check=False)
+             self.assertEqual(sys.stdout, f)
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_write_borrowed(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile.Create(f, borrow=True)
++            e, n = sbf.Write(b'FOO')
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 3)
++            sbf.Close()
++            self.assertFalse(f.closed)
++            f.write('BAR\n')
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), 'FOOBAR')
++
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_write_forced(self):
++        with open(self.out_filename, 'w') as f:
++            written = MutableBool(False)
++            orig_write = f.write
++            def mywrite(x):
++                written.set(True)
++                return orig_write(x)
++            f.write = mywrite
++            sbf = lldb.SBFile.Create(f, force_io_methods=True)
++            e, n = sbf.Write(b'FOO')
++            self.assertTrue(written)
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 3)
++            sbf.Close()
++            self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), 'FOO')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_write_forced_borrowed(self):
++        with open(self.out_filename, 'w') as f:
++            written = MutableBool(False)
++            orig_write = f.write
++            def mywrite(x):
++                written.set(True)
++                return orig_write(x)
++            f.write = mywrite
++            sbf = lldb.SBFile.Create(f, borrow=True, force_io_methods=True)
++            e, n = sbf.Write(b'FOO')
++            self.assertTrue(written)
++            self.assertTrue(e.Success())
++            self.assertEqual(n, 3)
++            sbf.Close()
++            self.assertFalse(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), 'FOO')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_write_string(self):
++        f = io.StringIO()
++        sbf = lldb.SBFile(f)
++        e, n = sbf.Write(b'FOO')
++        self.assertEqual(f.getvalue().strip(), "FOO")
++        self.assertTrue(e.Success())
++        self.assertEqual(n, 3)
++        sbf.Close()
++        self.assertTrue(f.closed)
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_write_bytes(self):
++        f = io.BytesIO()
++        sbf = lldb.SBFile(f)
++        e, n = sbf.Write(b'FOO')
++        self.assertEqual(f.getvalue().strip(), b"FOO")
++        self.assertTrue(e.Success())
++        self.assertEqual(n, 3)
++        sbf.Close()
++        self.assertTrue(f.closed)
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_read_string(self):
++        f = io.StringIO('zork')
++        sbf = lldb.SBFile(f)
++        buf = bytearray(100)
++        e, n = sbf.Read(buf)
++        self.assertTrue(e.Success())
++        self.assertEqual(buf[:n], b'zork')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_read_string_one_byte(self):
++        f = io.StringIO('z')
++        sbf = lldb.SBFile(f)
++        buf = bytearray(1)
++        e, n = sbf.Read(buf)
++        self.assertTrue(e.Fail())
++        self.assertEqual(n, 0)
++        self.assertEqual(e.GetCString(), "can't read less than 6 bytes from a utf8 text stream")
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_read_bytes(self):
++        f = io.BytesIO(b'zork')
++        sbf = lldb.SBFile(f)
++        buf = bytearray(100)
++        e, n = sbf.Read(buf)
++        self.assertTrue(e.Success())
++        self.assertEqual(buf[:n], b'zork')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_sbfile_out(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f)
++            status = self.debugger.SetOutputFile(sbf)
++            if status.Fail():
++                raise Exception(status)
++            self.handleCmd('script 2+2')
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), '4')
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_sbfile_error(self):
++        with open(self.out_filename, 'w') as f:
++            sbf = lldb.SBFile(f)
++            status = self.debugger.SetErrorFile(sbf)
++            if status.Fail():
++                raise Exception(status)
++            self.handleCmd('lolwut', check=False, collect_result=False)
++        with open(self.out_filename, 'r') as f:
++            errors = f.read()
++            self.assertTrue(re.search(r'error:.*lolwut', errors))
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_exceptions(self):
++        self.assertRaises(TypeError, lldb.SBFile, None)
++        self.assertRaises(TypeError, lldb.SBFile, "ham sandwich")
++        if sys.version_info[0] < 3:
++            self.assertRaises(TypeError, lldb.SBFile, ReallyBadIO())
++        else:
++            self.assertRaises(OhNoe, lldb.SBFile, ReallyBadIO())
++            error, n = lldb.SBFile(BadIO()).Write(b"FOO")
++            self.assertEqual(n, 0)
++            self.assertTrue(error.Fail())
++            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
++            error, n = lldb.SBFile(BadIO()).Read(bytearray(100))
++            self.assertEqual(n, 0)
++            self.assertTrue(error.Fail())
++            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    @skipIf(py_version=['<', (3,)])
++    def test_flush(self):
++        flushed = MutableBool(False)
++        closed = MutableBool(False)
++        f = FlushTestIO(flushed, closed)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = lldb.SBFile(f)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = None
++        self.assertFalse(flushed)
++        self.assertTrue(closed)
++        self.assertTrue(f.closed)
++
++        flushed = MutableBool(False)
++        closed = MutableBool(False)
++        f = FlushTestIO(flushed, closed)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = lldb.SBFile.Create(f, borrow=True)
++        self.assertFalse(flushed)
++        self.assertFalse(closed)
++        sbf = None
++        self.assertTrue(flushed)
++        self.assertFalse(closed)
++        self.assertFalse(f.closed)
++
++
++    @add_test_categories(['pyapi'])
++    @no_debug_info_test
++    def test_fileno_flush(self):
++        with open(self.out_filename, 'w') as f:
++            f.write("foo")
++            sbf = lldb.SBFile(f)
++            sbf.Write(b'bar')
++            sbf = None
++            self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read(), 'foobar')
++
++        with open(self.out_filename, 'w+') as f:
++            f.write("foo")
++            sbf = lldb.SBFile.Create(f, borrow=True)
++            sbf.Write(b'bar')
++            sbf = None
++            self.assertFalse(f.closed)
++            f.seek(0)
++            self.assertEqual(f.read(), 'foobar')
+diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
+index 7eedfdbdb8d..6c261f58953 100644
+--- a/lldb/scripts/Python/python-typemaps.swig
++++ b/lldb/scripts/Python/python-typemaps.swig
+@@ -372,6 +372,65 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+   $1 = $1 || PyCallable_Check(reinterpret_cast<PyObject*>($input));
+ }
+ 
++
++%typemap(in) lldb::FileSP {
++  using namespace lldb_private;
++  if (PythonFile::Check($input)) {
++    PythonFile py_file(PyRefType::Borrowed, $input);
++    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile());
++    if (sp)
++      $1 = sp;
++    else
++      return nullptr;
++  }
++}
++
++%typemap(in) lldb::FileSP FORCE_IO_METHODS {
++  using namespace lldb_private;
++  if (PythonFile::Check($input)) {
++    PythonFile py_file(PyRefType::Borrowed, $input);
++    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods());
++    if (sp)
++      $1 = sp;
++    else
++      return nullptr;
++  }
++}
++
++%typemap(in) lldb::FileSP BORROWED {
++  using namespace lldb_private;
++  if (PythonFile::Check($input)) {
++    PythonFile py_file(PyRefType::Borrowed, $input);
++    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile(/*borrowed=*/true));
++    if (sp)
++      $1 = sp;
++    else
++      return nullptr;
++  }
++}
++
++%typemap(in) lldb::FileSP BORROWED_FORCE_IO_METHODS {
++  using namespace lldb_private;
++  if (PythonFile::Check($input)) {
++    PythonFile py_file(PyRefType::Borrowed, $input);
++    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods(/*borrowed=*/true));
++    if (sp)
++      $1 = sp;
++    else
++      return nullptr;
++  }
++}
++
++%typecheck(SWIG_TYPECHECK_POINTER) lldb::FileSP {
++  if (lldb_private::PythonFile::Check($input)) {
++    $1 = 1;
++  } else {
++    PyErr_Clear();
++    $1 = 0;
++  }
++}
++
++
+ // FIXME both of these paths wind up calling fdopen() with no provision for ever calling
+ // fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
+ // use and this typemap should eventually be removed.
+diff --git a/lldb/scripts/interface/SBFile.i b/lldb/scripts/interface/SBFile.i
+index 6cdb192f26e..179446d5a53 100644
+--- a/lldb/scripts/interface/SBFile.i
++++ b/lldb/scripts/interface/SBFile.i
+@@ -15,9 +15,53 @@ namespace lldb {
+ class SBFile
+ {
+ public:
++
+     SBFile();
++
++    %feature("docstring", "
++    Initialize a SBFile from a file descriptor.  mode is
++    'r', 'r+', or 'w', like fdopen.");
+     SBFile(int fd, const char *mode, bool transfer_ownership);
+ 
++    %feature("docstring", "initialize a SBFile from a python file object");
++    SBFile(FileSP file);
++
++    %extend {
++        static lldb::SBFile MakeBorrowed(lldb::FileSP BORROWED) {
++            return lldb::SBFile(BORROWED);
++        }
++        static lldb::SBFile MakeForcingIOMethods(lldb::FileSP FORCE_IO_METHODS) {
++            return lldb::SBFile(FORCE_IO_METHODS);
++        }
++        static lldb::SBFile MakeBorrowedForcingIOMethods(lldb::FileSP BORROWED_FORCE_IO_METHODS) {
++            return lldb::SBFile(BORROWED_FORCE_IO_METHODS);
++        }
++    }
++
++    %pythoncode {
++        @classmethod
++        def Create(cls, file, borrow=False, force_io_methods=False):
++            """
++            Create a SBFile from a python file object, with options.
++
++            If borrow is set then the underlying file will
++            not be closed when the SBFile is closed or destroyed.
++
++            If force_scripting_io is set then the python read/write
++            methods will be called even if a file descriptor is available.
++            """
++            if borrow:
++                if force_io_methods:
++                    return cls.MakeBorrowedForcingIOMethods(file)
++                else:
++                    return cls.MakeBorrowed(file)
++            else:
++                if force_io_methods:
++                    return cls.MakeForcingIOMethods(file)
++                else:
++                    return cls(file)
++    }
++
+     ~SBFile ();
+ 
+     %feature("autodoc", "Read(buffer) -> SBError, bytes_read") Read;
+diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
+index 07122916d23..e9e6987a8ff 100644
+--- a/lldb/source/API/SBFile.cpp
++++ b/lldb/source/API/SBFile.cpp
+@@ -16,7 +16,9 @@ using namespace lldb_private;
+ 
+ SBFile::~SBFile() {}
+ 
+-SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {}
++SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {
++  LLDB_RECORD_DUMMY(void, SBfile, SBFile, (FileSP), file_sp);
++}
+ 
+ SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
+ 
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index fedd8f66a1f..571c4922d2f 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -18,6 +18,7 @@
+ #include "lldb/Host/File.h"
+ #include "lldb/Host/FileSystem.h"
+ #include "lldb/Interpreter/ScriptInterpreter.h"
++#include "lldb/Utility/Log.h"
+ #include "lldb/Utility/Stream.h"
+ 
+ #include "llvm/ADT/StringSwitch.h"
+@@ -31,6 +32,13 @@ using namespace lldb;
+ 
+ void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
+   s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
++
++template <typename T> static T Take(PyObject *obj) {
++  return T(PyRefType::Owned, obj);
++}
++
++template <typename T> static T Retain(PyObject *obj) {
++  return T(PyRefType::Borrowed, obj);
+ }
+ 
+ // PythonObject
+@@ -963,9 +971,7 @@ bool PythonFile::Check(PyObject *py_obj) {
+   // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
+   // over `io.open()`, which returns some object derived from `io.IOBase`. As a
+   // result, the only way to detect a file in Python 3 is to check whether it
+-  // inherits from `io.IOBase`.  Since it is possible for non-files to also
+-  // inherit from `io.IOBase`, we additionally verify that it has the `fileno`
+-  // attribute, which should guarantee that it is backed by the file system.
++  // inherits from `io.IOBase`.
+   PythonObject io_module(PyRefType::Owned, PyImport_ImportModule("io"));
+   PythonDictionary io_dict(PyRefType::Borrowed,
+                            PyModule_GetDict(io_module.get()));
+@@ -975,8 +981,6 @@ bool PythonFile::Check(PyObject *py_obj) {
+ 
+   if (1 != PyObject_IsSubclass(object_type.get(), io_base_class.get()))
+     return false;
+-  if (!object_type.HasAttribute("fileno"))
+-    return false;
+ 
+   return true;
+ #endif
+@@ -1031,4 +1035,408 @@ FileUP PythonFile::GetUnderlyingFile() const {
+   return file;
+ }
+ 
++class GIL {
++public:
++  GIL() { m_state = PyGILState_Ensure(); }
++  ~GIL() { PyGILState_Release(m_state); }
++
++protected:
++  PyGILState_STATE m_state;
++};
++
++const char *PythonException::toCString() const {
++  if (m_repr_bytes) {
++    return PyBytes_AS_STRING(m_repr_bytes);
++  } else {
++    return "unknown exception";
++  }
++}
++
++PythonException::PythonException(const char *caller) {
++  assert(PyErr_Occurred());
++  m_exception_type = m_exception = m_traceback = m_repr_bytes = NULL;
++  PyErr_Fetch(&m_exception_type, &m_exception, &m_traceback);
++  PyErr_NormalizeException(&m_exception_type, &m_exception, &m_traceback);
++  if (m_exception) {
++    PyObject *repr = PyObject_Repr(m_exception);
++    if (repr) {
++      m_repr_bytes = PyUnicode_AsEncodedString(repr, "utf-8", nullptr);
++      Py_XDECREF(repr);
++    }
++  }
++  Log *log = GetLogIfAllCategoriesSet(LIBLLDB_LOG_SCRIPT);
++  if (log) {
++    log->Printf("%s failed with exception: %s", caller, toCString());
++  }
++  PyErr_Clear();
++}
++void PythonException::Restore() {
++  if (m_exception_type && m_exception) {
++    PyErr_Restore(m_exception_type, m_exception, m_traceback);
++  } else {
++    PyErr_SetString(PyExc_Exception, toCString());
++  }
++  m_exception_type = m_exception = m_traceback = NULL;
++}
++
++PythonException::~PythonException() {
++  Py_XDECREF(m_exception_type);
++  Py_XDECREF(m_exception);
++  Py_XDECREF(m_traceback);
++  Py_XDECREF(m_repr_bytes);
++}
++
++void PythonException::log(llvm::raw_ostream &OS) const { OS << toCString(); }
++
++std::error_code PythonException::convertToErrorCode() const {
++  return llvm::inconvertibleErrorCode();
++}
++
++char PythonException::ID = 0;
++
++llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
++  uint32_t options = 0;
++#if PY_MAJOR_VERSION >= 3
++  auto readable =
++      Take<PythonObject>(PyObject_CallMethod(obj.get(), "readable", "()"));
++  auto writable =
++      Take<PythonObject>(PyObject_CallMethod(obj.get(), "writable", "()"));
++  if (PyErr_Occurred()) {
++    return llvm::make_error<PythonException>("ConvertToFile");
++  }
++  if (PyObject_IsTrue(readable.get()))
++    options |= File::eOpenOptionRead;
++  if (PyObject_IsTrue(writable.get()))
++    options |= File::eOpenOptionWrite;
++#else
++  PythonString py_mode = obj.GetAttributeValue("mode").AsType<PythonString>();
++  options = File::GetOptionsFromMode(py_mode.GetString());
++#endif
++  return options;
++}
++
++// Base class template for python files.   All it knows how to do
++// is hold a reference to the python object and close or flush it
++// when the File is closed.
++template <typename Base> class OwnedPythonFile : public Base {
++public:
++  template <typename... Args>
++  OwnedPythonFile(const PythonFile &file, bool borrowed, Args... args)
++      : Base(args...), m_py_obj(file.get()), m_borrowed(borrowed) {
++    assert(m_py_obj);
++    Py_INCREF(m_py_obj);
++  }
++
++  ~OwnedPythonFile() override {
++    assert(m_py_obj);
++    GIL takeGIL;
++    Close();
++    Py_DECREF(m_py_obj);
++    m_py_obj = nullptr;
++  }
++
++  bool IsValid() const override {
++    GIL takeGIL;
++    auto closed =
++        Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
++    if (!closed.IsValid() || PyErr_Occurred()) {
++      PyErr_Clear();
++      return false;
++    }
++    if (PyObject_IsTrue(closed.get()))
++      return false;
++    if (PyErr_Occurred()) {
++      PyErr_Clear();
++      return false;
++    }
++    return Base::IsValid();
++  }
++
++  Status Close() override {
++    assert(m_py_obj);
++    Status py_error, base_error;
++    GIL takeGIL;
++    if (!m_borrowed) {
++      Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
++      if (PyErr_Occurred())
++        py_error = llvm::make_error<PythonException>("Close");
++    }
++    base_error = Base::Close();
++    if (py_error.Fail())
++      return py_error;
++    return base_error;
++  };
++
++protected:
++  PyObject *m_py_obj;
++  bool m_borrowed;
++};
++
++// A SimplyPythonFile is a OwnedPythonFile that just does all I/O as
++// a NativeFile
++class SimplePythonFile : public OwnedPythonFile<NativeFile> {
++public:
++  SimplePythonFile(int fd, uint32_t options, const PythonFile &file,
++                   bool borrowed)
++      : OwnedPythonFile(file, borrowed, fd, options, false){};
++};
++
++llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
++  if (!IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid PythonFile");
++
++  int fd = PyObject_AsFileDescriptor(m_py_obj);
++  if (fd < 0) {
++    return ConvertToFileForcingUseOfScriptingIOMethods(borrowed);
++  }
++  auto options = GetOptionsForPyObject(*this);
++  if (!options)
++    return options.takeError();
++
++  // LLDB and python will not share I/O buffers.  We should probably
++  // flush the python buffers now.
++  Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
++  if (PyErr_Occurred())
++    return llvm::make_error<PythonException>("Flush");
++
++  FileSP file_sp;
++  if (borrowed) {
++    // In this case we we don't need to retain the python
++    // object at all.
++    file_sp = std::make_shared<NativeFile>(fd, options.get(), false);
++  } else {
++    file_sp = std::static_pointer_cast<File>(
++        std::make_shared<SimplePythonFile>(fd, options.get(), *this, borrowed));
++  }
++  if (!file_sp->IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid File");
++
++  return file_sp;
++}
++
++#if PY_MAJOR_VERSION >= 3
++
++class PythonBuffer {
++public:
++  PythonBuffer(PythonObject &obj, int flags = PyBUF_SIMPLE) : m_buffer({}) {
++    PyObject_GetBuffer(obj.get(), &m_buffer, flags);
++  }
++  ~PythonBuffer() {
++    if (m_buffer.obj) {
++      PyBuffer_Release(&m_buffer);
++    }
++  }
++  Py_buffer &get() { return m_buffer; }
++
++protected:
++  Py_buffer m_buffer;
++};
++
++// OwnedPythonFile<Base>::IsValid() chains into Base::IsValid()
++// File::IsValid() is false by default, but for the following classes
++// we want the file to be considered valid as long as the python bits
++// are valid.
++class PresumptivelyValidFile : public File {
++public:
++  bool IsValid() const override { return true; };
++};
++
++// Shared methods between TextPythonFile and BinaryPythonFile
++class PythonIOFile : public OwnedPythonFile<PresumptivelyValidFile> {
++public:
++  PythonIOFile(const PythonFile &file, bool borrowed)
++      : OwnedPythonFile(file, borrowed){};
++
++  ~PythonIOFile() override { Close(); }
++
++  Status Close() override {
++    assert(m_py_obj);
++    GIL takeGIL;
++    if (m_borrowed)
++      return Flush();
++    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "close", "()"));
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Close"));
++    return Status();
++  };
++
++  Status Flush() override {
++    GIL takeGIL;
++    PyErr_Clear();
++    Take<PythonObject>(PyObject_CallMethod(m_py_obj, "flush", "()"));
++    Status error;
++    if (PyErr_Occurred())
++      error = llvm::make_error<PythonException>("Flush");
++    return error;
++  }
++};
++
++class BinaryPythonFile : public PythonIOFile {
++  friend class PythonFile;
++
++protected:
++  int m_descriptor;
++
++public:
++  BinaryPythonFile(int fd, const PythonFile &file, bool borrowed)
++      : PythonIOFile(file, borrowed),
++        m_descriptor(File::DescriptorIsValid(fd) ? fd
++                                                 : File::kInvalidDescriptor) {}
++
++  int GetDescriptor() const override { return m_descriptor; }
++
++  Status Write(const void *buf, size_t &num_bytes) override {
++    GIL takeGIL;
++    auto pybuffer = Take<PythonObject>(PyMemoryView_FromMemory(
++        const_cast<char *>((const char *)buf), num_bytes, PyBUF_READ));
++    num_bytes = 0;
++    auto bytes_written = Take<PythonObject>(
++        PyObject_CallMethod(m_py_obj, "write", "(O)", pybuffer.get()));
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Write"));
++    long l_bytes_written = PyLong_AsLong(bytes_written.get());
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Write"));
++    num_bytes = l_bytes_written;
++    if (l_bytes_written < 0 || (unsigned long)l_bytes_written != num_bytes) {
++      return Status("overflow");
++    }
++    return Status();
++  }
++
++  Status Read(void *buf, size_t &num_bytes) override {
++    GIL takeGIL;
++    auto pybuffer_obj = Take<PythonObject>(PyObject_CallMethod(
++        m_py_obj, "read", "(L)", (unsigned long long)num_bytes));
++    num_bytes = 0;
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Read"));
++    if (pybuffer_obj.IsNone()) {
++      // EOF
++      num_bytes = 0;
++      return Status();
++    }
++    PythonBuffer pybuffer(pybuffer_obj);
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Read"));
++    memcpy(buf, pybuffer.get().buf, pybuffer.get().len);
++    num_bytes = pybuffer.get().len;
++    return Status();
++  }
++};
++
++class TextPythonFile : public PythonIOFile {
++  friend class PythonFile;
++
++protected:
++  int m_descriptor;
++
++public:
++  TextPythonFile(int fd, const PythonFile &file, bool borrowed)
++      : PythonIOFile(file, borrowed),
++        m_descriptor(File::DescriptorIsValid(fd) ? fd
++                                                 : File::kInvalidDescriptor) {}
++
++  int GetDescriptor() const override { return m_descriptor; }
++
++  Status Write(const void *buf, size_t &num_bytes) override {
++    GIL takeGIL;
++    auto pystring = Take<PythonObject>(
++        PyUnicode_FromStringAndSize((const char *)buf, num_bytes));
++    num_bytes = 0;
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Write"));
++    auto bytes_written = Take<PythonObject>(
++        PyObject_CallMethod(m_py_obj, "write", "(O)", pystring.get()));
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Write"));
++    long l_bytes_written = PyLong_AsLong(bytes_written.get());
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Write"));
++    num_bytes = l_bytes_written;
++    if (l_bytes_written < 0 || (unsigned long)l_bytes_written != num_bytes) {
++      return Status("overflow");
++    }
++    return Status();
++  }
++
++  Status Read(void *buf, size_t &num_bytes) override {
++    GIL takeGIL;
++    size_t num_chars = num_bytes / 6;
++    size_t orig_num_bytes = num_bytes;
++    num_bytes = 0;
++    if (orig_num_bytes < 6) {
++      return Status("can't read less than 6 bytes from a utf8 text stream");
++    }
++    auto pystring = Take<PythonObject>(PyObject_CallMethod(
++        m_py_obj, "read", "(L)", (unsigned long long)num_chars));
++    if (pystring.IsNone()) {
++      // EOF
++      return Status();
++    }
++    if (PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Read"));
++    if (!PyUnicode_Check(pystring.get()))
++      return Status("read() didn't return a str");
++    Py_ssize_t size;
++    const char *utf8 = PyUnicode_AsUTF8AndSize(pystring.get(), &size);
++    if (!utf8 || PyErr_Occurred())
++      return Status(llvm::make_error<PythonException>("Read"));
++    assert(size >= 0 && (size_t)size <= orig_num_bytes);
++    memcpy(buf, utf8, size);
++    num_bytes = size;
++    return Status();
++  }
++};
++
++#endif
++
++llvm::Expected<FileSP>
++PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
++  if (!IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid PythonFile");
++
++#if PY_MAJOR_VERSION < 3
++
++  return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                 "not supported on python 2");
++
++#else
++
++  int fd = PyObject_AsFileDescriptor(m_py_obj);
++  if (fd < 0) {
++    PyErr_Clear();
++    fd = File::kInvalidDescriptor;
++  }
++
++  auto io_module = Take<PythonObject>(PyImport_ImportModule("io"));
++  auto io_dict = Retain<PythonDictionary>(PyModule_GetDict(io_module.get()));
++  auto textIOBase = io_dict.GetItemForKey(PythonString("TextIOBase"));
++  auto rawIOBase = io_dict.GetItemForKey(PythonString("BufferedIOBase"));
++  auto bufferedIOBase = io_dict.GetItemForKey(PythonString("RawIOBase"));
++
++  FileSP file_sp;
++  if (PyObject_IsInstance(m_py_obj, textIOBase.get())) {
++    file_sp = std::static_pointer_cast<File>(
++        std::make_shared<TextPythonFile>(fd, *this, borrowed));
++  } else if (PyObject_IsInstance(m_py_obj, rawIOBase.get()) ||
++             PyObject_IsInstance(m_py_obj, bufferedIOBase.get())) {
++    file_sp = std::static_pointer_cast<File>(
++        std::make_shared<BinaryPythonFile>(fd, *this, borrowed));
++  } else
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "python file is neither text nor binary");
++
++  if (!file_sp->IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid File");
++
++  return file_sp;
++
++#endif
++}
++
+ #endif
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 8fd2be1460f..943d805a9fb 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -84,14 +84,19 @@ public:
+ 
+   PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
+ 
++  PythonObject(PythonObject &&rhs) {
++    m_py_obj = rhs.m_py_obj;
++    rhs.m_py_obj = nullptr;
++  }
++
+   virtual ~PythonObject() { Reset(); }
+ 
+   void Reset() {
+     // Avoid calling the virtual method since it's not necessary
+     // to actually validate the type of the PyObject if we're
+     // just setting to null.
+-    if (Py_IsInitialized())
+-      Py_XDECREF(m_py_obj);
++    if (m_py_obj && Py_IsInitialized())
++      Py_DECREF(m_py_obj);
+     m_py_obj = nullptr;
+   }
+ 
+@@ -123,7 +128,7 @@ public:
+     // an owned reference by incrementing it.  If it is an owned
+     // reference (for example the caller allocated it with PyDict_New()
+     // then we must *not* increment it.
+-    if (Py_IsInitialized() && type == PyRefType::Borrowed)
++    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
+       Py_XINCREF(m_py_obj);
+   }
+ 
+@@ -467,8 +472,38 @@ public:
+   void Reset(File &file, const char *mode);
+ 
+   lldb::FileUP GetUnderlyingFile() const;
++
++  llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
++  llvm::Expected<lldb::FileSP>
++  ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
+ };
+ 
++class PythonException : public llvm::ErrorInfo<PythonException> {
++private:
++  PyObject *m_exception_type, *m_exception, *m_traceback;
++  PyObject *m_repr_bytes;
++
++public:
++  static char ID;
++  const char *toCString() const;
++  PythonException(const char *caller);
++  void Restore();
++  ~PythonException();
++  void log(llvm::raw_ostream &OS) const override;
++  std::error_code convertToErrorCode() const override;
++};
++
++template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
++  if (expected)
++    return expected.get();
++  llvm::handleAllErrors(
++      expected.takeError(), [](PythonException &E) { E.Restore(); },
++      [](const llvm::ErrorInfoBase &E) {
++        PyErr_SetString(PyExc_Exception, E.message().c_str());
++      });
++  return T();
++}
++
+ } // namespace lldb_private
+ 
+ #endif
