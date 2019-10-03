@@ -1,5 +1,5 @@
 Bottom: 822d59e10439ef497d43eec17007c6ecbdcb2b5d
-Top:    108773485dfe27114cc1c92e2fbb97f7d16a0520
+Top:    7788080f6e64d6d9c1d0d69376ba0f8917d40fb1
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:23:09 -0700
 
@@ -97,7 +97,7 @@ index 670002dada8..61e57fb798a 100644
    }
  
 diff --git a/lldb/scripts/interface/SBCommandReturnObject.i b/lldb/scripts/interface/SBCommandReturnObject.i
-index 1e04a8fa1bf..38d9cea2214 100644
+index 1e04a8fa1bf..73d4001aaba 100644
 --- a/lldb/scripts/interface/SBCommandReturnObject.i
 +++ b/lldb/scripts/interface/SBCommandReturnObject.i
 @@ -49,10 +49,16 @@ public:
@@ -135,7 +135,7 @@ index 1e04a8fa1bf..38d9cea2214 100644
 -            self->SetImmediateOutputFile(fh, true);
 +        // transfer_ownership does nothing, and is here for compatibility with
 +        // old scripts.  Ownership is tracked by reference count in the ordinary way.
-+ 
++
 +        void SetImmediateOutputFile(lldb::FileSP BORROWED, bool transfer_ownership) {
 +            self->SetImmediateOutputFile(BORROWED);
          }
