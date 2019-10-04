@@ -1,5 +1,5 @@
 Version: 1
-Previous: ce44f9f7b4e36ca615f06d0b2a64566c13c9b48c
+Previous: ec2e7c0082049e1a04ea20cdf5a7fe34485c43d4
 Head: 679d4699ef8203227f18f9a4078bd8d9651edf63
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -9,6 +9,6 @@ Applied:
   sbfile-add-a-bunch-of-tests: 957f048e26ab5b8548c62fceda29fcdffeb3b274
   sbfile-support-in: 9d8cf1d9eea76ec01eda03a23b153871fbaa238b
   remove-a-smattering-of: 4b39de35526f29f37d6d4d5411a7a1babd257558
-  remove-file-usage-from: 679d4699ef8203227f18f9a4078bd8d9651edf63
+  HandleProcessEvent: 679d4699ef8203227f18f9a4078bd8d9651edf63
 Unapplied:
 Hidden:
