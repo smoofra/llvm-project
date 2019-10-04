@@ -1,7 +1,7 @@
 Bottom: 3045e2a152af2808e1be3d38b1c27a85fa2d7030
-Top:    c744fa60a1583c77c504ffe51e746c3cee89ba1b
+Top:    beb983a08557111d0b7edd7b95fdc13d6ac70b00
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-18 08:23:09 -0700
+Date:   2019-10-03 21:52:58 -0700
 
 SBFile support in SBCommandReturnObject
 
@@ -16,7 +16,6 @@ Subscribers: lldb-commits
 Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68434
-
 
 ---
 diff --git a/lldb/include/lldb/API/SBCommandReturnObject.h b/lldb/include/lldb/API/SBCommandReturnObject.h
@@ -109,22 +108,24 @@ index 670002dada8..61e57fb798a 100644
    }
  
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 8206b4ebdbf..b0728b0cf4a 100644
+index 8206b4ebdbf..ca2f2dbef3b 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -310,7 +310,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -310,7 +310,7 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
 -    @skipIf(True) # FIXME need SBFile interfaces on SBCommandReturnObject
++    @skipIf(py_version=['<', (3,)])
      def test_immediate_string(self):
          f = io.StringIO()
          ret = lldb.SBCommandReturnObject()
-@@ -326,7 +325,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -326,7 +326,7 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
 -    @skipIf(True) # FIXME need SBFile interfaces on SBCommandReturnObject
++    @skipIf(py_version=['<', (3,)])
      def test_immediate_sbfile_string(self):
          f = io.StringIO()
          ret = lldb.SBCommandReturnObject()
