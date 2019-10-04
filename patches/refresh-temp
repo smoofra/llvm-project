@@ -1,0 +1,37 @@
+Bottom: 5f5dc274caec64fcc4421199203324121f4f23c6
+Top:    9c42d71cff3a2a6fc194afd2ab11044fa1c9c4c4
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 17:25:54 -0700
+
+Refresh of protect-libedit-and-lldb-gui
+
+---
+diff --git a/lldb/source/Commands/CommandObjectGUI.cpp b/lldb/source/Commands/CommandObjectGUI.cpp
+index 09cb685a42f..fac2e962778 100644
+--- a/lldb/source/Commands/CommandObjectGUI.cpp
++++ b/lldb/source/Commands/CommandObjectGUI.cpp
+@@ -29,7 +29,9 @@ bool CommandObjectGUI::DoExecute(Args &args, CommandReturnObject &result) {
+     Debugger &debugger = GetDebugger();
+ 
+     File &input = debugger.GetInputFile();
+-    if (input.GetIsRealTerminal() && input.GetIsInteractive()) {
++    File &output = debugger.GetOutputFile();
++    if (input.GetStream() && output.GetStream() && input.GetIsRealTerminal() &&
++        input.GetIsInteractive()) {
+       IOHandlerSP io_handler_sp(new IOHandlerCursesGUI(debugger));
+       if (io_handler_sp)
+         debugger.PushIOHandler(io_handler_sp);
+diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
+index a5e28d1a640..8490c22d33c 100644
+--- a/lldb/source/Core/IOHandler.cpp
++++ b/lldb/source/Core/IOHandler.cpp
+@@ -266,7 +266,8 @@ IOHandlerEditline::IOHandlerEditline(
+ #ifndef LLDB_DISABLE_LIBEDIT
+   bool use_editline = false;
+ 
+-  use_editline = m_input_sp && m_input_sp->GetIsRealTerminal();
++  use_editline = GetInputFILE() && GetOutputFILE() && GetErrorFILE() &&
++                 m_input_sp && m_input_sp->GetIsRealTerminal();
+ 
+   if (use_editline) {
+     m_editline_up.reset(new Editline(editline_name, GetInputFILE(),
