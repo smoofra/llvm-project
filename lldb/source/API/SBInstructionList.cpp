@@ -126,19 +126,19 @@ void SBInstructionList::Print(FILE *out) {
   GetDescription(stream);
 }
 
-void SBInstructionList::Print(SBFile &out) {
-  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (SBFile &), out);
+void SBInstructionList::Print(SBFile out) {
+  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (SBFile), out);
   if (!out.IsValid())
     return;
   StreamFile stream(out.GetFile());
   GetDescription(stream);
 }
 
-void SBInstructionList::Print(File &out) {
-  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (File &), out);
-  if (!out.IsValid())
+void SBInstructionList::Print(FileSP out_sp) {
+  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (FileSP), out_sp);
+  if (!out_sp || !out_sp->IsValid())
     return;
-  StreamFile stream(out);
+  StreamFile stream(out_sp);
   GetDescription(stream);
 }
 
@@ -222,8 +222,8 @@ void RegisterMethods<SBInstructionList>(Registry &R) {
   LLDB_REGISTER_METHOD(void, SBInstructionList, AppendInstruction,
                        (lldb::SBInstruction));
   LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (FILE *));
-  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (SBFile &));
-  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (File &));
+  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (SBFile));
+  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (FileSP));
   LLDB_REGISTER_METHOD(bool, SBInstructionList, GetDescription,
                        (lldb::SBStream &));
   LLDB_REGISTER_METHOD(bool, SBInstructionList,

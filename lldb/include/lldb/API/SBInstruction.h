@@ -55,9 +55,9 @@ public:
 
   void Print(FILE *out);
 
-  void Print(SBFile &out);
+  void Print(SBFile out);
 
-  void Print(lldb_private::File &out);
+  void Print(FileSP out);
 
   bool GetDescription(lldb::SBStream &description);
 
