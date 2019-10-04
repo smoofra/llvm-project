@@ -169,34 +169,34 @@ public:
 
         %feature("autodoc", "DEPRECATED, use SetInputFile");
         void
-        SetInputFileHandle (lldb_private::File &file,
+        SetInputFileHandle (lldb::FileSP file,
                             bool transfer_ownership) {
             self->SetInputFile(file);
         }
 
         %feature("autodoc", "DEPRECATED, use SetOutputFile");
         void
-        SetOutputFileHandle (lldb_private::File &file,
+        SetOutputFileHandle (lldb::FileSP file,
                              bool transfer_ownership) {
             self->SetOutputFile(file);
         }
 
         %feature("autodoc", "DEPRECATED, use SetErrorFile");
         void
-        SetErrorFileHandle (lldb_private::File &file,
+        SetErrorFileHandle (lldb::FileSP file,
                              bool transfer_ownership) {
             self->SetErrorFile(file);
         }
 
-        lldb_private::File GetInputFileHandle() {
+        lldb::FileSP GetInputFileHandle() {
             return self->GetInputFile().GetFile();
         }
 
-        lldb_private::File GetOutputFileHandle() {
+        lldb::FileSP GetOutputFileHandle() {
             return self->GetOutputFile().GetFile();
         }
 
-        lldb_private::File GetErrorFileHandle() {
+        lldb::FileSP GetErrorFileHandle() {
             return self->GetErrorFile().GetFile();
         }
     }
