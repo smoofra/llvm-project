@@ -1,5 +1,5 @@
 Bottom: 79c976639621b4dba909244ed98ceb10a84d8dfd
-Top:    bf07d3b8c8c2e488b66bc951e75adc947f82dc0f
+Top:    5f5dc274caec64fcc4421199203324121f4f23c6
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 17:54:57 -0700
 
@@ -19,6 +19,33 @@ index 0c50a2d80a9..37142a5a839 100644
  };
  
  // The order of base classes is important. Look at the constructor of
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 45fafcfc4cc..931073e335d 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -399,9 +399,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME IOHandler still using FILE*
+     def test_string_inout(self):
+-        inf = io.StringIO("help help\n")
++        inf = io.StringIO("help help\np/x ~0\n")
+         outf = io.StringIO()
+         status = self.debugger.SetOutputFile(lldb.SBFile(outf))
+         self.assertTrue(status.Success())
+@@ -412,10 +411,10 @@ class FileHandleTestCase(lldbtest.TestBase):
+         self.debugger.GetOutputFile().Flush()
+         output = outf.getvalue()
+         self.assertIn('Show a list of all debugger commands', output)
++        self.assertIn('0xfff', output)
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME IOHandler still using FILE*
+     def test_bytes_inout(self):
+         inf = io.BytesIO(b"help help\nhelp b\n")
+         outf = io.BytesIO()
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
 index 5b9c760ad21..a5e28d1a640 100644
 --- a/lldb/source/Core/IOHandler.cpp
