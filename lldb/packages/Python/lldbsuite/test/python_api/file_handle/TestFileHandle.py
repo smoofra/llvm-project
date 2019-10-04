@@ -546,7 +546,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     @skipIf(py_version=['<', (3,)])
-    @skipIf(True) # fixme multiple problems with this
     def test_string_out(self):
         f = io.StringIO()
         status = self.debugger.SetOutputFile(f)
