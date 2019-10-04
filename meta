@@ -1,5 +1,5 @@
 Version: 1
-Previous: 0cfc9e0644515e5a57f555c228292f86c965a1de
+Previous: 0709b3cee74189d83cdbf681f53999d94f89c3a7
 Head: 80f10ccd8b2e4fa6d31947fb2c722beb73575e30
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -15,7 +15,7 @@ Applied:
   update-sbdebugger-setinputfile: 79a925762697c628f691f1656b8736c400636b6a
   sbfile-getfile-convert-sbfile: 10ab5ff32114c77c3d9199d6803539cbf1c7a7b3
   convert-sbdebugger-filehandle: a52e89cdb9a71cbd0ecb111ca23a0d2af3c3928f
-  remove-file-ussage-from: caa9bc46c13cfcf81ba6d7c7ba95c1c390f190af
+  SBInstruction: caa9bc46c13cfcf81ba6d7c7ba95c1c390f190af
   remove-file-usage-from: 80f10ccd8b2e4fa6d31947fb2c722beb73575e30
 Unapplied:
 Hidden:
