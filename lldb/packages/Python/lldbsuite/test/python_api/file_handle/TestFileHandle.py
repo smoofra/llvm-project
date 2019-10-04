@@ -130,8 +130,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @skipIfWindows # FIXME pre-existing bug, should be fixed
-                   # when we delete the FILE* typemaps.
     def test_legacy_file_out_script(self):
         with open(self.out_filename, 'w') as f:
             self.debugger.SetOutputFileHandle(f, False)
@@ -156,8 +154,6 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertIn('deadbeef', f.read())
 
     @add_test_categories(['pyapi'])
-    @skipIfWindows # FIXME pre-existing bug, should be fixed
-                   # when we delete the FILE* typemaps.
     def test_legacy_file_err_with_get(self):
         with open(self.out_filename, 'w') as f:
             self.debugger.SetErrorFileHandle(f, False)
