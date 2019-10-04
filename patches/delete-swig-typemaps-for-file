@@ -1,0 +1,10 @@
+Bottom: 68126b6bcba7d7ca8d626c9a23b7558b42e78374
+Top:    68126b6bcba7d7ca8d626c9a23b7558b42e78374
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-19 17:50:44 -0700
+
+delete SWIG typemaps for FILE*
+
+
+---
+
