@@ -1,17 +1,27 @@
 Bottom: 32197250521b2b94df8b19efd01222fae8759537
-Top:    3082f418c539d169891a35e80bbd4bd30d61a7f1
+Top:    6420ae80e5394d43ebd4bcfc44bde2fa265ed129
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-19 17:27:01 -0700
+Date:   2019-10-03 21:37:08 -0700
 
 update ScriptInterpreterPython to use File, not FILE*
 
-
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 5a4a301c0d9..503224f8c89 100644
+index 5a4a301c0d9..70e079c1d90 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -460,7 +460,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -447,9 +447,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(re.search(r'error:.*lolwut', errors))
+             self.assertTrue(re.search(r'zork', errors))
+ 
+-    #FIXME This shouldn't fail for python2 either.
++
+     @add_test_categories(['pyapi'])
+-    @skipIf(py_version=['<', (3,)])
+     def test_replace_stdout(self):
+         f = io.StringIO()
+         with replace_stdout(f):
+@@ -460,7 +459,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
