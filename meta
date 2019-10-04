@@ -1,6 +1,6 @@
 Version: 1
-Previous: 834bdb2eade80d21f49905a9f6492f78985a28f7
-Head: 05a34c312c4ce96f22e29af703c507f234f6a8a9
+Previous: 3c5307f46d0aee736502261475a704cb0b8e2021
+Head: f992120d06c5fb5adba84ba6f3ac67a223c808da
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
@@ -14,12 +14,11 @@ Applied:
   protect-libedit-and-lldb-gui: 0bc8b397d0ed328275187869b48b00c7b4504bd1
   update-sbdebugger-setinputfile: 79a925762697c628f691f1656b8736c400636b6a
   sbfile-getfile-convert-sbfile: 10ab5ff32114c77c3d9199d6803539cbf1c7a7b3
-  convert-sbdebugger-filehandle: a52e89cdb9a71cbd0ecb111ca23a0d2af3c3928f
-  SBInstruction: caa9bc46c13cfcf81ba6d7c7ba95c1c390f190af
-  SBStream: 80f10ccd8b2e4fa6d31947fb2c722beb73575e30
-  update-scriptinterpreterpython: c054c9bc612ec17553ff34105f6e1f9be578a7f1
-  fixup-convert-sbdebugger: ab3600f9bb1213c769da8055aed2de8ae20f4ff6
-  fixup-sbfile-add-a-bunch-of: 05a34c312c4ce96f22e29af703c507f234f6a8a9
+  convert-sbdebugger-filehandle: 39aace215fe917c8af0870837be88bb444d50019
+  SBInstruction: d19eecaa5bf441f6e9cc6b8e486a5de921bae262
+  SBStream: 555c932d5f123ef2feb943083585f311ada30229
+  update-scriptinterpreterpython: b60899f672a936cf4e139384c9297db27931a1fd
+  fixup-sbfile-add-a-bunch-of: f992120d06c5fb5adba84ba6f3ac67a223c808da
 Unapplied:
   fixup-i-dont-know-where: ec0c0aab8d6dc1d61e3b5bd6b97e7f630f67845d
 Hidden:
