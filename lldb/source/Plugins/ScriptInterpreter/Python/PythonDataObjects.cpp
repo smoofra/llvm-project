@@ -1146,6 +1146,7 @@ public:
   }
 
   bool IsPythonSideValid() const {
+    GIL takeGIL;
     auto closed =
         Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
     if (!closed.IsValid() || PyErr_Occurred()) {
@@ -1162,7 +1163,6 @@ public:
   }
 
   bool IsValid() const override {
-    GIL takeGIL;
     return IsPythonSideValid() && Base::IsValid();
   }
 
@@ -1194,7 +1194,7 @@ class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
                    uint32_t options)
-      : OwnedPythonFile(file, borrowed, fd, options, false){};
+      : OwnedPythonFile(file, borrowed, fd, options, false){}
 };
 }
 
@@ -1230,7 +1230,6 @@ public:
   ~PythonIOFile() override { Close(); }
 
   bool IsValid() const override {
-    GIL takeGIL;
     return IsPythonSideValid();
   }
 
