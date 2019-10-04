@@ -1,14 +1,12 @@
 Version: 1
-Previous: 6740955334f422ecb219927e9db0df3133e8d279
-Head: 2da80dbdbdb531b1b984a14d366cc059ee411704
+Previous: 8e6db9c21767140c761eea11e0dbebb49ce78a66
+Head: fe6c368828c8e678cf30cce1fbd7f10032fe19a9
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
   sbfile-add-a-bunch-of-tests: ec38bdbb6fceb4918fcef1e047a8aa3eeb618ea3
-  bytes: 2da80dbdbdb531b1b984a14d366cc059ee411704
-Unapplied:
   SBCommandReturnObject: bf932ba1972e1ee71c160ff54ba5ffc552556c6a
   remove-a-smattering-of: e5cc2b523687c825a637ce5ed34efb7f69029e77
   HandleProcessEvent: dfff8152d425af5432ef3792670c24642d368157
@@ -21,5 +19,7 @@ Unapplied:
   SBStream: 91f4bb1f75cf780ceeb873abb13ea01331871224
   update-scriptinterpreterpython: 4cdee5f82e9a49a8f28862529f4d77e9f216743a
   imm: fe79b777f43ca914c922e6bf224d5b95093705ab
+  bytes: fe6c368828c8e678cf30cce1fbd7f10032fe19a9
+Unapplied:
   fixup-i-dont-know-where: ec0c0aab8d6dc1d61e3b5bd6b97e7f630f67845d
 Hidden:
