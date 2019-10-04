@@ -747,7 +747,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             status = debugger.SetOutputFile(f)
             self.assertTrue(status.Success())
-            self.handleCmd(debugger, "help help", collect_result=False)
+            self.handleCmd("help help", check=False, collect_result=False)
             # make sure the file wasn't closed early.
             f.write("\nZAP\n")
             lldb.SBDebugger.Destroy(debugger)
