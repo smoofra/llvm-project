@@ -1,5 +1,5 @@
 Bottom: 3045e2a152af2808e1be3d38b1c27a85fa2d7030
-Top:    def7686c72720737c77f5f5839654942df6d37eb
+Top:    766091fe29bf3e876b2401c0a2bf3e3f09a2a07c
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:52:58 -0700
 
@@ -108,10 +108,19 @@ index 670002dada8..61e57fb798a 100644
    }
  
 diff --git a/lldb/include/lldb/Utility/ReproducerInstrumentation.h b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
-index 2151708ff4f..ce86db55602 100644
+index 2151708ff4f..0fe30ede6a4 100644
 --- a/lldb/include/lldb/Utility/ReproducerInstrumentation.h
 +++ b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
-@@ -353,6 +353,8 @@ private:
+@@ -16,6 +16,8 @@
+ #include "llvm/ADT/StringRef.h"
+ #include "llvm/Support/ErrorHandling.h"
+ 
++#include "lldb/API/SBFile.h"
++
+ #include <iostream>
+ #include <map>
+ #include <type_traits>
+@@ -353,6 +355,8 @@ private:
  /// instead of treating it as pointer.
  template <> const char *Deserializer::Deserialize<const char *>();
  template <> char *Deserializer::Deserialize<char *>();
