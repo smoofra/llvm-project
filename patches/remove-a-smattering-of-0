@@ -1,5 +1,5 @@
 Bottom: f6048cef3b09c8b99571d8be1adb3abf78041743
-Top:    2bf20766ef8212c371af1f079c671b51552d1b3e
+Top:    5b77e2690426d9c4f990dc4fd02472eb0cac096b
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:38:33 -0700
 
@@ -37,7 +37,7 @@ index 928149a13e2..89179fc4f17 100644
      if (!m_opaque_sp->GetAsyncExecution()) {
        SBProcess process(GetCommandInterpreter().GetProcess());
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index 6f4b1df6ad4..5b9c760ad21 100644
+index 6f4b1df6ad4..b134b69456e 100644
 --- a/lldb/source/Core/IOHandler.cpp
 +++ b/lldb/source/Core/IOHandler.cpp
 @@ -328,10 +328,9 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
@@ -49,7 +49,7 @@ index 6f4b1df6ad4..5b9c760ad21 100644
 -            ::fprintf(out, "%s", prompt);
 -            ::fflush(out);
 +          if (m_output_sp) {
-+            m_output_sp->GetFile().Printf("%s", prompt);
++            m_output_sp->Printf("%s", prompt);
 +            m_output_sp->Flush();
            }
          }
@@ -63,15 +63,15 @@ index 6f4b1df6ad4..5b9c760ad21 100644
 -          ::fprintf(out, "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
 -                    GetPrompt() == nullptr ? " " : "");
 +        if (m_output_sp) {
-+          m_output_sp->GetFile().Printf(
-+              "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
-+              GetPrompt() == nullptr ? " " : "");
++          m_output_sp->Printf("%u%s",
++                              m_base_line_number + (uint32_t)lines.GetSize(),
++                              GetPrompt() == nullptr ? " " : "");
 +        }
        }
  
        m_curr_line_idx = lines.GetSize();
 diff --git a/lldb/source/Expression/REPL.cpp b/lldb/source/Expression/REPL.cpp
-index 78e46881023..134c16fedee 100644
+index 78e46881023..4f81ee3e56d 100644
 --- a/lldb/source/Expression/REPL.cpp
 +++ b/lldb/source/Expression/REPL.cpp
 @@ -423,7 +423,7 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
@@ -79,7 +79,7 @@ index 78e46881023..134c16fedee 100644
          }
          if (extra_line) {
 -          fprintf(output_sp->GetFile().GetStream(), "\n");
-+          output_sp->GetFile().Printf("\n");
++          output_sp->Printf("\n");
          }
        }
      }
