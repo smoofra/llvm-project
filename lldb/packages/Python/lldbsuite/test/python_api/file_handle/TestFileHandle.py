@@ -306,6 +306,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_immediate_string(self):
         f = io.StringIO()
         ret = lldb.SBCommandReturnObject()
@@ -321,6 +322,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_immediate_sbfile_string(self):
         f = io.StringIO()
         ret = lldb.SBCommandReturnObject()
@@ -395,6 +397,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_string_inout(self):
         inf = io.StringIO("help help\np/x ~0\n")
         outf = io.StringIO()
@@ -411,6 +414,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_bytes_inout(self):
         inf = io.BytesIO(b"help help\nhelp b\n")
         outf = io.BytesIO()
@@ -761,7 +765,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         status = self.debugger.SetOutputFile(f)
         self.assertTrue(status.Success())
         self.handleCmd(r"script sys.stdout.write('foobar\n')")
-        self.assertEqual(f.getvalue().strip(), "foobar\n7")
+        self.assertEqual(f.getvalue().strip().split(), ["foobar", "7"])
 
 
     @add_test_categories(['pyapi'])
