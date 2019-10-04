@@ -344,17 +344,18 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
       size_t pos = m_line_buffer.find('\n');
       if (pos != std::string::npos) {
         size_t end = pos;
-        while (end > 0 && (m_line_buffer[end] == '\n' || m_line_buffer[end] == '\r'))
+        while (end > 0 &&
+               (m_line_buffer[end] == '\n' || m_line_buffer[end] == '\r'))
           end--;
-        line = m_line_buffer.substr(0, end+1);
-        m_line_buffer = m_line_buffer.substr(pos+1);
+        line = m_line_buffer.substr(0, end + 1);
+        m_line_buffer = m_line_buffer.substr(pos + 1);
         done = true;
         got_line = true;
       }
 
       while (!done) {
         size_t bytes_read = sizeof(buffer);
-        m_input_sp->GetFile().Read((void*)buffer, bytes_read);
+        m_input_sp->GetFile().Read((void *)buffer, bytes_read);
         if (bytes_read) {
           auto bytes = llvm::StringRef(buffer, bytes_read);
           size_t pos = bytes.find('\n');
@@ -363,8 +364,8 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
             while (end > 0 && (bytes[end] == '\n' || bytes[end] == '\r'))
               end--;
             line = m_line_buffer;
-            line.append(bytes.substr(0, end+1));
-            m_line_buffer = bytes.substr(pos+1);
+            line.append(bytes.substr(0, end + 1));
+            m_line_buffer = bytes.substr(pos + 1);
             done = true;
             got_line = true;
           } else {
