@@ -355,7 +355,7 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
 
       while (!done) {
         size_t bytes_read = sizeof(buffer);
-        m_input_sp->GetFile().Read((void *)buffer, bytes_read);
+        m_input_sp->Read((void *)buffer, bytes_read);
         if (bytes_read) {
           auto bytes = llvm::StringRef(buffer, bytes_read);
           size_t pos = bytes.find('\n');
