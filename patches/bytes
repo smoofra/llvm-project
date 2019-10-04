@@ -1,0 +1,29 @@
+Bottom: 2ba71bdf28c7c20ec32390304756ab1df551c34f
+Top:    9e43b7942b3c087bded12c6262ddeb141696179a
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 21:48:45 -0700
+
+bytes
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 49b2d7037a6..b9840f4c4ad 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -397,6 +397,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
++    @skipIf(py_version=['<', (3,)])
+     def test_string_inout(self):
+         inf = io.StringIO("help help\np/x ~0\n")
+         outf = io.StringIO()
+@@ -413,6 +414,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
++    @skipIf(py_version=['<', (3,)])
+     def test_bytes_inout(self):
+         inf = io.BytesIO(b"help help\nhelp b\n")
+         outf = io.BytesIO()

@@ -1,0 +1,22 @@
+Bottom: 9e43b7942b3c087bded12c6262ddeb141696179a
+Top:    66a70ed87ef1d97eafc3e2f9b1870e4470074d0d
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 21:48:57 -0700
+
+split
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index b9840f4c4ad..b582f583e23 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -765,7 +765,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+         status = self.debugger.SetOutputFile(f)
+         self.assertTrue(status.Success())
+         self.handleCmd(r"script sys.stdout.write('foobar\n')")
+-        self.assertEqual(f.getvalue().strip(), "foobar\n7")
++        self.assertEqual(f.getvalue().strip().split(), ["foobar", "7"])
+ 
+ 
+     @add_test_categories(['pyapi'])

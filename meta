@@ -1,5 +1,5 @@
 Version: 1
-Previous: 992e9348624757ee03908255cf6a1171b3943d64
+Previous: 9d6cdd01752f4b48b818c2bde18629430d23eeac
 Head: f690cd3edcb56305014b49fcfa6850e5310689a3
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -18,6 +18,9 @@ Applied:
   SBInstruction: d19eecaa5bf441f6e9cc6b8e486a5de921bae262
   SBStream: 555c932d5f123ef2feb943083585f311ada30229
   update-scriptinterpreterpython: b60899f672a936cf4e139384c9297db27931a1fd
+  imm: 7488c630a36a517a6cf6cff0e437a3b8f356df3b
+  bytes: 1f41e2ce1dde3a07ec83690c82ae014b1f876801
+  split: f690cd3edcb56305014b49fcfa6850e5310689a3
 Unapplied:
   fixup-i-dont-know-where: ec0c0aab8d6dc1d61e3b5bd6b97e7f630f67845d
 Hidden:
