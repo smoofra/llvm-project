@@ -1,14 +1,13 @@
 Version: 1
-Previous: 367337ae25177b5b11109a76ee679c49a93fae73
-Head: a07468a55e9b3c90641b7001901dd64620a4f2ca
+Previous: 9a8cc48a9e248d4178cb10675c82e330c84d1c6d
+Head: 12388ce8e75af6466fc23c1155931e4cbe39efd3
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
   sbfile-add-a-bunch-of-tests: ec38bdbb6fceb4918fcef1e047a8aa3eeb618ea3
-  SBCommandReturnObject: 622026549e5828f127691019096ca95cadc1df79
-  refresh-temp: a07468a55e9b3c90641b7001901dd64620a4f2ca
+  SBCommandReturnObject: 12388ce8e75af6466fc23c1155931e4cbe39efd3
 Unapplied:
   remove-a-smattering-of-0: 61befb5068b5b344e2664764f8b9df8851b93edf
   HandleProcessEvent: 92fb50b02d0f0f04312187bfba898754ecf0871c
