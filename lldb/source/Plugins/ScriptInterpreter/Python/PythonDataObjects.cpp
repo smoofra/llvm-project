@@ -1011,6 +1011,19 @@ void PythonFile::Reset(File &file, const char *mode) {
     return;
   }
 
+  PyObject *file_obj = (PyObject *)file.GetPythonObject();
+  if (file_obj) {
+    Reset(PyRefType::Borrowed, file_obj);
+    return;
+  }
+
+  if (!mode)
+    mode = file.GetOpenMode();
+  if (!mode) {
+    Reset();
+    return;
+  }
+
   char *cmode = const_cast<char *>(mode);
 #if PY_MAJOR_VERSION >= 3
   Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
@@ -1181,6 +1194,8 @@ public:
     return base_error;
   };
 
+  void *GetPythonObject() const override { return m_py_obj; }
+
 protected:
   PyObject *m_py_obj;
   bool m_borrowed;
@@ -1251,6 +1266,15 @@ public:
     if (PyErr_Occurred())
       error = llvm::make_error<PythonException>("Flush");
     return error;
+  }
+
+  uint32_t GetOptions() const override {
+    auto obj = Retain<PythonObject>(m_py_obj);
+    auto opts = GetOptionsForPyObject(obj);
+    if (opts)
+      return opts.get();
+    llvm::consumeError(opts.takeError());
+    return 0;
   }
 };
 }
