@@ -1,0 +1,14 @@
+Bottom: 9c42d71cff3a2a6fc194afd2ab11044fa1c9c4c4
+Top:    9c42d71cff3a2a6fc194afd2ab11044fa1c9c4c4
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-18 11:12:10 -0700
+
+update SBDebugger::SetInputFile() etc to work on native Files
+
+This patch adds lldb_private::File& versions of SetInputFile(),
+SetOutputFile, and SetErrorFile().   SWIG will convert native
+python file objects into lldb_private::File&.
+
+
+---
+
