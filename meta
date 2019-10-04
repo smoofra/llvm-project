@@ -1,5 +1,5 @@
 Version: 1
-Previous: b3dcbff21c265255f734d79d4744898d3aae851b
+Previous: 8b80a2d13a409a74d0f9b0098d698966b8ddff64
 Head: 61befb5068b5b344e2664764f8b9df8851b93edf
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -8,8 +8,9 @@ Applied:
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
   sbfile-add-a-bunch-of-tests: ec38bdbb6fceb4918fcef1e047a8aa3eeb618ea3
   SBCommandReturnObject: 622026549e5828f127691019096ca95cadc1df79
-  remove-a-smattering-of: f089bd76660e994ca9925b95a7d0623b4fcce51a
+  remove-a-smattering-of-0: 61befb5068b5b344e2664764f8b9df8851b93edf
 Unapplied:
+  remove-a-smattering-of: f089bd76660e994ca9925b95a7d0623b4fcce51a
   HandleProcessEvent: ee4fa8caa2d1e73dc831dfe3e279fe340391d163
   iohandler-fall-back-on-file: f4197ae5cf5cfc7d372fb3f5cbeb9b05b07033bb
   protect-libedit-and-lldb-gui: 6bd10def5b9ec4f11e85e0ce1de904e63d3118c6
