@@ -331,26 +331,26 @@ lldb::SBTrace SBProcess::StartTrace(SBTraceOptions &options,
   return LLDB_RECORD_RESULT(trace_instance);
 }
 
-void SBProcess::ReportEventState(const SBEvent &event, SBFile &out) const {
+void SBProcess::ReportEventState(const SBEvent &event, SBFile out) const {
   LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
-                           (const SBEvent &, SBFile &), event, out);
+                           (const SBEvent &, SBFile), event, out);
 
-  return ReportEventState(event, out.GetFile());
+  return ReportEventState(event, out.m_opaque_sp);
 }
 
 void SBProcess::ReportEventState(const SBEvent &event, FILE *out) const {
   LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
                            (const lldb::SBEvent &, FILE *), event, out);
-  File outfile(out, false);
+  FileSP outfile = std::make_shared<NativeFile>(out, false);
   return ReportEventState(event, outfile);
 }
 
-void SBProcess::ReportEventState(const SBEvent &event, File &out) const {
+void SBProcess::ReportEventState(const SBEvent &event, FileSP out) const {
 
   LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
-                           (const SBEvent &, File &), event, out);
+                           (const SBEvent &, FileSP), event, out);
 
-  if (!out.IsValid())
+  if (!out || !out->IsValid())
     return;
 
   ProcessSP process_sp(GetSP());
@@ -361,7 +361,7 @@ void SBProcess::ReportEventState(const SBEvent &event, File &out) const {
         message, sizeof(message), "Process %" PRIu64 " %s\n",
         process_sp->GetID(), SBDebugger::StateAsCString(event_state));
     if (message_len > 0)
-      out.Write((void *)message, message_len);
+      out->Write((void *)message, message_len);
   }
 }
 
@@ -1322,9 +1322,9 @@ void RegisterMethods<SBProcess>(Registry &R) {
   LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
                              (const lldb::SBEvent &, FILE *));
   LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
-                             (const lldb::SBEvent &, File &));
+                             (const lldb::SBEvent &, FileSP));
   LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
-                             (const lldb::SBEvent &, SBFile &));
+                             (const lldb::SBEvent &, SBFile));
   LLDB_REGISTER_METHOD(
       void, SBProcess, AppendEventStateReport,
       (const lldb::SBEvent &, lldb::SBCommandReturnObject &));

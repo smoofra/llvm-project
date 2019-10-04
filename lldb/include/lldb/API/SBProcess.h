@@ -67,10 +67,9 @@ public:
 
   void ReportEventState(const lldb::SBEvent &event, FILE *out) const;
 
-  void ReportEventState(const lldb::SBEvent &event, SBFile &file) const;
+  void ReportEventState(const lldb::SBEvent &event, SBFile file) const;
 
-  void ReportEventState(const lldb::SBEvent &event,
-                        lldb_private::File &file) const;
+  void ReportEventState(const lldb::SBEvent &event, FileSP file) const;
 
   void AppendEventStateReport(const lldb::SBEvent &event,
                               lldb::SBCommandReturnObject &result);

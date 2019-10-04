@@ -115,17 +115,10 @@ public:
                           FILE *err); // DEPRECATED
 
   void HandleProcessEvent(const lldb::SBProcess &process,
-                          const lldb::SBEvent &event, SBFile &out, SBFile &err);
+                          const lldb::SBEvent &event, SBFile out, SBFile err);
 
   void HandleProcessEvent(const lldb::SBProcess &process,
-                          const lldb::SBEvent &event, lldb_private::File &out,
-                          lldb_private::File &err);
-
-  void HandleProcessEvent(const lldb::SBProcess &process,
-                          const lldb::SBEvent &event, SBFile &&out,
-                          SBFile &&err) {
-    HandleProcessEvent(process, event, out, err);
-  }
+                          const lldb::SBEvent &event, FileSP out, FileSP err);
 
   lldb::SBTarget CreateTarget(const char *filename, const char *target_triple,
                               const char *platform_name,
