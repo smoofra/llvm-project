@@ -447,9 +447,8 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertTrue(re.search(r'error:.*lolwut', errors))
             self.assertTrue(re.search(r'zork', errors))
 
-    #FIXME This shouldn't fail for python2 either.
+
     @add_test_categories(['pyapi'])
-    @skipIf(py_version=['<', (3,)])
     def test_replace_stdout(self):
         f = io.StringIO()
         with replace_stdout(f):
