@@ -1,0 +1,44 @@
+Bottom: 822d59e10439ef497d43eec17007c6ecbdcb2b5d
+Top:    0a00bae294e48f89744994275d020abbc965ca52
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-04 09:27:06 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index b3e364302fc..16401ba98a6 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1146,6 +1146,7 @@ public:
+   }
+ 
+   bool IsPythonSideValid() const {
++    GIL takeGIL;
+     auto closed =
+         Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
+     if (!closed.IsValid() || PyErr_Occurred()) {
+@@ -1162,7 +1163,6 @@ public:
+   }
+ 
+   bool IsValid() const override {
+-    GIL takeGIL;
+     return IsPythonSideValid() && Base::IsValid();
+   }
+ 
+@@ -1194,7 +1194,7 @@ class SimplePythonFile : public OwnedPythonFile<NativeFile> {
+ public:
+   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
+                    uint32_t options)
+-      : OwnedPythonFile(file, borrowed, fd, options, false){};
++      : OwnedPythonFile(file, borrowed, fd, options, false){}
+ };
+ }
+ 
+@@ -1230,7 +1230,6 @@ public:
+   ~PythonIOFile() override { Close(); }
+ 
+   bool IsValid() const override {
+-    GIL takeGIL;
+     return IsPythonSideValid();
+   }
