@@ -1,0 +1,21 @@
+Bottom: 211b79fdb7ec8afb3331698cd9f2fe4decbceba4
+Top:    32197250521b2b94df8b19efd01222fae8759537
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 19:27:11 -0700
+
+Refresh of remove-file-usage-from
+
+---
+diff --git a/lldb/source/API/SBStream.cpp b/lldb/source/API/SBStream.cpp
+index 06b85e338ab..eebccecb552 100644
+--- a/lldb/source/API/SBStream.cpp
++++ b/lldb/source/API/SBStream.cpp
+@@ -132,7 +132,7 @@ void SBStream::RedirectToFile(FileSP file_sp) {
+       local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
+   }
+ 
+-  m_opaque_up.reset = std::make_unique<StreamFile>(file_sp);
++  m_opaque_up = std::make_unique<StreamFile>(file_sp);
+   m_is_file = true;
+ 
+   // If we had any data locally in our StreamString, then pass that along to
