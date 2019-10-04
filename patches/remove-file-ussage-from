@@ -1,0 +1,205 @@
+Bottom: f6fa855820df39d0b5714cb1ec7b24be99c85322
+Top:    55607b4106cb75aa019dfdba6739d04cd4375112
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-19 15:57:51 -0700
+
+remove FILE* ussage from SBInstruction
+
+
+---
+diff --git a/lldb/include/lldb/API/SBInstruction.h b/lldb/include/lldb/API/SBInstruction.h
+index 0bb58779560..dea124e374c 100644
+--- a/lldb/include/lldb/API/SBInstruction.h
++++ b/lldb/include/lldb/API/SBInstruction.h
+@@ -55,6 +55,10 @@ public:
+ 
+   void Print(FILE *out);
+ 
++  void Print(SBFile &out);
++
++  void Print(lldb_private::File &out);
++
+   bool GetDescription(lldb::SBStream &description);
+ 
+   bool EmulateWithFrame(lldb::SBFrame &frame, uint32_t evaluate_options);
+diff --git a/lldb/include/lldb/API/SBInstructionList.h b/lldb/include/lldb/API/SBInstructionList.h
+index 4434d50f471..3143e9b61eb 100644
+--- a/lldb/include/lldb/API/SBInstructionList.h
++++ b/lldb/include/lldb/API/SBInstructionList.h
+@@ -46,6 +46,10 @@ public:
+ 
+   void Print(FILE *out);
+ 
++  void Print(SBFile &out);
++
++  void Print(lldb_private::File &out);
++
+   bool GetDescription(lldb::SBStream &description);
+ 
+   bool DumpEmulationForAllInstructions(const char *triple);
+@@ -56,6 +60,8 @@ protected:
+   friend class SBTarget;
+ 
+   void SetDisassembler(const lldb::DisassemblerSP &opaque_sp);
++  bool GetDescription(lldb_private::Stream &description);
++
+ 
+ private:
+   lldb::DisassemblerSP m_opaque_sp;
+diff --git a/lldb/scripts/interface/SBInstruction.i b/lldb/scripts/interface/SBInstruction.i
+index 82b31fd9869..214ff619ef9 100644
+--- a/lldb/scripts/interface/SBInstruction.i
++++ b/lldb/scripts/interface/SBInstruction.i
+@@ -57,7 +57,10 @@ public:
+     CanSetBreakpoint ();
+ 
+     void
+-    Print (FILE *out);
++    Print (SBFile &out);
++
++    void
++    Print (lldb_private::File &BORROWED);
+ 
+     bool
+     GetDescription (lldb::SBStream &description);
+diff --git a/lldb/scripts/interface/SBInstructionList.i b/lldb/scripts/interface/SBInstructionList.i
+index edcceea6704..103da1f116e 100644
+--- a/lldb/scripts/interface/SBInstructionList.i
++++ b/lldb/scripts/interface/SBInstructionList.i
+@@ -55,7 +55,10 @@ public:
+     AppendInstruction (lldb::SBInstruction inst);
+ 
+     void
+-    Print (FILE *out);
++    Print (SBFile &out);
++
++    void
++    Print (lldb_private::File &BORROWED);
+ 
+     bool
+     GetDescription (lldb::SBStream &description);
+diff --git a/lldb/source/API/SBInstruction.cpp b/lldb/source/API/SBInstruction.cpp
+index fcf66fd2582..23231b888e6 100644
+--- a/lldb/source/API/SBInstruction.cpp
++++ b/lldb/source/API/SBInstruction.cpp
+@@ -11,6 +11,7 @@
+ 
+ #include "lldb/API/SBAddress.h"
+ #include "lldb/API/SBFrame.h"
++#include "lldb/API/SBFile.h"
+ 
+ #include "lldb/API/SBInstruction.h"
+ #include "lldb/API/SBStream.h"
+@@ -255,10 +256,21 @@ bool SBInstruction::GetDescription(lldb::SBStream &s) {
+   return false;
+ }
+ 
+-void SBInstruction::Print(FILE *out) {
+-  LLDB_RECORD_METHOD(void, SBInstruction, Print, (FILE *), out);
++void SBInstruction::Print(FILE *outp) {
++  LLDB_RECORD_METHOD(void, SBInstruction, Print, (FILE *), outp);
++  File out(outp, /*take_ownership=*/false);
++  Print(out);
++}
++
++void SBInstruction::Print(SBFile &out) {
++  LLDB_RECORD_METHOD(void, SBInstruction, Print, (SBFile &), out);
++  Print(out.GetFile());
++}
++
++void SBInstruction::Print(File &out) {
++  LLDB_RECORD_METHOD(void, SBInstruction, Print, (File &), out);
+ 
+-  if (out == nullptr)
++  if (!out.IsValid())
+     return;
+ 
+   lldb::InstructionSP inst_sp(GetOpaque());
+@@ -269,7 +281,7 @@ void SBInstruction::Print(FILE *out) {
+     if (module_sp)
+       module_sp->ResolveSymbolContextForAddress(addr, eSymbolContextEverything,
+                                                 sc);
+-    StreamFile out_stream(out, false);
++    StreamFile out_stream(out);
+     FormatEntity::Entry format;
+     FormatEntity::Parse("${addr}: ", format);
+     inst_sp->Dump(&out_stream, 0, true, false, nullptr, &sc, nullptr, &format,
+@@ -358,6 +370,8 @@ void RegisterMethods<SBInstruction>(Registry &R) {
+   LLDB_REGISTER_METHOD(bool, SBInstruction, GetDescription,
+                        (lldb::SBStream &));
+   LLDB_REGISTER_METHOD(void, SBInstruction, Print, (FILE *));
++  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (SBFile &));
++  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (File &));
+   LLDB_REGISTER_METHOD(bool, SBInstruction, EmulateWithFrame,
+                        (lldb::SBFrame &, uint32_t));
+   LLDB_REGISTER_METHOD(bool, SBInstruction, DumpEmulation, (const char *));
+diff --git a/lldb/source/API/SBInstructionList.cpp b/lldb/source/API/SBInstructionList.cpp
+index cce923bf04a..22d682fdab5 100644
+--- a/lldb/source/API/SBInstructionList.cpp
++++ b/lldb/source/API/SBInstructionList.cpp
+@@ -11,8 +11,10 @@
+ #include "lldb/API/SBAddress.h"
+ #include "lldb/API/SBInstruction.h"
+ #include "lldb/API/SBStream.h"
++#include "lldb/API/SBFile.h"
+ #include "lldb/Core/Disassembler.h"
+ #include "lldb/Core/Module.h"
++#include "lldb/Core/StreamFile.h"
+ #include "lldb/Symbol/SymbolContext.h"
+ #include "lldb/Utility/Stream.h"
+ 
+@@ -118,21 +120,41 @@ void SBInstructionList::SetDisassembler(const lldb::DisassemblerSP &opaque_sp) {
+ 
+ void SBInstructionList::Print(FILE *out) {
+   LLDB_RECORD_METHOD(void, SBInstructionList, Print, (FILE *), out);
+-
+   if (out == nullptr)
+     return;
++  StreamFile stream(out, false);
++  GetDescription(stream);
+ }
+ 
+-bool SBInstructionList::GetDescription(lldb::SBStream &description) {
++void SBInstructionList::Print(SBFile &out) {
++  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (SBFile &), out);
++  if (!out.IsValid())
++    return;
++  StreamFile stream(out.GetFile());
++  GetDescription(stream);
++}
++
++void SBInstructionList::Print(File &out) {
++  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (File &), out);
++  if (!out.IsValid())
++    return;
++  StreamFile stream(out);
++  GetDescription(stream);
++}
++
++bool SBInstructionList::GetDescription(lldb::SBStream &stream) {
+   LLDB_RECORD_METHOD(bool, SBInstructionList, GetDescription,
+-                     (lldb::SBStream &), description);
++                     (lldb::SBStream &), stream);
++  return GetDescription(stream.ref());
++}
++
++bool SBInstructionList::GetDescription(Stream &sref) {
+ 
+   if (m_opaque_sp) {
+     size_t num_instructions = GetSize();
+     if (num_instructions) {
+       // Call the ref() to make sure a stream is created if one deesn't exist
+       // already inside description...
+-      Stream &sref = description.ref();
+       const uint32_t max_opcode_byte_size =
+           m_opaque_sp->GetInstructionList().GetMaxOpcocdeByteSize();
+       FormatEntity::Entry format;
+@@ -200,6 +222,8 @@ void RegisterMethods<SBInstructionList>(Registry &R) {
+   LLDB_REGISTER_METHOD(void, SBInstructionList, AppendInstruction,
+                        (lldb::SBInstruction));
+   LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (FILE *));
++  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (SBFile &));
++  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (File &));
+   LLDB_REGISTER_METHOD(bool, SBInstructionList, GetDescription,
+                        (lldb::SBStream &));
+   LLDB_REGISTER_METHOD(bool, SBInstructionList,
