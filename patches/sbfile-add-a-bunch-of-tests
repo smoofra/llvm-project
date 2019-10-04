@@ -1,7 +1,7 @@
 Bottom: 822d59e10439ef497d43eec17007c6ecbdcb2b5d
-Top:    5bf982aeff368b997ae5d1fb6ec34975051b0176
+Top:    3045e2a152af2808e1be3d38b1c27a85fa2d7030
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-03 17:41:47 -0700
+Date:   2019-10-03 21:49:34 -0700
 
 SBFile: add a bunch of tests that should eventually work.
 
@@ -28,7 +28,7 @@ Differential Revision: https://reviews.llvm.org/D68433
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index c6bfc35f0ac..4db9c7dcf48 100644
+index c6bfc35f0ac..8206b4ebdbf 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -180,6 +180,19 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -321,7 +321,7 @@ index c6bfc35f0ac..4db9c7dcf48 100644
 +        status = self.debugger.SetOutputFile(f)
 +        self.assertTrue(status.Success())
 +        self.handleCmd(r"script sys.stdout.write('foobar\n')")
-+        self.assertEqual(f.getvalue().strip(), "foobar\n7")
++        self.assertEqual(f.getvalue().strip().split(), ["foobar", "7"])
 +
 +
 +    @add_test_categories(['pyapi'])

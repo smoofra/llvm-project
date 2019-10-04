@@ -1,5 +1,5 @@
-Bottom: 899bbc6177cde2ccbe9989c6d2aeefbffaa28b37
-Top:    0e3c2bb3e8a6050ca138b08de91bfe1ed4675977
+Bottom: a6fddf0ed1721617f8baad6e837347525ddf6421
+Top:    6ed5af7d0467b96e424d6f1de059c781160a80e0
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 17:54:57 -0700
 
@@ -20,7 +20,7 @@ index 0c50a2d80a9..37142a5a839 100644
  
  // The order of base classes is important. Look at the constructor of
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 23b60bd75dd..2e83b93db82 100644
+index b0728b0cf4a..eeffc563453 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -399,9 +399,8 @@ class FileHandleTestCase(lldbtest.TestBase):
