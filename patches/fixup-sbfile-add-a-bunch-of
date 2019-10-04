@@ -1,5 +1,5 @@
-Bottom: 664eb991f2e40f06a5abf39dde9f43da69f8768a
-Top:    3251f0ff72f38868bdd0f1adaeb389188c324690
+Bottom: 541b6a2a109d3affb816897e06383f8c0586b4b2
+Top:    66a70ed87ef1d97eafc3e2f9b1870e4470074d0d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:14:15 -0700
 
@@ -8,7 +8,7 @@ fixup-sbfile-add-a-bunch-of-tests
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 689fff4ce68..00af5590dbf 100644
+index 29b2dc18dea..b582f583e23 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -306,6 +306,7 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -43,7 +43,7 @@ index 689fff4ce68..00af5590dbf 100644
      def test_bytes_inout(self):
          inf = io.BytesIO(b"help help\nhelp b\n")
          outf = io.BytesIO()
-@@ -762,7 +766,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -761,7 +765,7 @@ class FileHandleTestCase(lldbtest.TestBase):
          status = self.debugger.SetOutputFile(f)
          self.assertTrue(status.Success())
          self.handleCmd(r"script sys.stdout.write('foobar\n')")

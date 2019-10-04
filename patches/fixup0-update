@@ -1,5 +1,5 @@
-Bottom: 3251f0ff72f38868bdd0f1adaeb389188c324690
-Top:    66a70ed87ef1d97eafc3e2f9b1870e4470074d0d
+Bottom: 3082f418c539d169891a35e80bbd4bd30d61a7f1
+Top:    6420ae80e5394d43ebd4bcfc44bde2fa265ed129
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:27:52 -0700
 
@@ -8,7 +8,7 @@ fixup0-update-scriptinterpreterpython
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 00af5590dbf..b582f583e23 100644
+index 503224f8c89..70e079c1d90 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -447,9 +447,8 @@ class FileHandleTestCase(lldbtest.TestBase):

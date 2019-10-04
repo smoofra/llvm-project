@@ -1,5 +1,5 @@
-Bottom: 3082f418c539d169891a35e80bbd4bd30d61a7f1
-Top:    664eb991f2e40f06a5abf39dde9f43da69f8768a
+Bottom: 6420ae80e5394d43ebd4bcfc44bde2fa265ed129
+Top:    541b6a2a109d3affb816897e06383f8c0586b4b2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:12:06 -0700
 
@@ -8,7 +8,7 @@ fixup-convert-sbdebugger-filehandle
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 503224f8c89..689fff4ce68 100644
+index 70e079c1d90..29b2dc18dea 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -130,8 +130,6 @@ class FileHandleTestCase(lldbtest.TestBase):
