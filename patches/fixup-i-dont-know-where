@@ -1,0 +1,21 @@
+Bottom: 66a70ed87ef1d97eafc3e2f9b1870e4470074d0d
+Top:    68126b6bcba7d7ca8d626c9a23b7558b42e78374
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 21:14:33 -0700
+
+fixup-i-dont-know-where
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index b582f583e23..1076152566f 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -546,7 +546,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @skipIf(py_version=['<', (3,)])
+-    @skipIf(True) # fixme multiple problems with this
+     def test_string_out(self):
+         f = io.StringIO()
+         status = self.debugger.SetOutputFile(f)
