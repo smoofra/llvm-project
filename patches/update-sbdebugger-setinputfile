@@ -1,5 +1,5 @@
-Bottom: 9c42d71cff3a2a6fc194afd2ab11044fa1c9c4c4
-Top:    ae2aa111e47cdf935b9da772f0ae2e7480f30ce2
+Bottom: 480cfc4e51f154146cf658dcafe29be8caf9f86d
+Top:    fbbf0c77eeb53423614e242d2f1718224f732bf4
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 11:12:10 -0700
 
@@ -29,7 +29,7 @@ index 9e695079733..580f6281fbb 100644
  
    SBFile GetOutputFile();
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 931073e335d..bcb8d46b30a 100644
+index 2e83b93db82..8b5539feb1c 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -558,7 +558,6 @@ class FileHandleTestCase(lldbtest.TestBase):
