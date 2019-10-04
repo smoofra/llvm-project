@@ -1,0 +1,21 @@
+Bottom: def7686c72720737c77f5f5839654942df6d37eb
+Top:    766091fe29bf3e876b2401c0a2bf3e3f09a2a07c
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 23:40:30 -0700
+
+Refresh of SBCommandReturnObject
+
+---
+diff --git a/lldb/include/lldb/Utility/ReproducerInstrumentation.h b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
+index ce86db55602..0fe30ede6a4 100644
+--- a/lldb/include/lldb/Utility/ReproducerInstrumentation.h
++++ b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
+@@ -16,6 +16,8 @@
+ #include "llvm/ADT/StringRef.h"
+ #include "llvm/Support/ErrorHandling.h"
+ 
++#include "lldb/API/SBFile.h"
++
+ #include <iostream>
+ #include <map>
+ #include <type_traits>
