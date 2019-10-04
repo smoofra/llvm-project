@@ -1,0 +1,183 @@
+Bottom: 9c42d71cff3a2a6fc194afd2ab11044fa1c9c4c4
+Top:    ae2aa111e47cdf935b9da772f0ae2e7480f30ce2
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 17:36:28 -0700
+
+Refresh of update-sbdebugger-setinputfile
+
+---
+diff --git a/lldb/include/lldb/API/SBDebugger.h b/lldb/include/lldb/API/SBDebugger.h
+index 9e695079733..580f6281fbb 100644
+--- a/lldb/include/lldb/API/SBDebugger.h
++++ b/lldb/include/lldb/API/SBDebugger.h
+@@ -94,6 +94,12 @@ public:
+ 
+   SBError SetErrorFile(SBFile file);
+ 
++  SBError SetInputFile(FileSP file);
++
++  SBError SetOutputFile(FileSP file);
++
++  SBError SetErrorFile(FileSP file);
++
+   SBFile GetInputFile();
+ 
+   SBFile GetOutputFile();
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 931073e335d..bcb8d46b30a 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -558,7 +558,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
+     @skipIf(py_version=['<', (3,)])
+     def test_string_error(self):
+         f = io.StringIO()
+@@ -629,7 +628,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
+     @skipIf(py_version=['<', (3,)])
+     def test_file_out(self):
+         with open(self.out_filename, 'w') as f:
+@@ -653,7 +651,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetErrorFile
+     def test_file_error(self):
+         with open(self.out_filename, 'w') as f:
+             status = self.debugger.SetErrorFile(f)
+@@ -745,7 +742,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetOutputFile
+     def test_close(self):
+         debugger = self.debugger
+         with open(self.out_filename, 'w') as f:
+@@ -766,7 +762,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+     @add_test_categories(['pyapi'])
+     @skipIf(py_version=['<', (3,)])
+-    @skipIf(True) # FIXME need FileSP version of SBDebugger::SetOutputFile
+     def test_stdout(self):
+         f = io.StringIO()
+         status = self.debugger.SetOutputFile(f)
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index 11834e42b65..3851c428bfb 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -165,21 +165,27 @@ public:
+     void
+     SkipLLDBInitFiles (bool b);
+ 
++    %feature("autodoc", "DEPRECATED, use SetInputFile");
+     void
+     SetInputFileHandle (FILE *f, bool transfer_ownership);
+ 
++    %feature("autodoc", "DEPRECATED, use SetOutputFile");
+     void
+     SetOutputFileHandle (FILE *f, bool transfer_ownership);
+ 
++    %feature("autodoc", "DEPRECATED, use SetErrorFile");
+     void
+     SetErrorFileHandle (FILE *f, bool transfer_ownership);
+ 
++    %feature("autodoc", "DEPRECATED, use GetInputFile");
+     FILE *
+     GetInputFileHandle ();
+ 
++    %feature("autodoc", "DEPRECATED, use GetOutputFile");
+     FILE *
+     GetOutputFileHandle ();
+ 
++    %feature("autodoc", "DEPRECATED, use GetErrorFile");
+     FILE *
+     GetErrorFileHandle ();
+ 
+@@ -192,6 +198,15 @@ public:
+     SBError
+     SetErrorFile (SBFile file);
+ 
++    SBError
++    SetInputFile (FileSP file);
++
++    SBError
++    SetOutputFile (FileSP file);
++
++    SBError
++    SetErrorFile (FileSP file);
++
+     SBFile
+     GetInputFile ();
+ 
+diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
+index b38e06baeb2..e85a52bab42 100644
+--- a/lldb/source/API/SBDebugger.cpp
++++ b/lldb/source/API/SBDebugger.cpp
+@@ -292,6 +292,11 @@ void SBDebugger::SetInputFileHandle(FILE *fh, bool transfer_ownership) {
+   SetInputFile((FileSP)std::make_shared<NativeFile>(fh, transfer_ownership));
+ }
+ 
++SBError SBDebugger::SetInputFile(FileSP file_sp) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetInputFile, (FileSP), file_sp);
++  return SetInputFile(SBFile(file_sp));
++}
++
+ // Shouldn't really be settable after initialization as this could cause lots
+ // of problems; don't want users trying to switch modes in the middle of a
+ // debugging session.
+@@ -332,6 +337,11 @@ SBError SBDebugger::SetInputFile(SBFile file) {
+   return error;
+ }
+ 
++SBError SBDebugger::SetOutputFile(FileSP file_sp) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetOutputFile, (FileSP), file_sp);
++  return SetOutputFile(SBFile(file_sp));
++}
++
+ void SBDebugger::SetOutputFileHandle(FILE *fh, bool transfer_ownership) {
+   LLDB_RECORD_METHOD(void, SBDebugger, SetOutputFileHandle, (FILE *, bool), fh,
+                      transfer_ownership);
+@@ -359,6 +369,11 @@ void SBDebugger::SetErrorFileHandle(FILE *fh, bool transfer_ownership) {
+   SetErrorFile((FileSP)std::make_shared<NativeFile>(fh, transfer_ownership));
+ }
+ 
++SBError SBDebugger::SetErrorFile(FileSP file_sp) {
++  LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (FileSP), file_sp);
++  return SetErrorFile(SBFile(file_sp));
++}
++
+ SBError SBDebugger::SetErrorFile(SBFile file) {
+   LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (SBFile file), file);
+   SBError error;
+@@ -1601,6 +1616,8 @@ static void SetFileHandleRedirect(SBDebugger *, FILE *, bool) {
+ 
+ static SBError SetFileRedirect(SBDebugger *, SBFile file) { return SBError(); }
+ 
++static SBError SetFileRedirect(SBDebugger *, FileSP file) { return SBError(); }
++
+ static bool GetDefaultArchitectureRedirect(char *arch_name,
+                                            size_t arch_name_len) {
+   // The function is writing to its argument. Without the redirect it would
+@@ -1631,6 +1648,16 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+                  SBFile)>::method<&SBDebugger::SetErrorFile>::doit,
+              &SetFileRedirect);
+ 
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 FileSP)>::method<&SBDebugger::SetInputFile>::doit,
++             &SetFileRedirect);
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 FileSP)>::method<&SBDebugger::SetOutputFile>::doit,
++             &SetFileRedirect);
++  R.Register(&invoke<SBError (SBDebugger::*)(
++                 FileSP)>::method<&SBDebugger::SetErrorFile>::doit,
++             &SetFileRedirect);
++
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, ());
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, (const lldb::DebuggerSP &));
+   LLDB_REGISTER_CONSTRUCTOR(SBDebugger, (const lldb::SBDebugger &));
