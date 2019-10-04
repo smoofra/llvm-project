@@ -1,0 +1,18 @@
+Bottom: 766091fe29bf3e876b2401c0a2bf3e3f09a2a07c
+Top:    7a437ae035dd3d69d179b6adb234b41d5c581118
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-03 23:46:02 -0700
+
+Refresh of SBCommandReturnObject
+
+---
+diff --git a/lldb/unittests/Utility/ReproducerInstrumentationTest.cpp b/lldb/unittests/Utility/ReproducerInstrumentationTest.cpp
+index 2a4ebac2df9..e62752bae8e 100644
+--- a/lldb/unittests/Utility/ReproducerInstrumentationTest.cpp
++++ b/lldb/unittests/Utility/ReproducerInstrumentationTest.cpp
+@@ -610,3 +610,5 @@ TEST(RecordReplayTest, InstrumentedBarPtr) {
+ 
+   ValidateObjects(1, 1);
+ }
++
++lldb::SBFile::SBFile() { }
