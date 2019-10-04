@@ -1,6 +1,6 @@
 Version: 1
-Previous: f3ed5f99fed64d48a43fd575b31c57e0491aa7a9
-Head: 3a450294b0e7c122ff8615f5629bd6cdc288fadf
+Previous: 4d1642e5be00941db307dc4a8759c9bc41ea1a4a
+Head: ffc9ad3f64599ff54de4241bf48b87a9061d3a9a
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
@@ -14,10 +14,10 @@ Applied:
   protect-libedit-and-lldb-gui: 18deb2807bebe0919d73f50129c511766e8836fc
   update-sbdebugger-setinputfile: f869e047c80e107774ca8a22bf1928c2f1e9caab
   sbfile-getfile-convert-sbfile: 3a450294b0e7c122ff8615f5629bd6cdc288fadf
+  convert-sbdebugger-filehandle: 1bd6bfd8c8dad17572e9b06c64e2aac6d005a689
+  SBInstruction: ba4b39e677d6b736010bdf8746ead07da5e0b1f6
+  SBStream: e317139348bac609c068237fe607a3d61b0ce151
+  update-scriptinterpreterpython: ffc9ad3f64599ff54de4241bf48b87a9061d3a9a
 Unapplied:
-  convert-sbdebugger-filehandle: 5bb67cd836f5b6f47f7686b03d042fcbd751c43b
-  SBInstruction: 8543d4951a0c7c42023d73f5d6a33ecd499eb1ee
-  SBStream: b8cb0d7b83c7114bb3190ea24307febb6f26fc56
-  update-scriptinterpreterpython: 17d9059a2627e55a0730783b74bf408233db29fc
   delete-swig-typemaps-for-file: bc70212c2fac64ed857d4ad052aac4040da52b49
 Hidden:
