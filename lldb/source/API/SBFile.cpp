@@ -23,6 +23,7 @@ SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {
 SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
 
 SBFile::SBFile(FILE *file, bool transfer_ownership) {
+  LLDB_RECORD_CONSTRUCTOR(SBFile, (FILE *, bool), file, transfer_ownership);
   m_opaque_sp = std::make_shared<NativeFile>(file, transfer_ownership);
 }
 
@@ -102,11 +103,21 @@ bool SBFile::operator!() const {
   return LLDB_RECORD_RESULT(!IsValid());
 }
 
+static SBFile *dummy() { return new SBFile(); }
+static SBFile *dummy(int, const char *, bool) { return new SBFile(); }
+static SBFile *dummy(FILE *, bool) { return new SBFile(); }
+
 namespace lldb_private {
 namespace repro {
+
 template <> void RegisterMethods<SBFile>(Registry &R) {
-  LLDB_REGISTER_CONSTRUCTOR(SBFile, ());
-  LLDB_REGISTER_CONSTRUCTOR(SBFile, (int, const char *, bool));
+
+  R.Register<SBFile *()>(&dummy, "", "SBFile", "SBFile", "()");
+  R.Register<SBFile *(int, const char *, bool)>(&dummy, "", "SBFile", "SBFile",
+                                                "(int, const char *, bool)");
+  R.Register<SBFile *(FILE *, bool)>(&dummy, "", "SBFile", "SBFile",
+                                     "(FILE*, bool)");
+
   LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Flush, ());
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
   LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator bool,());

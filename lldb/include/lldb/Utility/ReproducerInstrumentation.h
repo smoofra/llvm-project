@@ -178,6 +178,10 @@ template <typename... Ts> inline std::string stringify_args(const Ts &... ts) {
   lldb_private::repro::Recorder sb_recorder(LLVM_PRETTY_FUNCTION,              \
                                             stringify_args(__VA_ARGS__));
 
+namespace lldb {
+class SBFile;
+}
+
 namespace lldb_private {
 namespace repro {
 
@@ -236,6 +240,7 @@ struct ReferenceTag {};
 struct ValueTag {};
 struct FundamentalPointerTag {};
 struct FundamentalReferenceTag {};
+struct NotImplementedTag {};
 
 /// Return the deserialization tag for the given type T.
 template <class T> struct serializer_tag { typedef ValueTag type; };
@@ -248,6 +253,9 @@ template <class T> struct serializer_tag<T &> {
   typedef typename std::conditional<std::is_fundamental<T>::value,
                                     FundamentalReferenceTag, ReferenceTag>::type
       type;
+};
+template <> struct serializer_tag<lldb::SBFile> {
+  typedef NotImplementedTag type;
 };
 
 /// Deserializes data from a buffer. It is used to deserialize function indices
@@ -302,6 +310,11 @@ public:
   }
 
 private:
+  template <typename T> T Read(NotImplementedTag) {
+    m_buffer = m_buffer.drop_front(sizeof(T));
+    return T();
+  }
+
   template <typename T> T Read(ValueTag) {
     assert(HasData(sizeof(T)));
     T t;
