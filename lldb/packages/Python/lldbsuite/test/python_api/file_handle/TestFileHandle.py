@@ -765,7 +765,7 @@ class FileHandleTestCase(lldbtest.TestBase):
         status = self.debugger.SetOutputFile(f)
         self.assertTrue(status.Success())
         self.handleCmd(r"script sys.stdout.write('foobar\n')")
-        self.assertEqual(f.getvalue().strip(), "foobar\n7")
+        self.assertEqual(f.getvalue().strip().split(), ["foobar", "7"])
 
 
     @add_test_categories(['pyapi'])
