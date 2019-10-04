@@ -353,6 +353,8 @@ private:
 /// instead of treating it as pointer.
 template <> const char *Deserializer::Deserialize<const char *>();
 template <> char *Deserializer::Deserialize<char *>();
+template <> lldb::SBFile Deserializer::Deserialize<lldb::SBFile>();
+
 
 /// Helpers to auto-synthesize function replay code. It deserializes the replay
 /// function's arguments one by one and finally calls the corresponding
