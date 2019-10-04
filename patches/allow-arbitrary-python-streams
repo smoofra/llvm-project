@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    822d59e10439ef497d43eec17007c6ecbdcb2b5d
+Top:    0a00bae294e48f89744994275d020abbc965ca52
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -620,7 +620,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..b3e364302fc 100644
+index fedd8f66a1f..16401ba98a6 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -672,7 +672,7 @@ index fedd8f66a1f..b3e364302fc 100644
  
    return true;
  #endif
-@@ -1031,4 +1039,439 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1039,438 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -783,6 +783,7 @@ index fedd8f66a1f..b3e364302fc 100644
 +  }
 +
 +  bool IsPythonSideValid() const {
++    GIL takeGIL;
 +    auto closed =
 +        Take<PythonObject>(PyObject_GetAttrString(m_py_obj, "closed"));
 +    if (!closed.IsValid() || PyErr_Occurred()) {
@@ -799,7 +800,6 @@ index fedd8f66a1f..b3e364302fc 100644
 +  }
 +
 +  bool IsValid() const override {
-+    GIL takeGIL;
 +    return IsPythonSideValid() && Base::IsValid();
 +  }
 +
@@ -831,7 +831,7 @@ index fedd8f66a1f..b3e364302fc 100644
 +public:
 +  SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
 +                   uint32_t options)
-+      : OwnedPythonFile(file, borrowed, fd, options, false){};
++      : OwnedPythonFile(file, borrowed, fd, options, false){}
 +};
 +}
 +
@@ -867,7 +867,6 @@ index fedd8f66a1f..b3e364302fc 100644
 +  ~PythonIOFile() override { Close(); }
 +
 +  bool IsValid() const override {
-+    GIL takeGIL;
 +    return IsPythonSideValid();
 +  }
 +
