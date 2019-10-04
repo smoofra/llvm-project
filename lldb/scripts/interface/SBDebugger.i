@@ -165,29 +165,41 @@ public:
     void
     SkipLLDBInitFiles (bool b);
 
-    %feature("autodoc", "DEPRECATED, use SetInputFile");
-    void
-    SetInputFileHandle (FILE *f, bool transfer_ownership);
+    %extend {
 
-    %feature("autodoc", "DEPRECATED, use SetOutputFile");
-    void
-    SetOutputFileHandle (FILE *f, bool transfer_ownership);
+        %feature("autodoc", "DEPRECATED, use SetInputFile");
+        void
+        SetInputFileHandle (lldb::FileSP file,
+                            bool transfer_ownership) {
+            self->SetInputFile(file);
+        }
 
-    %feature("autodoc", "DEPRECATED, use SetErrorFile");
-    void
-    SetErrorFileHandle (FILE *f, bool transfer_ownership);
+        %feature("autodoc", "DEPRECATED, use SetOutputFile");
+        void
+        SetOutputFileHandle (lldb::FileSP file,
+                             bool transfer_ownership) {
+            self->SetOutputFile(file);
+        }
 
-    %feature("autodoc", "DEPRECATED, use GetInputFile");
-    FILE *
-    GetInputFileHandle ();
+        %feature("autodoc", "DEPRECATED, use SetErrorFile");
+        void
+        SetErrorFileHandle (lldb::FileSP file,
+                             bool transfer_ownership) {
+            self->SetErrorFile(file);
+        }
 
-    %feature("autodoc", "DEPRECATED, use GetOutputFile");
-    FILE *
-    GetOutputFileHandle ();
+        lldb::FileSP GetInputFileHandle() {
+            return self->GetInputFile().GetFile();
+        }
 
-    %feature("autodoc", "DEPRECATED, use GetErrorFile");
-    FILE *
-    GetErrorFileHandle ();
+        lldb::FileSP GetOutputFileHandle() {
+            return self->GetOutputFile().GetFile();
+        }
+
+        lldb::FileSP GetErrorFileHandle() {
+            return self->GetErrorFile().GetFile();
+        }
+    }
 
     SBError
     SetInputFile (SBFile file);
