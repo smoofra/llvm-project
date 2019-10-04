@@ -1,5 +1,5 @@
-Bottom: 861feef1c90f0b7d765d4a72e62c53c740c5bb46
-Top:    f7b110c9ac20f14f56ad6ab17af40ca61bc03621
+Bottom: 372db6d6f38932908d2158a9db9fc64acf584a23
+Top:    f416829eb74479296675d93b02a6e7924e88fa0e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:14:33 -0700
 
@@ -8,7 +8,7 @@ fixup-i-dont-know-where
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index b3c8222d0f6..2536a541036 100644
+index a5f7fe9ebf2..ddef79a5b68 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -552,7 +552,6 @@ class FileHandleTestCase(lldbtest.TestBase):
