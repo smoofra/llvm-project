@@ -1,5 +1,5 @@
 Bottom: f6fa855820df39d0b5714cb1ec7b24be99c85322
-Top:    55607b4106cb75aa019dfdba6739d04cd4375112
+Top:    754180d6bd2244978a09ba1dac01f63af10072ae
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 15:57:51 -0700
 
@@ -8,31 +8,31 @@ remove FILE* ussage from SBInstruction
 
 ---
 diff --git a/lldb/include/lldb/API/SBInstruction.h b/lldb/include/lldb/API/SBInstruction.h
-index 0bb58779560..dea124e374c 100644
+index 0bb58779560..7d83a37ba5d 100644
 --- a/lldb/include/lldb/API/SBInstruction.h
 +++ b/lldb/include/lldb/API/SBInstruction.h
 @@ -55,6 +55,10 @@ public:
  
    void Print(FILE *out);
  
-+  void Print(SBFile &out);
++  void Print(SBFile out);
 +
-+  void Print(lldb_private::File &out);
++  void Print(FileSP out);
 +
    bool GetDescription(lldb::SBStream &description);
  
    bool EmulateWithFrame(lldb::SBFrame &frame, uint32_t evaluate_options);
 diff --git a/lldb/include/lldb/API/SBInstructionList.h b/lldb/include/lldb/API/SBInstructionList.h
-index 4434d50f471..3143e9b61eb 100644
+index 4434d50f471..e203d0b8056 100644
 --- a/lldb/include/lldb/API/SBInstructionList.h
 +++ b/lldb/include/lldb/API/SBInstructionList.h
 @@ -46,6 +46,10 @@ public:
  
    void Print(FILE *out);
  
-+  void Print(SBFile &out);
++  void Print(SBFile out);
 +
-+  void Print(lldb_private::File &out);
++  void Print(FileSP out);
 +
    bool GetDescription(lldb::SBStream &description);
  
@@ -47,7 +47,7 @@ index 4434d50f471..3143e9b61eb 100644
  private:
    lldb::DisassemblerSP m_opaque_sp;
 diff --git a/lldb/scripts/interface/SBInstruction.i b/lldb/scripts/interface/SBInstruction.i
-index 82b31fd9869..214ff619ef9 100644
+index 82b31fd9869..a46d845ff6a 100644
 --- a/lldb/scripts/interface/SBInstruction.i
 +++ b/lldb/scripts/interface/SBInstruction.i
 @@ -57,7 +57,10 @@ public:
@@ -55,15 +55,15 @@ index 82b31fd9869..214ff619ef9 100644
  
      void
 -    Print (FILE *out);
-+    Print (SBFile &out);
++    Print (lldb::SBFile out);
 +
 +    void
-+    Print (lldb_private::File &BORROWED);
++    Print (lldb::FileSP &BORROWED);
  
      bool
      GetDescription (lldb::SBStream &description);
 diff --git a/lldb/scripts/interface/SBInstructionList.i b/lldb/scripts/interface/SBInstructionList.i
-index edcceea6704..103da1f116e 100644
+index edcceea6704..1e5aa9496b5 100644
 --- a/lldb/scripts/interface/SBInstructionList.i
 +++ b/lldb/scripts/interface/SBInstructionList.i
 @@ -55,7 +55,10 @@ public:
@@ -71,15 +71,15 @@ index edcceea6704..103da1f116e 100644
  
      void
 -    Print (FILE *out);
-+    Print (SBFile &out);
++    Print (lldb::SBFile out);
 +
 +    void
-+    Print (lldb_private::File &BORROWED);
++    Print (lldb::FileSP BORROWED);
  
      bool
      GetDescription (lldb::SBStream &description);
 diff --git a/lldb/source/API/SBInstruction.cpp b/lldb/source/API/SBInstruction.cpp
-index fcf66fd2582..23231b888e6 100644
+index fcf66fd2582..311402877f6 100644
 --- a/lldb/source/API/SBInstruction.cpp
 +++ b/lldb/source/API/SBInstruction.cpp
 @@ -11,6 +11,7 @@
@@ -98,20 +98,20 @@ index fcf66fd2582..23231b888e6 100644
 -  LLDB_RECORD_METHOD(void, SBInstruction, Print, (FILE *), out);
 +void SBInstruction::Print(FILE *outp) {
 +  LLDB_RECORD_METHOD(void, SBInstruction, Print, (FILE *), outp);
-+  File out(outp, /*take_ownership=*/false);
++  FileSP out = std::make_shared<NativeFile>(outp, /*take_ownership=*/false);
 +  Print(out);
 +}
 +
-+void SBInstruction::Print(SBFile &out) {
-+  LLDB_RECORD_METHOD(void, SBInstruction, Print, (SBFile &), out);
++void SBInstruction::Print(SBFile out) {
++  LLDB_RECORD_METHOD(void, SBInstruction, Print, (SBFile), out);
 +  Print(out.GetFile());
 +}
 +
-+void SBInstruction::Print(File &out) {
-+  LLDB_RECORD_METHOD(void, SBInstruction, Print, (File &), out);
++void SBInstruction::Print(FileSP out_sp) {
++  LLDB_RECORD_METHOD(void, SBInstruction, Print, (FileSP), out_sp);
  
 -  if (out == nullptr)
-+  if (!out.IsValid())
++  if (!out_sp || !out_sp->IsValid())
      return;
  
    lldb::InstructionSP inst_sp(GetOpaque());
@@ -120,7 +120,7 @@ index fcf66fd2582..23231b888e6 100644
        module_sp->ResolveSymbolContextForAddress(addr, eSymbolContextEverything,
                                                  sc);
 -    StreamFile out_stream(out, false);
-+    StreamFile out_stream(out);
++    StreamFile out_stream(out_sp);
      FormatEntity::Entry format;
      FormatEntity::Parse("${addr}: ", format);
      inst_sp->Dump(&out_stream, 0, true, false, nullptr, &sc, nullptr, &format,
@@ -128,13 +128,13 @@ index fcf66fd2582..23231b888e6 100644
    LLDB_REGISTER_METHOD(bool, SBInstruction, GetDescription,
                         (lldb::SBStream &));
    LLDB_REGISTER_METHOD(void, SBInstruction, Print, (FILE *));
-+  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (SBFile &));
-+  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (File &));
++  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (SBFile));
++  LLDB_REGISTER_METHOD(void, SBInstruction, Print, (FileSP));
    LLDB_REGISTER_METHOD(bool, SBInstruction, EmulateWithFrame,
                         (lldb::SBFrame &, uint32_t));
    LLDB_REGISTER_METHOD(bool, SBInstruction, DumpEmulation, (const char *));
 diff --git a/lldb/source/API/SBInstructionList.cpp b/lldb/source/API/SBInstructionList.cpp
-index cce923bf04a..22d682fdab5 100644
+index cce923bf04a..403ccaf75e9 100644
 --- a/lldb/source/API/SBInstructionList.cpp
 +++ b/lldb/source/API/SBInstructionList.cpp
 @@ -11,8 +11,10 @@
@@ -160,19 +160,19 @@ index cce923bf04a..22d682fdab5 100644
  }
  
 -bool SBInstructionList::GetDescription(lldb::SBStream &description) {
-+void SBInstructionList::Print(SBFile &out) {
-+  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (SBFile &), out);
++void SBInstructionList::Print(SBFile out) {
++  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (SBFile), out);
 +  if (!out.IsValid())
 +    return;
 +  StreamFile stream(out.GetFile());
 +  GetDescription(stream);
 +}
 +
-+void SBInstructionList::Print(File &out) {
-+  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (File &), out);
-+  if (!out.IsValid())
++void SBInstructionList::Print(FileSP out_sp) {
++  LLDB_RECORD_METHOD(void, SBInstructionList, Print, (FileSP), out_sp);
++  if (!out_sp || !out_sp->IsValid())
 +    return;
-+  StreamFile stream(out);
++  StreamFile stream(out_sp);
 +  GetDescription(stream);
 +}
 +
@@ -198,8 +198,8 @@ index cce923bf04a..22d682fdab5 100644
    LLDB_REGISTER_METHOD(void, SBInstructionList, AppendInstruction,
                         (lldb::SBInstruction));
    LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (FILE *));
-+  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (SBFile &));
-+  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (File &));
++  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (SBFile));
++  LLDB_REGISTER_METHOD(void, SBInstructionList, Print, (FileSP));
    LLDB_REGISTER_METHOD(bool, SBInstructionList, GetDescription,
                         (lldb::SBStream &));
    LLDB_REGISTER_METHOD(bool, SBInstructionList,
