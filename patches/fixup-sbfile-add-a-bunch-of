@@ -1,5 +1,5 @@
-Bottom: 541b6a2a109d3affb816897e06383f8c0586b4b2
-Top:    66a70ed87ef1d97eafc3e2f9b1870e4470074d0d
+Bottom: 5bf982aeff368b997ae5d1fb6ec34975051b0176
+Top:    5bf982aeff368b997ae5d1fb6ec34975051b0176
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:14:15 -0700
 
@@ -7,48 +7,4 @@ fixup-sbfile-add-a-bunch-of-tests
 
 
 ---
-diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 29b2dc18dea..b582f583e23 100644
---- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-+++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -306,6 +306,7 @@ class FileHandleTestCase(lldbtest.TestBase):
- 
- 
-     @add_test_categories(['pyapi'])
-+    @skipIf(py_version=['<', (3,)])
-     def test_immediate_string(self):
-         f = io.StringIO()
-         ret = lldb.SBCommandReturnObject()
-@@ -321,6 +322,7 @@ class FileHandleTestCase(lldbtest.TestBase):
- 
- 
-     @add_test_categories(['pyapi'])
-+    @skipIf(py_version=['<', (3,)])
-     def test_immediate_sbfile_string(self):
-         f = io.StringIO()
-         ret = lldb.SBCommandReturnObject()
-@@ -395,6 +397,7 @@ class FileHandleTestCase(lldbtest.TestBase):
- 
- 
-     @add_test_categories(['pyapi'])
-+    @skipIf(py_version=['<', (3,)])
-     def test_string_inout(self):
-         inf = io.StringIO("help help\np/x ~0\n")
-         outf = io.StringIO()
-@@ -411,6 +414,7 @@ class FileHandleTestCase(lldbtest.TestBase):
- 
- 
-     @add_test_categories(['pyapi'])
-+    @skipIf(py_version=['<', (3,)])
-     def test_bytes_inout(self):
-         inf = io.BytesIO(b"help help\nhelp b\n")
-         outf = io.BytesIO()
-@@ -761,7 +765,7 @@ class FileHandleTestCase(lldbtest.TestBase):
-         status = self.debugger.SetOutputFile(f)
-         self.assertTrue(status.Success())
-         self.handleCmd(r"script sys.stdout.write('foobar\n')")
--        self.assertEqual(f.getvalue().strip(), "foobar\n7")
-+        self.assertEqual(f.getvalue().strip().split(), ["foobar", "7"])
- 
- 
-     @add_test_categories(['pyapi'])
+

@@ -1,12 +1,14 @@
 Version: 1
-Previous: 3c5307f46d0aee736502261475a704cb0b8e2021
-Head: f992120d06c5fb5adba84ba6f3ac67a223c808da
+Previous: 612756f719cbb158f6e12d039db7a1dfd95b822f
+Head: 5e2fa3976c4990108b04fbfd052d432fda277de3
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
   sbfile-add-a-bunch-of-tests: e5bf54ce49032e92d541bb54792cf4b814576564
+  fixup-sbfile-add-a-bunch-of: 5e2fa3976c4990108b04fbfd052d432fda277de3
+Unapplied:
   SBCommandReturnObject: 6f47fd47f387bf4808930826169e3e20d03df5ad
   remove-a-smattering-of: e51c8efbe792bbb8c7f4808aaae4f07ffcf3005c
   HandleProcessEvent: aa4466397aff825ee45c626d698a94995b8f774a
@@ -18,7 +20,5 @@ Applied:
   SBInstruction: d19eecaa5bf441f6e9cc6b8e486a5de921bae262
   SBStream: 555c932d5f123ef2feb943083585f311ada30229
   update-scriptinterpreterpython: b60899f672a936cf4e139384c9297db27931a1fd
-  fixup-sbfile-add-a-bunch-of: f992120d06c5fb5adba84ba6f3ac67a223c808da
-Unapplied:
   fixup-i-dont-know-where: ec0c0aab8d6dc1d61e3b5bd6b97e7f630f67845d
 Hidden:
