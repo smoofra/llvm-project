@@ -1,5 +1,5 @@
-Bottom: 83416e89ce314fa670b1638f6bde064da0f1d1b7
-Top:    4e71985c9b1dd1ad587c58a6d3fef640f62461ab
+Bottom: 643b83285b47dc0791ef1918a80396e3184aabdb
+Top:    fc95c4f361459da6e82be1ac9ce3f2e14944b5c9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:39:39 -0700
 
@@ -7,7 +7,7 @@ convert SBDebugger::***FileHandle() wrappers to native files.
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index fe6eadbe229..01bd59a0512 100644
+index 599de5db69f..23cd37cb503 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -130,8 +130,6 @@ class FileHandleTestCase(lldbtest.TestBase):
