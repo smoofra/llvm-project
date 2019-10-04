@@ -329,7 +329,7 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
 
         if (prompt && prompt[0]) {
           if (m_output_sp) {
-            m_output_sp->GetFile().Printf("%s", prompt);
+            m_output_sp->Printf("%s", prompt);
             m_output_sp->Flush();
           }
         }
@@ -490,9 +490,9 @@ bool IOHandlerEditline::GetLines(StringList &lines, bool &interrupted) {
       std::string line;
       if (m_base_line_number > 0 && GetIsInteractive()) {
         if (m_output_sp) {
-          m_output_sp->GetFile().Printf(
-              "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
-              GetPrompt() == nullptr ? " " : "");
+          m_output_sp->Printf("%u%s",
+                              m_base_line_number + (uint32_t)lines.GetSize(),
+                              GetPrompt() == nullptr ? " " : "");
         }
       }
 
