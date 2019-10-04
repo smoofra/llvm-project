@@ -1,5 +1,5 @@
-Bottom: 0b8315079cbb010a85aeba1e1efe6904f7bc8ca2
-Top:    285627141f9cfa27515e14e794a4ed2a8d57a399
+Bottom: 861feef1c90f0b7d765d4a72e62c53c740c5bb46
+Top:    83416e89ce314fa670b1638f6bde064da0f1d1b7
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 12:06:03 -0700
 
@@ -77,10 +77,10 @@ index b36b523e320..3128a8540b1 100644
  protected:
    bool DescriptorIsValid() const {
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 714fa028661..dab216e5d7e 100644
+index b3c8222d0f6..fe6eadbe229 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -773,7 +773,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -775,7 +775,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])

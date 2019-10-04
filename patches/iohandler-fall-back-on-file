@@ -1,10 +1,9 @@
 Bottom: e2c298b8edc1b836574fc43f47debd084fa4d8f3
-Top:    db79ab9dac5070dec0347166a062006239ec58c6
+Top:    22d6e5c886a1116de7fe0551ea181d7496455cd0
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-18 17:54:57 -0700
+Date:   2019-10-03 21:57:15 -0700
 
 IOHandler: fall back on File::Read if a FILE* isn't available.
-
 
 ---
 diff --git a/lldb/include/lldb/Core/IOHandler.h b/lldb/include/lldb/Core/IOHandler.h
@@ -20,21 +19,22 @@ index 0c50a2d80a9..37142a5a839 100644
  
  // The order of base classes is important. Look at the constructor of
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index ca2f2dbef3b..9ba300cdcfa 100644
+index ca2f2dbef3b..a5f7fe9ebf2 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -401,9 +401,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -401,9 +401,9 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
 -    @skipIf(True) # FIXME IOHandler still using FILE*
++    @skipIf(py_version=['<', (3,)])
      def test_string_inout(self):
 -        inf = io.StringIO("help help\n")
 +        inf = io.StringIO("help help\np/x ~0\n")
          outf = io.StringIO()
          status = self.debugger.SetOutputFile(lldb.SBFile(outf))
          self.assertTrue(status.Success())
-@@ -414,10 +413,10 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -414,10 +414,11 @@ class FileHandleTestCase(lldbtest.TestBase):
          self.debugger.GetOutputFile().Flush()
          output = outf.getvalue()
          self.assertIn('Show a list of all debugger commands', output)
@@ -43,6 +43,7 @@ index ca2f2dbef3b..9ba300cdcfa 100644
  
      @add_test_categories(['pyapi'])
 -    @skipIf(True) # FIXME IOHandler still using FILE*
++    @skipIf(py_version=['<', (3,)])
      def test_bytes_inout(self):
          inf = io.BytesIO(b"help help\nhelp b\n")
          outf = io.BytesIO()
