@@ -1,4 +1,4 @@
-Bottom: beb983a08557111d0b7edd7b95fdc13d6ac70b00
+Bottom: 4835bd3e3419812d1e51384d2ef1a4431e69a159
 Top:    4835bd3e3419812d1e51384d2ef1a4431e69a159
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:38:33 -0700
@@ -7,67 +7,4 @@ remove a smattering of isolated, unnecessary uses of FILE*
 
 
 ---
-diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
-index 928149a13e2..89179fc4f17 100644
---- a/lldb/source/API/SBDebugger.cpp
-+++ b/lldb/source/API/SBDebugger.cpp
-@@ -467,10 +467,8 @@ void SBDebugger::HandleCommand(const char *command) {
- 
-     sb_interpreter.HandleCommand(command, result, false);
- 
--    if (GetErrorFileHandle() != nullptr)
--      result.PutError(GetErrorFile());
--    if (GetOutputFileHandle() != nullptr)
--      result.PutOutput(GetOutputFile());
-+    result.PutError(m_opaque_sp->GetErrorStream().GetFileSP());
-+    result.PutOutput(m_opaque_sp->GetOutputStream().GetFileSP());
- 
-     if (!m_opaque_sp->GetAsyncExecution()) {
-       SBProcess process(GetCommandInterpreter().GetProcess());
-diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index 6f4b1df6ad4..5b9c760ad21 100644
---- a/lldb/source/Core/IOHandler.cpp
-+++ b/lldb/source/Core/IOHandler.cpp
-@@ -328,10 +328,9 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
-           prompt = GetPrompt();
- 
-         if (prompt && prompt[0]) {
--          FILE *out = GetOutputFILE();
--          if (out) {
--            ::fprintf(out, "%s", prompt);
--            ::fflush(out);
-+          if (m_output_sp) {
-+            m_output_sp->GetFile().Printf("%s", prompt);
-+            m_output_sp->Flush();
-           }
-         }
-       }
-@@ -490,10 +489,11 @@ bool IOHandlerEditline::GetLines(StringList &lines, bool &interrupted) {
-       // Show line numbers if we are asked to
-       std::string line;
-       if (m_base_line_number > 0 && GetIsInteractive()) {
--        FILE *out = GetOutputFILE();
--        if (out)
--          ::fprintf(out, "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
--                    GetPrompt() == nullptr ? " " : "");
-+        if (m_output_sp) {
-+          m_output_sp->GetFile().Printf(
-+              "%u%s", m_base_line_number + (uint32_t)lines.GetSize(),
-+              GetPrompt() == nullptr ? " " : "");
-+        }
-       }
- 
-       m_curr_line_idx = lines.GetSize();
-diff --git a/lldb/source/Expression/REPL.cpp b/lldb/source/Expression/REPL.cpp
-index 78e46881023..134c16fedee 100644
---- a/lldb/source/Expression/REPL.cpp
-+++ b/lldb/source/Expression/REPL.cpp
-@@ -423,7 +423,7 @@ void REPL::IOHandlerInputComplete(IOHandler &io_handler, std::string &code) {
-               .SetBaseLineNumber(m_code.GetSize() + 1);
-         }
-         if (extra_line) {
--          fprintf(output_sp->GetFile().GetStream(), "\n");
-+          output_sp->GetFile().Printf("\n");
-         }
-       }
-     }
+
