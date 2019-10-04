@@ -397,6 +397,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_string_inout(self):
         inf = io.StringIO("help help\np/x ~0\n")
         outf = io.StringIO()
@@ -413,6 +414,7 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    @skipIf(py_version=['<', (3,)])
     def test_bytes_inout(self):
         inf = io.BytesIO(b"help help\nhelp b\n")
         outf = io.BytesIO()
