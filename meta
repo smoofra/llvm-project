@@ -1,5 +1,5 @@
 Version: 1
-Previous: ffc188557adc4b56390c3714480631e1856fd871
+Previous: dfb2ce66d7604556ccf7e177b501aa6bfabcf5f9
 Head: 54ac358059886397ebdcd08fd721889de537b9b0
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -7,7 +7,7 @@ Applied:
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: c9c6c048e5e6bfe254ec45f087acf1ac18e12cfe
   sbfile-add-a-bunch-of-tests: ec38bdbb6fceb4918fcef1e047a8aa3eeb618ea3
-  sbfile-support-in: 622026549e5828f127691019096ca95cadc1df79
+  SBCommandReturnObject: 622026549e5828f127691019096ca95cadc1df79
   remove-a-smattering-of: f089bd76660e994ca9925b95a7d0623b4fcce51a
   HandleProcessEvent: ee4fa8caa2d1e73dc831dfe3e279fe340391d163
   iohandler-fall-back-on-file: 86add1d72ec5c8219184c70df42f20935a7aaa60
