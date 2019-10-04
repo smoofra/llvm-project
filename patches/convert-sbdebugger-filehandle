@@ -1,5 +1,5 @@
 Bottom: 200a9d6f3734840cccc9509cdd05797325c3f2a9
-Top:    f6fa855820df39d0b5714cb1ec7b24be99c85322
+Top:    8ca16a758a17329d2c04b031f337c3d806ff28a3
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 13:02:10 -0700
 
@@ -8,7 +8,7 @@ convert SBDebugger::***FileHandle() wrappers to native files.
 
 ---
 diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
-index 3851c428bfb..ab4f998379d 100644
+index 3851c428bfb..484e6eb16b4 100644
 --- a/lldb/scripts/interface/SBDebugger.i
 +++ b/lldb/scripts/interface/SBDebugger.i
 @@ -165,29 +165,41 @@ public:
@@ -42,34 +42,34 @@ index 3851c428bfb..ab4f998379d 100644
 +
 +        %feature("autodoc", "DEPRECATED, use SetInputFile");
 +        void
-+        SetInputFileHandle (lldb_private::File &file,
++        SetInputFileHandle (lldb::FileSP file,
 +                            bool transfer_ownership) {
 +            self->SetInputFile(file);
 +        }
 +
 +        %feature("autodoc", "DEPRECATED, use SetOutputFile");
 +        void
-+        SetOutputFileHandle (lldb_private::File &file,
++        SetOutputFileHandle (lldb::FileSP file,
 +                             bool transfer_ownership) {
 +            self->SetOutputFile(file);
 +        }
 +
 +        %feature("autodoc", "DEPRECATED, use SetErrorFile");
 +        void
-+        SetErrorFileHandle (lldb_private::File &file,
++        SetErrorFileHandle (lldb::FileSP file,
 +                             bool transfer_ownership) {
 +            self->SetErrorFile(file);
 +        }
 +
-+        lldb_private::File GetInputFileHandle() {
++        lldb::FileSP GetInputFileHandle() {
 +            return self->GetInputFile().GetFile();
 +        }
 +
-+        lldb_private::File GetOutputFileHandle() {
++        lldb::FileSP GetOutputFileHandle() {
 +            return self->GetOutputFile().GetFile();
 +        }
 +
-+        lldb_private::File GetErrorFileHandle() {
++        lldb::FileSP GetErrorFileHandle() {
 +            return self->GetErrorFile().GetFile();
 +        }
 +    }
