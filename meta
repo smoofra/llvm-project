@@ -1,6 +1,6 @@
 Version: 1
-Previous: 0405c553d52b5eb5145115505524242ea7e05aca
-Head: 79a925762697c628f691f1656b8736c400636b6a
+Previous: 7fc73f05428a0edd2bbcd416bdf10e04127eae4e
+Head: 5cd75c4575a4f523d43b2cfd6801c33d4339ab0b
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
@@ -13,5 +13,6 @@ Applied:
   iohandler-fall-back-on-file: 0bee3bf82a84cd472b189b051ea3aa4a78729b84
   protect-libedit-and-lldb-gui: 0bc8b397d0ed328275187869b48b00c7b4504bd1
   update-sbdebugger-setinputfile: 79a925762697c628f691f1656b8736c400636b6a
+  sbfile-getfile-convert-sbfile: 5cd75c4575a4f523d43b2cfd6801c33d4339ab0b
 Unapplied:
 Hidden:

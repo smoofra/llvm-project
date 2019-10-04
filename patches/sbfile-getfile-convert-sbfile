@@ -1,0 +1,17 @@
+Bottom: fbbf0c77eeb53423614e242d2f1718224f732bf4
+Top:    fbbf0c77eeb53423614e242d2f1718224f732bf4
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-19 12:06:03 -0700
+
+SBFile::GetFile: convert SBFile back into python native files.
+
+This makes SBFile::GetFile public and adds a SWIG typemap to convert
+the result back into a python native file.
+
+If the underlying File itself came from a python file, it is returned
+identically.   Otherwise a new python file object is created using
+the file descriptor.
+
+
+---
+
