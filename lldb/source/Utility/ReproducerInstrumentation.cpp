@@ -6,7 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "lldb/API/SBFile.h"
 #include "lldb/Utility/ReproducerInstrumentation.h"
 #include "lldb/Utility/Reproducer.h"
 
@@ -33,17 +32,6 @@ template <> const char *Deserializer::Deserialize<const char *>() {
   const char *str = m_buffer.data();
   m_buffer = m_buffer.drop_front(pos + 1);
   return str;
-}
-
-template <> lldb::SBFile Deserializer::Deserialize<lldb::SBFile>() {
-    //@JDevlieghere I'm pretty sure this is not the right thing to
-    //do, but I don't know what is!   Without this the reproducer
-    //tests read bytes out of the file, treats them as a SBFile --
-    //which is just a shared_ptr -- and start calling copy
-    //constructors on it.  Hilarity ensues.   Surprisingly
-    //just returning an invalid SBFile here seems to work.
-    m_buffer = m_buffer.drop_front(sizeof(lldb::SBFile));
-    return lldb::SBFile();
 }
 
 bool Registry::Replay(const FileSpec &file) {

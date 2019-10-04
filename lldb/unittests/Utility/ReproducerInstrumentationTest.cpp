@@ -610,5 +610,3 @@ TEST(RecordReplayTest, InstrumentedBarPtr) {
 
   ValidateObjects(1, 1);
 }
-
-lldb::SBFile::SBFile() { }
