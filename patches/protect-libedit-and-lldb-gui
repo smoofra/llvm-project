@@ -1,0 +1,17 @@
+Bottom: 5f5dc274caec64fcc4421199203324121f4f23c6
+Top:    5f5dc274caec64fcc4421199203324121f4f23c6
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-18 08:32:48 -0700
+
+protect libedit and LLDB gui from receiving null FILE* streams
+
+We now have valid files that will return NULL from GetStream().
+libedit and the LLDB gui are the only places left that need FILE*
+streams.  Both are doing curses-like user interaction that only
+make sense with a real terminal anyway, so there is no need to convert
+them off of their use of FILE*.   But we should check for null streams
+before enabling these features.
+
+
+---
+
