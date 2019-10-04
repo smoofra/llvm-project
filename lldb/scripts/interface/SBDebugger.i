@@ -165,29 +165,47 @@ public:
     void
     SkipLLDBInitFiles (bool b);
 
-    %feature("autodoc", "DEPRECATED, use SetInputFile");
-    void
-    SetInputFileHandle (FILE *f, bool transfer_ownership);
+    %pythoncode %{
+        def SetOutputFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetOutputFile"
+            if file is None:
+                import sys
+                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
+            else:
+                self.SetOutputFile(file)
 
-    %feature("autodoc", "DEPRECATED, use SetOutputFile");
-    void
-    SetOutputFileHandle (FILE *f, bool transfer_ownership);
+        def SetInputFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetInputFile"
+            if file is None:
+                import sys
+                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
+            else:
+                self.SetInputFile(file)
 
-    %feature("autodoc", "DEPRECATED, use SetErrorFile");
-    void
-    SetErrorFileHandle (FILE *f, bool transfer_ownership);
+        def SetErrorFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetErrorFile"
+            if file is None:
+                import sys
+                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
+            else:
+                self.SetErrorFile(file)
+    %}
 
-    %feature("autodoc", "DEPRECATED, use GetInputFile");
-    FILE *
-    GetInputFileHandle ();
 
-    %feature("autodoc", "DEPRECATED, use GetOutputFile");
-    FILE *
-    GetOutputFileHandle ();
+    %extend {
 
-    %feature("autodoc", "DEPRECATED, use GetErrorFile");
-    FILE *
-    GetErrorFileHandle ();
+        lldb::FileSP GetInputFileHandle() {
+            return self->GetInputFile().GetFile();
+        }
+
+        lldb::FileSP GetOutputFileHandle() {
+            return self->GetOutputFile().GetFile();
+        }
+
+        lldb::FileSP GetErrorFileHandle() {
+            return self->GetErrorFile().GetFile();
+        }
+    }
 
     SBError
     SetInputFile (SBFile file);
