@@ -132,7 +132,7 @@ void SBStream::RedirectToFile(FileSP file_sp) {
       local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
   }
 
-  m_opaque_up.reset = std::make_unique<StreamFile>(file_sp);
+  m_opaque_up = std::make_unique<StreamFile>(file_sp);
   m_is_file = true;
 
   // If we had any data locally in our StreamString, then pass that along to
