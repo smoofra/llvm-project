@@ -1,0 +1,42 @@
+Bottom: c3e5d1d1a3fd3ee5d7c2d10f855234e8ff752263
+Top:    c66cdea94af01c56b07ae54406f5df3fe4d40390
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 14:06:15 -0700
+
+Refresh of convert-sbdebugger-filehandle
+
+---
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index 28b7d9ffa74..0aa0f460b94 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -170,25 +170,22 @@ public:
+             "DEPRECATED, use SetOutputFile"
+             if file is None:
+                 import sys
+-                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
+-            else:
+-                self.SetOutputFile(file)
++                file = sys.stdout
++            self.SetOutputFile(SBFile.Create(file, borrow=True))
+ 
+         def SetInputFileHandle(self, file, transfer_ownership):
+             "DEPRECATED, use SetInputFile"
+             if file is None:
+                 import sys
+-                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
+-            else:
+-                self.SetInputFile(file)
++                file = sys.stdin
++            self.SetInputFile(SBFile.Create(file, borrow=True))
+ 
+         def SetErrorFileHandle(self, file, transfer_ownership):
+             "DEPRECATED, use SetErrorFile"
+             if file is None:
+                 import sys
+-                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
+-            else:
+-                self.SetErrorFile(file)
++                file = sys.stderr
++            self.SetErrorFile(SBFile.Create(file, borrow=True))
+     %}
