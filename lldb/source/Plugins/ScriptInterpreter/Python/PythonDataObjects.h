@@ -21,7 +21,7 @@
 // correctly.  It should all be converted to return Expected<> or
 // Error types to capture the exception.
 //
-// Everythign in this file except functions that return Error or
+// Everything in this file except functions that return Error or
 // Expected<> is considered deprecated and should not be
 // used in new code.  If you need to use it, fix it first.
 //
