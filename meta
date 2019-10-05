@@ -1,5 +1,5 @@
 Version: 1
-Previous: d75b827ae33fc70a4577f80cb8933ce216e3fc1a
+Previous: 9db539db4885c1fcb33305a5339dfb13b90a5b4b
 Head: 3a470ac7590e6351f46cafebd0b4e1d2b6d24950
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -19,5 +19,7 @@ Applied:
   SBStream: b856fba3979d1700231710cb0267a749b6fa0560
   update-scriptinterpreterpython: 3f5fccfbed583dfc97033794ee6bb93710cc65c1
   delete-swig-typemaps-for-file: 6e2c2bcf4ec6cfd7d5ee4071f516420d47f79553
+  fix-pythonfile-reset: cb3795b42b6d6b5ac0c8d7db62b8ed2e2fba659a
+  wip-fix-convert-sbdebugger: 3a470ac7590e6351f46cafebd0b4e1d2b6d24950
 Unapplied:
 Hidden:
