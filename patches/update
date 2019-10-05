@@ -1,0 +1,25 @@
+Bottom: b52007f77344b5ee5e21680cff19f060928824e4
+Top:    b52007f77344b5ee5e21680cff19f060928824e4
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 14:00:53 -0700
+
+update TestRunCommandInterpreterAPI to use SBFile
+
+If you look at what this test is doing, it's actually quite 
+mysterious why it works at all.   It sets the input file 
+inside a "with open".   As soon as the with block ends, 
+that file will be closed.   And yet somehow LLDB reads 
+commands from it anyway.    What's actually happening is that
+the file descriptor gets dup'd when something inside LLDB
+calls File::GetStream().   I think it's fair to say that 
+what this test is doing is illegal and it has no right 
+to expect it to work.
+
+This patch updates the test to use the SBFile api, and 
+actually transfers ownership of the original file descriptor
+to the debugger.
+
+
+
+---
+
