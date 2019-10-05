@@ -1,11 +1,12 @@
 Version: 1
-Previous: f19aac054e2cbbe292ae04a095d0d07864cbf938
-Head: d8b34d94a1091f4ea5b750954b6d617dbff396e7
+Previous: c2e269b04000e6f1bb5133d3e033445f3c165cef
+Head: 8beaedd1487da791be299463149e1d1d1ca8d336
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: 8beaedd1487da791be299463149e1d1d1ca8d336
+Unapplied:
   sbfile-add-a-bunch-of-tests: 645184c4d9700bc0c09cba36f6e7352b5d5a7bcf
   SBCommandReturnObject: e1afd1b746fa9cb1eee459c47330e71f52e569ea
   remove-a-smattering-of-0: 720974e7de6d47607d3f7213df2eee5706841521
@@ -19,5 +20,4 @@ Applied:
   SBStream: 801d61174a33265abdadaafaabc8201b80336e13
   update-scriptinterpreterpython: 01679dd0362f5a4b51cdadc7d0b29f907c1dd22a
   delete-swig-typemaps-for-file: d8b34d94a1091f4ea5b750954b6d617dbff396e7
-Unapplied:
 Hidden:
