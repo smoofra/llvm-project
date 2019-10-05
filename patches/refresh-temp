@@ -1,0 +1,104 @@
+Bottom: 23476aa2d199c4ecce7fc54cd3622e5e79a681f9
+Top:    4db4f5dc2a1e8f06406db4eb6ed095df93df3040
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-04 20:42:47 -0700
+
+Refresh of convert-sbdebugger-filehandle
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 0fdf17411ca..c794ed1a4c0 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -823,3 +823,33 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+         with open(self.out_filename, 'r') as f:
+             self.assertEqual("foobar", f.read().strip())
++
++    @add_test_categories(['pyapi'])
++    def test_set_filehandle_none(self):
++        self.assertRaises(TypeError, self.debugger.SetOutputFile, None)
++        self.assertRaises(TypeError, self.debugger.SetOutputFile, "ham sandwich")
++        self.assertRaises(TypeError, self.debugger.SetOutputFileHandle, "ham sandwich")
++        self.assertRaises(TypeError, self.debugger.SetInputFile, None)
++        self.assertRaises(TypeError, self.debugger.SetInputFile, "ham sandwich")
++        self.assertRaises(TypeError, self.debugger.SetInputFileHandle, "ham sandwich")
++        self.assertRaises(TypeError, self.debugger.SetErrorFile, None)
++        self.assertRaises(TypeError, self.debugger.SetErrorFile, "ham sandwich")
++        self.assertRaises(TypeError, self.debugger.SetErrorFileHandle, "ham sandwich")
++
++        with open(self.out_filename, 'w') as f:
++            status = self.debugger.SetOutputFile(f)
++            self.assertTrue(status.Success())
++            status = self.debugger.SetErrorFile(f)
++            self.assertTrue(status.Success())
++            self.debugger.SetOutputFileHandle(None, False)
++            self.debugger.SetErrorFileHandle(None, False)
++            sbf = self.debugger.GetOutputFile()
++            self.assertEqual(sbf.GetFile().fileno(), 1)
++            sbf = self.debugger.GetErrorFile()
++            self.assertEqual(sbf.GetFile().fileno(), 2)
++        with open(self.out_filename, 'r') as f:
++            status = self.debugger.SetInputFile(f)
++            self.assertTrue(status.Success())
++            self.debugger.SetInputFileHandle(None, False)
++            sbf = self.debugger.GetInputFile()
++            self.assertEqual(sbf.GetFile().fileno(), 0)
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index 484e6eb16b4..28b7d9ffa74 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -165,28 +165,34 @@ public:
+     void
+     SkipLLDBInitFiles (bool b);
+ 
+-    %extend {
++    %pythoncode %{
++        def SetOutputFileHandle(self, file, transfer_ownership):
++            "DEPRECATED, use SetOutputFile"
++            if file is None:
++                import sys
++                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
++            else:
++                self.SetOutputFile(file)
+ 
+-        %feature("autodoc", "DEPRECATED, use SetInputFile");
+-        void
+-        SetInputFileHandle (lldb::FileSP file,
+-                            bool transfer_ownership) {
+-            self->SetInputFile(file);
+-        }
++        def SetInputFileHandle(self, file, transfer_ownership):
++            "DEPRECATED, use SetInputFile"
++            if file is None:
++                import sys
++                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
++            else:
++                self.SetInputFile(file)
+ 
+-        %feature("autodoc", "DEPRECATED, use SetOutputFile");
+-        void
+-        SetOutputFileHandle (lldb::FileSP file,
+-                             bool transfer_ownership) {
+-            self->SetOutputFile(file);
+-        }
++        def SetErrorFileHandle(self, file, transfer_ownership):
++            "DEPRECATED, use SetErrorFile"
++            if file is None:
++                import sys
++                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
++            else:
++                self.SetErrorFile(file)
++    %}
+ 
+-        %feature("autodoc", "DEPRECATED, use SetErrorFile");
+-        void
+-        SetErrorFileHandle (lldb::FileSP file,
+-                             bool transfer_ownership) {
+-            self->SetErrorFile(file);
+-        }
++
++    %extend {
+ 
+         lldb::FileSP GetInputFileHandle() {
+             return self->GetInputFile().GetFile();
