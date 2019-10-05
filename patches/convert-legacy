@@ -1,5 +1,5 @@
-Bottom: 065ccbe01546f65ca990d4eee056f456bd44be55
-Top:    6e0c6414b65b9fd106274877a9b051d97899f2fc
+Bottom: e3af4813eedb1df247996abf219651f8aa3c30e9
+Top:    f00239ddbe8ca820f3dd7bda1ef117a1342f5da5
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 15:11:20 -0700
 
@@ -70,7 +70,7 @@ index 632609fde4b..9f0efd5b3a1 100644
 +            if sys.version_info.major >= 3:
 +                self.assertEqual(sbf.GetFile().fileno(), 0)
 diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
-index 3851c428bfb..0aa0f460b94 100644
+index 695b32be064..20e662485b1 100644
 --- a/lldb/scripts/interface/SBDebugger.i
 +++ b/lldb/scripts/interface/SBDebugger.i
 @@ -165,29 +165,44 @@ public:
