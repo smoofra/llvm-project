@@ -1,5 +1,5 @@
-Bottom: 5b18cbe89d3e8fc2ec0eb4b81e7e0d3ab2c7dc8b
-Top:    0d29adb1fe849672299a04cb664fa49c8ff7acd9
+Bottom: 24d27dec3f0eb5c84cc4986635937bd1afb51441
+Top:    d9bd9db2f0d8e53fae8200c38aeb6bdca9cc00b5
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -171,10 +171,10 @@ index b84815caa7b..1172078d84f 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 64c91c2e848..6bc3087f496 100644
+index 058edc073cc..bc4f5c1f18b 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -624,8 +624,6 @@ public:
+@@ -626,8 +626,6 @@ public:
    void Reset(PyRefType type, PyObject *py_obj) override;
    void Reset(File &file, const char *mode = nullptr);
  
