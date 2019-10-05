@@ -1,0 +1,25 @@
+Bottom: 4b83dd6516615a5e9c8a52c9998ee05adec841ba
+Top:    9b646bf857e9816ef4dd63d6572d6d62a29db884
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-04 18:45:12 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 677c0738b8a..d3fccbb6e86 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -282,7 +282,12 @@ public:
+                                     Args... args) {
+     if (!m_py_obj)
+       return nullDeref();
++#if PY_MAJOR_VERSION < 3
++    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
++                                        const_cast<char *>(format), args...);
++#else
+     PyObject *obj = PyObject_CallMethod(m_py_obj, name, format, args...);
++#endif
+     if (!obj)
+       return exception();
+     return python::AssertTake<PythonObject>(obj);
