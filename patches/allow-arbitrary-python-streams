@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    1a578b445ba8934454cf4a7561bfa3f2c1aef7b8
+Top:    5c63c5eb42120bdd707682e9fb308975adb078d9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -1228,7 +1228,7 @@ index fedd8f66a1f..0dcc667cdf3 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..9c716617201 100644
+index 8fd2be1460f..823733dd886 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -1250,7 +1250,7 @@ index 8fd2be1460f..9c716617201 100644
 +// correctly.  It should all be converted to return Expected<> or
 +// Error types to capture the exception.
 +//
-+// Everythign in this file except functions that return Error or
++// Everything in this file except functions that return Error or
 +// Expected<> is considered deprecated and should not be
 +// used in new code.  If you need to use it, fix it first.
 +//
