@@ -282,7 +282,12 @@ public:
                                     Args... args) {
     if (!m_py_obj)
       return nullDeref();
+#if PY_MAJOR_VERSION < 3
+    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
+                                        const_cast<char *>(format), args...);
+#else
     PyObject *obj = PyObject_CallMethod(m_py_obj, name, format, args...);
+#endif
     if (!obj)
       return exception();
     return python::AssertTake<PythonObject>(obj);
