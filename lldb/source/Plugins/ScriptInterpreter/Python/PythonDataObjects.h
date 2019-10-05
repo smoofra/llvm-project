@@ -132,14 +132,6 @@ enum class PyInitialValue { Invalid, Empty };
 
 class PythonObject {
 public:
-  static Error nullDeref() {
-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                   "A NULL PyObject* was dereferenced");
-  }
-
-  static Error exception(const char *s = nullptr) {
-    return llvm::make_error<PythonException>(s);
-  }
 
   operator PyObject *() const { return m_py_obj; };
 
@@ -275,6 +267,16 @@ public:
 
   StructuredData::ObjectSP CreateStructuredObject() const;
 
+protected:
+  static Error nullDeref() {
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "A NULL PyObject* was dereferenced");
+  }
+  static Error exception(const char *s = nullptr) {
+    return llvm::make_error<PythonException>(s);
+  }
+
+public:
   template <typename... Args>
   Expected<PythonObject> CallMethod(const char *name, const char *format,
                                     Args... args) {
