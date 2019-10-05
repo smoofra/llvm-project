@@ -439,7 +439,9 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
   $result = nullptr;
   lldb::FileSP &sp = $1;
   if (sp) {
-    PythonFile pyfile(*sp);
+    PythonFile pyfile = unwrapOrSetPythonException(PythonFile::FromFile(*sp));
+    if (!pyfile.IsValid())
+      return nullptr;
     $result = pyfile.release();
   }
   if (!$result)
