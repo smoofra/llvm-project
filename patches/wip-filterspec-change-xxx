@@ -1,0 +1,58 @@
+Bottom: a0c0710594de11aa2175f35ae37d624c5ac63efb
+Top:    21deee1f44376c46560defb5f02414f726cb9b14
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-17 13:27:34 -0700
+
+WIP filterspec change XXX
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/dotest.py b/lldb/packages/Python/lldbsuite/test/dotest.py
+index 04917185de2..fdd2d180072 100644
+--- a/lldb/packages/Python/lldbsuite/test/dotest.py
++++ b/lldb/packages/Python/lldbsuite/test/dotest.py
+@@ -670,24 +670,32 @@ def visit_file(dir, name):
+     filterspec = None
+     for filterspec in configuration.filters:
+         # Optimistically set the flag to True.
+-        filtered = True
+         module = __import__(base)
+         parts = filterspec.split('.')
+         obj = module
+-        for part in parts:
+-            try:
+-                parent, obj = obj, getattr(obj, part)
+-            except AttributeError:
+-                # The filterspec has failed.
+-                filtered = False
+-                break
++
++        def check(obj, parts):
++            for part in parts:
++                try:
++                    parent, obj = obj, getattr(obj, part)
++                except AttributeError:
++                    # The filterspec has failed.
++                    return False
++            return True
++
++        if check(obj, parts):
++            filtered = True
++        elif parts[0] == base and len(parts) > 1 and check(obj, parts[1:]):
++            filterspec = '.'.join(parts[1:])
++            filtered = True
++        else:
++            filtered = False
+ 
+         # If filtered, we have a good filterspec.  Add it.
+         if filtered:
+-            # print("adding filter spec %s to module %s" % (filterspec, module))
+-            configuration.suite.addTests(
+-                unittest2.defaultTestLoader.loadTestsFromName(
+-                    filterspec, module))
++            print("adding filter spec %s to module %s" % (filterspec, repr(module)))
++            tests = unittest2.defaultTestLoader.loadTestsFromName(filterspec, module)
++            configuration.suite.addTests(tests)
+             continue
+ 
+     # Forgo this module if the (base, filterspec) combo is invalid
