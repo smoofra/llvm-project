@@ -1,5 +1,5 @@
 Version: 1
-Previous: 17e1e1ff10b0c7d451b82d6e218b42c1a234c593
+Previous: 2b9cc09ba86af3bdad92d18ea7934ce2764f9884
 Head: 50bae359e7b1e732c2fb64415158517e4be7a185
 Applied:
   dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
@@ -12,7 +12,6 @@ Applied:
   remove-a-smattering-of-0: bd9209c11491a16a9394ad53241d7f8ffdb7dc53
   remove-file-usage-from: 50bae359e7b1e732c2fb64415158517e4be7a185
 Unapplied:
-  HandleProcessEvent: 525f2043474c48059b474ea0be380d189bdffca9
   iohandler-fall-back-on-file: 1b367c36463afce16498130c05275aa8b0556d00
   protect-libedit-and-lldb-gui: 105234cf724c8d98ae18da0ff91c3a89cef0992e
   update-sbdebugger-setinputfile: 4f0a16129c5c51089119b1347aa04e790257220c
