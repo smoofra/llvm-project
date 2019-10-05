@@ -876,9 +876,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
   return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
 }
 
-PythonModule PythonModule::ImportModule(llvm::StringRef module) {
-  std::string str = module.str();
-  return PythonModule(PyRefType::Owned, PyImport_ImportModule(str.c_str()));
+Expected<PythonModule> PythonModule::Import(const char *name) {
+  PyObject *mod = PyImport_ImportModule(name);
+  if (!mod)
+    return exception();
+  return Take<PythonModule>(mod);
+}
+
+Expected<PythonObject> PythonModule::Get(const char *name) {
+  if (!IsValid())
+    return nullDeref();
+  PyObject *dict = PyModule_GetDict(m_py_obj);
+  if (!dict)
+    return exception();
+  PyObject *item = PyDict_GetItemString(dict, name);
+  if (!item)
+    return exception();
+  return Retain<PythonObject>(item);
 }
 
 bool PythonModule::Check(PyObject *py_obj) {
@@ -1472,27 +1486,32 @@ llvm::Expected<FileSP> PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(
     fd = File::kInvalidDescriptor;
   }
 
-  auto io_module = Take<PythonObject>(PyImport_ImportModule("io"));
-  auto io_dict = Retain<PythonDictionary>(PyModule_GetDict(io_module.get()));
-  auto textIOBase = io_dict.GetItemForKey(PythonString("TextIOBase"));
-  auto rawIOBase = io_dict.GetItemForKey(PythonString("BufferedIOBase"));
-  auto bufferedIOBase = io_dict.GetItemForKey(PythonString("RawIOBase"));
-  // python interpreter badly janked if we can't get those.
-  assert(!PyErr_Occurred());
+  auto io_module = PythonModule::Import("io");
+  if (!io_module)
+    return io_module.takeError();
+  auto textIOBase = io_module.get().Get("TextIOBase");
+  if (!textIOBase)
+    return textIOBase.takeError();
+  auto rawIOBase = io_module.get().Get("RawIOBase");
+  if (!rawIOBase)
+    return rawIOBase.takeError();
+  auto bufferedIOBase = io_module.get().Get("BufferedIOBase");
+  if (!bufferedIOBase)
+    return bufferedIOBase.takeError();
 
   FileSP file_sp;
 
-  auto isTextIO = IsInstance(textIOBase);
+  auto isTextIO = IsInstance(textIOBase.get());
   if (!isTextIO)
     return isTextIO.takeError();
   if (isTextIO.get())
     file_sp = std::static_pointer_cast<File>(
         std::make_shared<TextPythonFile>(fd, *this, borrowed));
 
-  auto isRawIO = IsInstance(rawIOBase);
+  auto isRawIO = IsInstance(rawIOBase.get());
   if (!isRawIO)
     return isRawIO.takeError();
-  auto isBufferedIO = IsInstance(bufferedIOBase);
+  auto isBufferedIO = IsInstance(bufferedIOBase.get());
   if (!isBufferedIO)
     return isBufferedIO.takeError();
 

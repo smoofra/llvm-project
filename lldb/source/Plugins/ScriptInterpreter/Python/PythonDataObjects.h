@@ -571,7 +571,20 @@ public:
 
   static PythonModule AddModule(llvm::StringRef module);
 
-  static PythonModule ImportModule(llvm::StringRef module);
+  // safe, returns invalid on error;
+  static PythonModule ImportModule(llvm::StringRef name) {
+    std::string s = name;
+    auto mod = Import(s.c_str());
+    if (!mod) {
+      llvm::consumeError(mod.takeError());
+      return PythonModule();
+    }
+    return std::move(mod.get());
+  }
+
+  static llvm::Expected<PythonModule> Import(const char *name);
+
+  llvm::Expected<PythonObject> Get(const char *name);
 
   // Bring in the no-argument base class version
   using PythonObject::Reset;
