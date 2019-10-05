@@ -1,5 +1,5 @@
-Bottom: 9b646bf857e9816ef4dd63d6572d6d62a29db884
-Top:    d7d9aaa12481cbd1ffc6c96404f3986acd91ae28
+Bottom: 314bd3f80a4c76870dd18a025e523e06d5c37067
+Top:    601feb20098e8cb52bf6eec340722b0dd8c1267e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:49:34 -0700
 
@@ -389,10 +389,10 @@ index c6bfc35f0ac..12989e4b0d0 100644
 +        with open(self.out_filename, 'r') as f:
 +            self.assertEqual("foobar", f.read().strip())
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 6c261f58953..6fa985a19d6 100644
+index ad464d38037..54f9182c7eb 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -440,19 +440,19 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -444,19 +444,19 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
        $1 = nullptr;
     else if (!lldb_private::PythonFile::Check($input)) {
        int fd = PyObject_AsFileDescriptor($input);

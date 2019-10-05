@@ -1,5 +1,5 @@
-Bottom: dabe7262bf6c34d25130ac870fc990ae76e7a0b8
-Top:    7bdfd8ce58ffecf7aef035aa81ec0c60b9a1578f
+Bottom: 530114ea2f4fc3795a9f19d97a248b3a6211b2bc
+Top:    ef1fba7080e41ae33e6b977cc961d701c48a8037
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 12:06:03 -0700
 
@@ -89,10 +89,10 @@ index e7e1bc41cf8..fbddfb18846 100644
      def test_identity(self):
  
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 6fa985a19d6..6d358e86dc3 100644
+index 54f9182c7eb..880a5c5cb15 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -430,6 +430,20 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -434,6 +434,20 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    }
  }
  

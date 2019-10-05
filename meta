@@ -1,21 +1,21 @@
 Version: 1
-Previous: a7c44bc94bd5ea5b7db74c82cdb7780a7575a710
-Head: 3834d6d7541c2bd865e0a72a33afe4b6651bd868
+Previous: e9d79fb24e0bf6ec902e691b85a92aa6cd52e778
+Head: 7a16f4034e7565d3e9fd227745c991a49acfb17a
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: 3834d6d7541c2bd865e0a72a33afe4b6651bd868
+  sbfile-add-a-bunch-of-tests: ce56ad63e7ccc4ab50ea33981ed776329c98d1e3
+  SBCommandReturnObject: 0091d65971a4a8fb0904cb9dbd06ec4f170f27e1
+  remove-a-smattering-of-0: 7492be35445f3a26d95a6055947cb18e530914f1
+  HandleProcessEvent: 775aeb9eb23efe82e40a11fdfe0f7643d45cd5f1
+  iohandler-fall-back-on-file: 012e5cad12bdb830bc2e36a6d8be56e0be61b364
+  protect-libedit-and-lldb-gui: eaa30f5e92241fd12d43525a6115eefeb9574349
+  update-sbdebugger-setinputfile: 39f167e7e9ead8b5652e64c928ceec764e430284
+  sbfile-getfile-convert-sbfile: 6fc406c374450a3923a91204ca5269726022d659
+  convert-sbdebugger-filehandle: 7a16f4034e7565d3e9fd227745c991a49acfb17a
 Unapplied:
-  sbfile-add-a-bunch-of-tests: 38ce438387d0a0d2401339552d523be6b642f758
-  SBCommandReturnObject: 96eebac5ddf205d247ded09d9fee2d6650798f2e
-  remove-a-smattering-of-0: 45b0e8f22fb6d05f13a668fa11488f87a956ab48
-  HandleProcessEvent: 022b75b5beda7b73acbf617f9e950740cb71fe93
-  iohandler-fall-back-on-file: 426a63726cc597990d71320f2b1c191cdabe0b48
-  protect-libedit-and-lldb-gui: 003dd623f82f1f228c67dcf3e6e9ccd5e0bf2ace
-  update-sbdebugger-setinputfile: d17954ed7a07e3b55f8cf9bbcb9ad8ffdd069f1c
-  sbfile-getfile-convert-sbfile: 40de6d0b7e18ba2fc366afc0b20492ac151b2621
-  convert-sbdebugger-filehandle: fe627f7ddbed8926ed4e82cae6624719d9310dc8
   SBInstruction: c646ea730333f514df969308ece94d27e00bad6a
   SBStream: d23b9869927238faa33eff92d1ea7d3d1a08274d
   update-scriptinterpreterpython: 8c2a4baab4313999156909899c784d7ac0ee93d1
