@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    4b83dd6516615a5e9c8a52c9998ee05adec841ba
+Top:    9b646bf857e9816ef4dd63d6572d6d62a29db884
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -1228,7 +1228,7 @@ index fedd8f66a1f..0dcc667cdf3 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..677c0738b8a 100644
+index 8fd2be1460f..d3fccbb6e86 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -1384,18 +1384,18 @@ index 8fd2be1460f..677c0738b8a 100644
  
 -  bool IsValid() const;
 +  bool IsNone() const { return m_py_obj == Py_None; }
- 
--  bool IsAllocated() const;
++
 +  bool IsValid() const { return m_py_obj != nullptr; }
  
--  bool IsNone() const;
+-  bool IsAllocated() const;
 +  bool IsAllocated() const { return IsValid() && !IsNone(); }
-+
+ 
+-  bool IsNone() const;
 +  operator bool() const { return IsValid() && !IsNone(); }
  
    template <typename T> T AsType() const {
      if (!T::Check(m_py_obj))
-@@ -188,10 +267,86 @@ public:
+@@ -188,10 +267,91 @@ public:
  
    StructuredData::ObjectSP CreateStructuredObject() const;
  
@@ -1414,7 +1414,12 @@ index 8fd2be1460f..677c0738b8a 100644
 +                                    Args... args) {
 +    if (!m_py_obj)
 +      return nullDeref();
++#if PY_MAJOR_VERSION < 3
++    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
++                                        const_cast<char *>(format), args...);
++#else
 +    PyObject *obj = PyObject_CallMethod(m_py_obj, name, format, args...);
++#endif
 +    if (!obj)
 +      return exception();
 +    return python::AssertTake<PythonObject>(obj);
@@ -1482,7 +1487,7 @@ index 8fd2be1460f..677c0738b8a 100644
  class PythonBytes : public PythonObject {
  public:
    PythonBytes();
-@@ -245,9 +400,12 @@ public:
+@@ -245,9 +405,12 @@ public:
  
  class PythonString : public PythonObject {
  public:
@@ -1497,7 +1502,7 @@ index 8fd2be1460f..677c0738b8a 100644
    PythonString(PyRefType type, PyObject *o);
  
    ~PythonString() override;
-@@ -259,11 +417,13 @@ public:
+@@ -259,11 +422,13 @@ public:
  
    void Reset(PyRefType type, PyObject *py_obj) override;
  
@@ -1513,7 +1518,7 @@ index 8fd2be1460f..677c0738b8a 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -467,8 +627,38 @@ public:
+@@ -467,8 +632,38 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
