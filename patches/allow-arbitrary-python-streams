@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    5553795186fb1aefed2fa1bac1a4aff911b5d85c
+Top:    1a578b445ba8934454cf4a7561bfa3f2c1aef7b8
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -1228,7 +1228,7 @@ index fedd8f66a1f..0dcc667cdf3 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..2709adf37e6 100644
+index 8fd2be1460f..9c716617201 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -1275,7 +1275,7 @@ index 8fd2be1460f..2709adf37e6 100644
  
  class StructuredPythonObject : public StructuredData::Generic {
  public:
-@@ -72,10 +97,52 @@ enum class PyRefType {
+@@ -72,10 +97,44 @@ enum class PyRefType {
              // not call Py_INCREF.
  };
  
@@ -1314,21 +1314,13 @@ index 8fd2be1460f..2709adf37e6 100644
  
  class PythonObject {
  public:
-+  static Error nullDeref() {
-+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-+                                   "A NULL PyObject* was dereferenced");
-+  }
-+
-+  static Error exception(const char *s = nullptr) {
-+    return llvm::make_error<PythonException>(s);
-+  }
 +
 +  operator PyObject *() const { return m_py_obj; };
 +
    PythonObject() : m_py_obj(nullptr) {}
  
    PythonObject(PyRefType type, PyObject *py_obj) : m_py_obj(nullptr) {
-@@ -84,14 +151,19 @@ public:
+@@ -84,14 +143,19 @@ public:
  
    PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
  
@@ -1350,7 +1342,7 @@ index 8fd2be1460f..2709adf37e6 100644
      m_py_obj = nullptr;
    }
  
-@@ -110,6 +182,8 @@ public:
+@@ -110,6 +174,8 @@ public:
    // PyRefType doesn't make sense, and the copy constructor should be used.
    void Reset(PyRefType type, const PythonObject &ref) = delete;
  
@@ -1359,7 +1351,7 @@ index 8fd2be1460f..2709adf37e6 100644
    virtual void Reset(PyRefType type, PyObject *py_obj) {
      if (py_obj == m_py_obj)
        return;
-@@ -123,7 +197,7 @@ public:
+@@ -123,7 +189,7 @@ public:
      // an owned reference by incrementing it.  If it is an owned
      // reference (for example the caller allocated it with PyDict_New()
      // then we must *not* increment it.
@@ -1368,7 +1360,7 @@ index 8fd2be1460f..2709adf37e6 100644
        Py_XINCREF(m_py_obj);
    }
  
-@@ -149,6 +223,17 @@ public:
+@@ -149,6 +215,17 @@ public:
      return *this;
    }
  
@@ -1386,27 +1378,37 @@ index 8fd2be1460f..2709adf37e6 100644
    PyObjectType GetObjectType() const;
  
    PythonString Repr() const;
-@@ -174,11 +259,13 @@ public:
+@@ -174,11 +251,13 @@ public:
  
    PythonObject GetAttributeValue(llvm::StringRef attribute) const;
  
 -  bool IsValid() const;
 +  bool IsNone() const { return m_py_obj == Py_None; }
-+
-+  bool IsValid() const { return m_py_obj != nullptr; }
  
 -  bool IsAllocated() const;
-+  bool IsAllocated() const { return IsValid() && !IsNone(); }
++  bool IsValid() const { return m_py_obj != nullptr; }
  
 -  bool IsNone() const;
++  bool IsAllocated() const { return IsValid() && !IsNone(); }
++
 +  operator bool() const { return IsValid() && !IsNone(); }
  
    template <typename T> T AsType() const {
      if (!T::Check(m_py_obj))
-@@ -188,10 +275,76 @@ public:
+@@ -188,10 +267,86 @@ public:
  
    StructuredData::ObjectSP CreateStructuredObject() const;
  
++protected:
++  static Error nullDeref() {
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "A NULL PyObject* was dereferenced");
++  }
++  static Error exception(const char *s = nullptr) {
++    return llvm::make_error<PythonException>(s);
++  }
++
++public:
 +  template <typename... Args>
 +  Expected<PythonObject> CallMethod(const char *name, const char *format,
 +                                    Args... args) {
@@ -1480,7 +1482,7 @@ index 8fd2be1460f..2709adf37e6 100644
  class PythonBytes : public PythonObject {
  public:
    PythonBytes();
-@@ -245,9 +398,12 @@ public:
+@@ -245,9 +400,12 @@ public:
  
  class PythonString : public PythonObject {
  public:
@@ -1495,7 +1497,7 @@ index 8fd2be1460f..2709adf37e6 100644
    PythonString(PyRefType type, PyObject *o);
  
    ~PythonString() override;
-@@ -259,11 +415,13 @@ public:
+@@ -259,11 +417,13 @@ public:
  
    void Reset(PyRefType type, PyObject *py_obj) override;
  
@@ -1511,7 +1513,7 @@ index 8fd2be1460f..2709adf37e6 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -467,8 +625,38 @@ public:
+@@ -467,8 +627,38 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
