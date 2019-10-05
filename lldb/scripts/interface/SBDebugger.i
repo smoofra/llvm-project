@@ -165,28 +165,34 @@ public:
     void
     SkipLLDBInitFiles (bool b);
 
+    %pythoncode %{
+        def SetOutputFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetOutputFile"
+            if file is None:
+                import sys
+                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
+            else:
+                self.SetOutputFile(file)
+
+        def SetInputFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetInputFile"
+            if file is None:
+                import sys
+                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
+            else:
+                self.SetInputFile(file)
+
+        def SetErrorFileHandle(self, file, transfer_ownership):
+            "DEPRECATED, use SetErrorFile"
+            if file is None:
+                import sys
+                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
+            else:
+                self.SetErrorFile(file)
+    %}
+
+
     %extend {
-
-        %feature("autodoc", "DEPRECATED, use SetInputFile");
-        void
-        SetInputFileHandle (lldb::FileSP file,
-                            bool transfer_ownership) {
-            self->SetInputFile(file);
-        }
-
-        %feature("autodoc", "DEPRECATED, use SetOutputFile");
-        void
-        SetOutputFileHandle (lldb::FileSP file,
-                             bool transfer_ownership) {
-            self->SetOutputFile(file);
-        }
-
-        %feature("autodoc", "DEPRECATED, use SetErrorFile");
-        void
-        SetErrorFileHandle (lldb::FileSP file,
-                             bool transfer_ownership) {
-            self->SetErrorFile(file);
-        }
 
         lldb::FileSP GetInputFileHandle() {
             return self->GetInputFile().GetFile();
