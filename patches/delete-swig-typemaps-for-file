@@ -1,5 +1,5 @@
-Bottom: 2c6fe4387669752e99226e0cbedca22af5bbdab7
-Top:    3c6d6254483905c7c9cb23f38fba71be0baf3f4d
+Bottom: 2549c256db9087ff32e87dec013f57578b044e4d
+Top:    8b50ea9ce0749a418b377fd261e0a50e20f3df21
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -41,10 +41,10 @@ index 3128a8540b1..b1133bcdd6f 100644
    FILE *GetStream() override;
    off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr) override;
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 6d358e86dc3..7a5a57ec4ea 100644
+index 880a5c5cb15..bbe906fbd47 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -445,66 +445,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -449,66 +449,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    }
  }
  

@@ -1,5 +1,5 @@
-Bottom: a083c2a863e04cbfd4202e4a2d7aaf3a1d73293c
-Top:    2c6fe4387669752e99226e0cbedca22af5bbdab7
+Bottom: 7ab588cb5566edcbe998d5e08f765c1c79f0998b
+Top:    2549c256db9087ff32e87dec013f57578b044e4d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:37:08 -0700
 
@@ -7,7 +7,7 @@ update ScriptInterpreterPython to use File, not FILE*
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 0fdf17411ca..00f13687b74 100644
+index c794ed1a4c0..43930adc054 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -447,9 +447,8 @@ class FileHandleTestCase(lldbtest.TestBase):
