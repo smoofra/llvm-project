@@ -158,7 +158,9 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             self.debugger.SetErrorFileHandle(f, False)
             self.handleCmd('lolwut', check=False, collect_result=False)
-            self.debugger.GetErrorFileHandle().write('FOOBAR\n')
+            f2 = self.debugger.GetErrorFileHandle()
+            f2.write('FOOBAR\n')
+            f2.flush()
         lldb.SBDebugger.Destroy(self.debugger)
         with open(self.out_filename, 'r') as f:
             errors = f.read()
@@ -182,12 +184,9 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'w') as f:
             debugger.SetErrorFileHandle(f, False)
             self.handleCmd('lolwut', check=False, collect_result=False)
-            debugger.GetErrorFileHandle().write('FOOBAR\n')
         with open(self.out_filename, 'r') as f:
             errors = f.read()
             self.assertTrue(re.search(r'error:.*lolwut', errors))
-            self.assertTrue(re.search(r'FOOBAR', errors))
-
 
     @add_test_categories(['pyapi'])
     def test_sbfile_type_errors(self):
