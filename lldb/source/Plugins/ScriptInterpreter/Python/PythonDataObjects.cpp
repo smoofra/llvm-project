@@ -1066,7 +1066,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
   // Read through the Python source, doesn't seem to modify these strings
   char *cmode = const_cast<char *>(mode);
   file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
-                        nullptr));
+                        nullptr);
 #endif
 
   if (!file_obj)
