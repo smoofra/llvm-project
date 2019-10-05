@@ -375,50 +375,54 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 
 %typemap(in) lldb::FileSP {
   using namespace lldb_private;
-  if (PythonFile::Check($input)) {
-    PythonFile py_file(PyRefType::Borrowed, $input);
-    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile());
-    if (sp)
-      $1 = sp;
-    else
-      return nullptr;
+  PythonFile py_file(PyRefType::Borrowed, $input);
+  if (!py_file) {
+    PyErr_SetString(PyExc_TypeError, "not a file");
+    return nullptr;
   }
+  auto sp = unwrapOrSetPythonException(py_file.ConvertToFile());
+  if (!sp)
+    return nullptr;
+  $1 = sp;
 }
 
 %typemap(in) lldb::FileSP FORCE_IO_METHODS {
   using namespace lldb_private;
-  if (PythonFile::Check($input)) {
-    PythonFile py_file(PyRefType::Borrowed, $input);
-    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods());
-    if (sp)
-      $1 = sp;
-    else
-      return nullptr;
+  PythonFile py_file(PyRefType::Borrowed, $input);
+  if (!py_file) {
+    PyErr_SetString(PyExc_TypeError, "not a file");
+    return nullptr;
   }
+  auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods());
+  if (!sp)
+    return nullptr;
+  $1 = sp;
 }
 
 %typemap(in) lldb::FileSP BORROWED {
-  using namespace lldb_private;
-  if (PythonFile::Check($input)) {
-    PythonFile py_file(PyRefType::Borrowed, $input);
-    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile(/*borrowed=*/true));
-    if (sp)
-      $1 = sp;
-    else
-      return nullptr;
+ using namespace lldb_private;
+  PythonFile py_file(PyRefType::Borrowed, $input);
+  if (!py_file) {
+    PyErr_SetString(PyExc_TypeError, "not a file");
+    return nullptr;
   }
+  auto sp = unwrapOrSetPythonException(py_file.ConvertToFile(/*borrowed=*/true));
+  if (!sp)
+    return nullptr;
+  $1 = sp;
 }
 
 %typemap(in) lldb::FileSP BORROWED_FORCE_IO_METHODS {
   using namespace lldb_private;
-  if (PythonFile::Check($input)) {
-    PythonFile py_file(PyRefType::Borrowed, $input);
-    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods(/*borrowed=*/true));
-    if (sp)
-      $1 = sp;
-    else
-      return nullptr;
+  PythonFile py_file(PyRefType::Borrowed, $input);
+  if (!py_file) {
+    PyErr_SetString(PyExc_TypeError, "not a file");
+    return nullptr;
   }
+  auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods(/*borrowed=*/true));
+  if (!sp)
+    return nullptr;
+  $1 = sp;
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) lldb::FileSP {
