@@ -1,0 +1,41 @@
+Bottom: 1e6800666705581d81496ce882891bdde4513a73
+Top:    999dd6686270fc9b0995c2ce15c56a3e59119722
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 14:17:22 -0700
+
+fix-HandleProcessEvent
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
+index 16b61091420..7dc500ceffe 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
+@@ -19,7 +19,10 @@ def fuzz_obj(obj):
+     obj.GetCommandInterpreter()
+     obj.HandleCommand("nothing here")
+     listener = obj.GetListener()
+-    obj.HandleProcessEvent(lldb.SBProcess(), lldb.SBEvent(), None, None)
++    try:
++        obj.HandleProcessEvent(lldb.SBProcess(), lldb.SBEvent(), None, None)
++    except TypeError:
++        pass
+     obj.CreateTargetWithFileAndTargetTriple("a.out", "A-B-C")
+     obj.CreateTargetWithFileAndArch("b.out", "arm")
+     obj.CreateTarget("c.out")
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
+index eed197a63ef..a860a8a2a48 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
+@@ -12,7 +12,10 @@ def fuzz_obj(obj):
+     obj.GetSTDOUT(6)
+     obj.GetSTDERR(6)
+     event = lldb.SBEvent()
+-    obj.ReportEventState(event, None)
++    try:
++        obj.ReportEventState(event, None)
++    except TypeError:
++        pass
+     obj.AppendEventStateReport(event, lldb.SBCommandReturnObject())
+     error = lldb.SBError()
+     obj.RemoteAttachToProcessWithID(123, error)

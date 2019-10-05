@@ -1,5 +1,5 @@
 Version: 1
-Previous: e73ae07d527ff6cc0cb45010a51f2d6c35bd77b9
+Previous: c24107ecfa8a6ecbbba906c0a223df55183ddf84
 Head: 2f36f5be4a7b4fd62b9f0268a0d4d2a9decbc48e
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -20,5 +20,7 @@ Applied:
   SBStream: b46dedec4e48fb8948d2346ea229a462057b13a7
   update-scriptinterpreterpython: 6768e3c71571b37379ab95ecd125060fe02a390d
   delete-swig-typemaps-for-file: d291a16f88d3af14190953f71caf09fa7ae33f0e
+  fix-handleprocessevent: 3dd901ee0a8a1ccad222a71639a43b5ec488f40c
+  fix-sbinstruction: 2f36f5be4a7b4fd62b9f0268a0d4d2a9decbc48e
 Unapplied:
 Hidden:
