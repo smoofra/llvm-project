@@ -1,0 +1,23 @@
+Bottom: eca335e621c5141d7df67bf22a0152dc6ef925ce
+Top:    512a1aeb48720543771a831b71668ee193f44204
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 16:11:12 -0700
+
+Refresh of HandleProcessEvent
+
+---
+diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
+index 11834e42b65..b6a7a2e4304 100644
+--- a/lldb/scripts/interface/SBDebugger.i
++++ b/lldb/scripts/interface/SBDebugger.i
+@@ -219,8 +219,8 @@ public:
+     void
+     HandleProcessEvent (const lldb::SBProcess &process,
+                         const lldb::SBEvent &event,
+-                        FileSP &BORROWED,
+-                        FileSP &BORROWED);
++                        FileSP BORROWED,
++                        FileSP BORROWED);
+ 
+     lldb::SBTarget
+     CreateTarget (const char *filename,
