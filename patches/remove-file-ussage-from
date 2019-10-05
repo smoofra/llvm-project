@@ -1,10 +1,9 @@
 Bottom: c66cdea94af01c56b07ae54406f5df3fe4d40390
-Top:    172c52f383f03cd743b652d0f77e85c09136d549
+Top:    eb5f6475533eedefe21768536d6c4bb3e831a876
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-19 15:57:51 -0700
+Date:   2019-10-05 14:19:16 -0700
 
 remove FILE* ussage from SBInstruction
-
 
 ---
 diff --git a/lldb/include/lldb/API/SBInstruction.h b/lldb/include/lldb/API/SBInstruction.h
@@ -46,6 +45,38 @@ index 4434d50f471..e203d0b8056 100644
  
  private:
    lldb::DisassemblerSP m_opaque_sp;
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
+index aca1d8a02b3..cae95d1ccb4 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
+@@ -9,7 +9,10 @@ def fuzz_obj(obj):
+     obj.GetAddress()
+     obj.GetByteSize()
+     obj.DoesBranch()
+-    obj.Print(None)
++    try:
++        obj.Print(None)
++    except TypeError:
++        pass
+     obj.GetDescription(lldb.SBStream())
+     obj.EmulateWithFrame(lldb.SBFrame(), 0)
+     obj.DumpEmulation("armv7")
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
+index 88fbc065c55..ced4349d17a 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
+@@ -9,7 +9,10 @@ def fuzz_obj(obj):
+     obj.GetSize()
+     obj.GetInstructionAtIndex(0xffffffff)
+     obj.AppendInstruction(lldb.SBInstruction())
+-    obj.Print(None)
++    try:
++        obj.Print(None)
++    except TypeError:
++        pass
+     obj.GetDescription(lldb.SBStream())
+     obj.DumpEmulationForAllInstructions("armv7")
+     obj.Clear()
 diff --git a/lldb/scripts/interface/SBInstruction.i b/lldb/scripts/interface/SBInstruction.i
 index 82b31fd9869..a46d845ff6a 100644
 --- a/lldb/scripts/interface/SBInstruction.i
