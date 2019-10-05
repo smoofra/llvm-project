@@ -18,13 +18,16 @@ class CommandRunInterpreterLegacyAPICase(TestBase):
         with open(self.stdin_path, 'w') as input_handle:
             input_handle.write("nonexistingcommand\nquit")
 
+        # Python will close the file descriptor if all references
+        # to the filehandle object lapse, so we need to keep one
+        # around.
         self.filehandle = open(self.stdin_path, 'r')
         self.dbg.SetInputFileHandle(self.filehandle, False)
 
         # No need to track the output
-        devnull = open(os.devnull, 'w')
-        self.dbg.SetOutputFileHandle(devnull, False)
-        self.dbg.SetErrorFileHandle (devnull, False)
+        self.devnull = open(os.devnull, 'w')
+        self.dbg.SetOutputFileHandle(self.devnull, False)
+        self.dbg.SetErrorFileHandle (self.devnull, False)
 
     @add_test_categories(['pyapi'])
     def test_run_session_with_error_and_quit(self):
