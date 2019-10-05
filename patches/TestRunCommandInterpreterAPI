@@ -1,5 +1,5 @@
 Bottom: ed517fabe35d4fe5adf07c6ebb4dc6d89733f97d
-Top:    574b3ec2fd276e49637ee3b186e5af1ea2fcdd14
+Top:    0bfa91a0c9c4053346366559e13968ce55f2ba29
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:00:53 -0700
 
@@ -24,29 +24,65 @@ use any debug info and doesn't need to run three times.
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
-index a82fd7326d8..c594796736d 100644
+index a82fd7326d8..195adf60442 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
-@@ -7,6 +7,7 @@ from lldbsuite.test.lldbtest import *
+@@ -5,8 +5,9 @@ import lldb
+ from lldbsuite.test.decorators import *
+ from lldbsuite.test.lldbtest import *
  
- class CommandRunInterpreterAPICase(TestBase):
+-class CommandRunInterpreterAPICase(TestBase):
++class CommandRunInterpreterLegacyAPICase(TestBase):
  
 +    NO_DEBUG_INFO_TESTCASE = True
      mydir = TestBase.compute_mydir(__file__)
  
      def setUp(self):
-@@ -17,13 +18,12 @@ class CommandRunInterpreterAPICase(TestBase):
+@@ -17,13 +18,46 @@ class CommandRunInterpreterAPICase(TestBase):
          with open(self.stdin_path, 'w') as input_handle:
              input_handle.write("nonexistingcommand\nquit")
  
 -        with open(self.stdin_path, 'r') as input_handle:
 -            self.dbg.SetInputFileHandle(input_handle, False)
-+        self.dbg.SetInputFile(open(self.stdin_path, 'r'))
++        self.filehandle = open(self.stdin_path, 'r')
++        self.dbg.SetInputFileHandle(self.filehandle, False)
  
          # No need to track the output
          devnull = open(os.devnull, 'w')
--        self.dbg.SetOutputFileHandle(devnull, False)
+         self.dbg.SetOutputFileHandle(devnull, False)
 -        self.dbg.SetErrorFileHandle(devnull, False)
++        self.dbg.SetErrorFileHandle (devnull, False)
++
++    @add_test_categories(['pyapi'])
++    def test_run_session_with_error_and_quit(self):
++        """Run non-existing and quit command returns appropriate values"""
++
++        n_errors, quit_requested, has_crashed = self.dbg.RunCommandInterpreter(
++                True, False, lldb.SBCommandInterpreterRunOptions(), 0, False,
++                False)
++
++        self.assertGreater(n_errors, 0)
++        self.assertTrue(quit_requested)
++        self.assertFalse(has_crashed)
++
++
++class CommandRunInterpreterAPICase(TestBase):
++
++    NO_DEBUG_INFO_TESTCASE = True
++    mydir = TestBase.compute_mydir(__file__)
++
++    def setUp(self):
++        TestBase.setUp(self)
++
++        self.stdin_path = self.getBuildArtifact("stdin.txt")
++
++        with open(self.stdin_path, 'w') as input_handle:
++            input_handle.write("nonexistingcommand\nquit")
++
++        self.dbg.SetInputFile(open(self.stdin_path, 'r'))
++
++        # No need to track the output
++        devnull = open(os.devnull, 'w')
 +        self.dbg.SetOutputFile(devnull)
 +        self.dbg.SetErrorFile(devnull)
  
