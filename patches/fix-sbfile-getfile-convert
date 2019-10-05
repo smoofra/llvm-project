@@ -1,0 +1,22 @@
+Bottom: c094ebd876cfd29e8ba09d6a1fa58b99063bc933
+Top:    df8aaddf13923e5be9699ccce91f0c47bfc5f3a3
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 14:58:11 -0700
+
+fix-sbfile-getfile-convert-sbfile
+
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 5f545dd95a4..aad170d3581 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1066,7 +1066,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   // Read through the Python source, doesn't seem to modify these strings
+   char *cmode = const_cast<char *>(mode);
+   file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
+-                        nullptr));
++                        nullptr);
+ #endif
+ 
+   if (!file_obj)
