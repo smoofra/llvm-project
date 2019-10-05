@@ -170,25 +170,22 @@ public:
             "DEPRECATED, use SetOutputFile"
             if file is None:
                 import sys
-                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
-            else:
-                self.SetOutputFile(file)
+                file = sys.stdout
+            self.SetOutputFile(SBFile.Create(file, borrow=True))
 
         def SetInputFileHandle(self, file, transfer_ownership):
             "DEPRECATED, use SetInputFile"
             if file is None:
                 import sys
-                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
-            else:
-                self.SetInputFile(file)
+                file = sys.stdin
+            self.SetInputFile(SBFile.Create(file, borrow=True))
 
         def SetErrorFileHandle(self, file, transfer_ownership):
             "DEPRECATED, use SetErrorFile"
             if file is None:
                 import sys
-                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
-            else:
-                self.SetErrorFile(file)
+                file = sys.stderr
+            self.SetErrorFile(SBFile.Create(file, borrow=True))
     %}
 
 
