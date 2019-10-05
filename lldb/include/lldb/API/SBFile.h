@@ -34,6 +34,8 @@ public:
   operator bool() const;
   bool operator!() const;
 
+  FileSP GetFile() const;
+
 private:
   FileSP m_opaque_sp;
 };
