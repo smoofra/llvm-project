@@ -1,6 +1,6 @@
 Version: 1
-Previous: d9be82ac0d86f787de160f82214b86aab88e4178
-Head: 6614dfa219579cd8e94bdee90062afbc160e66c5
+Previous: 39591b825a2251432b7f8f783b5933ab4b559d67
+Head: 2da18b3ee06ca9f782c31d2fdd6148ccadb5d169
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
@@ -9,17 +9,16 @@ Applied:
   sbfile-add-a-bunch-of-tests: ce56ad63e7ccc4ab50ea33981ed776329c98d1e3
   SBCommandReturnObject: 0091d65971a4a8fb0904cb9dbd06ec4f170f27e1
   remove-a-smattering-of-0: 7492be35445f3a26d95a6055947cb18e530914f1
-  HandleProcessEvent: 775aeb9eb23efe82e40a11fdfe0f7643d45cd5f1
-  iohandler-fall-back-on-file: 012e5cad12bdb830bc2e36a6d8be56e0be61b364
-  protect-libedit-and-lldb-gui: eaa30f5e92241fd12d43525a6115eefeb9574349
-  update-sbdebugger-setinputfile: 39f167e7e9ead8b5652e64c928ceec764e430284
-  sbfile-getfile-convert-sbfile: ee2f7119cb86f6b501d4338d648b1574acacfea5
-  TestRunCommandInterpreterAPI: 0ad548aa8a9d126c88a005f12c291f7eb348d228
-  convert-sbdebugger-filehandle: 75821ccfe74073c8ade90fd3a05e5441de363ee3
-  SBInstruction: 605fdfeb01ba0d96adf09af86b261e3e26cd8b65
-  SBStream: d505ee9dffbabae4410c76fac75a70a1fe0a5c5e
-  update-scriptinterpreterpython: 8385e18f4896bf091edfa91d5b43a9cea08e4968
-  delete-swig-typemaps-for-file: eff3481352b1811e92588e3b6ec2f03b575db397
-  fix-handleprocessevent: 6614dfa219579cd8e94bdee90062afbc160e66c5
+  HandleProcessEvent: 8b9fbbfb959f12f06ce871ee6ddeb8e0b3b6e599
+  iohandler-fall-back-on-file: c16fdbcf93d1a6f815e74ae3e45d570aa9a5e5cd
+  protect-libedit-and-lldb-gui: cf5b70f44eb3f7a716f32a8da348cd998f5d130c
+  update-sbdebugger-setinputfile: ecc2e7dc40534f9972457e41d0d2fd3fe4bec681
+  sbfile-getfile-convert-sbfile: bfc0c9cbfe3e6266402d46391cc307e0e6b367fb
+  TestRunCommandInterpreterAPI: 3b85876b76176b230687a29979b70a52aaf0e98d
+  convert-sbdebugger-filehandle: 6a4aa980bca70fe4031cb44591465b3dd8f869ba
+  SBInstruction: 9b6acc41cb63c03803332602e3785102010c4a02
+  SBStream: 02d9c45dbf15bbdb1bb34c56582aab488ab60b17
+  update-scriptinterpreterpython: 9f3648b2e322fa77ecd5ea2521e2289640c40faf
+  delete-swig-typemaps-for-file: 2da18b3ee06ca9f782c31d2fdd6148ccadb5d169
 Unapplied:
 Hidden:
