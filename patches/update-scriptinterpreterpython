@@ -1,5 +1,5 @@
-Bottom: 94c3b6fcd3a219204909b81d2d04f5ac03788fee
-Top:    a4e7f1cd7cf7affd6fabe6bb7f40a495fe6bfb15
+Bottom: bd2f830d6d360d7a8d3f2b4f16fd1335a08330e6
+Top:    f2a3463ae4aacaabada80c1acbf82f53c9b1d7e1
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:37:08 -0700
 
@@ -7,10 +7,10 @@ update ScriptInterpreterPython to use File, not FILE*
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index c794ed1a4c0..43930adc054 100644
+index 8b1ada9e596..6c6d2eef6b6 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -447,9 +447,8 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -446,9 +446,8 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(re.search(r'error:.*lolwut', errors))
              self.assertTrue(re.search(r'zork', errors))
  
@@ -21,7 +21,7 @@ index c794ed1a4c0..43930adc054 100644
      def test_replace_stdout(self):
          f = io.StringIO()
          with replace_stdout(f):
-@@ -460,7 +459,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -459,7 +458,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])

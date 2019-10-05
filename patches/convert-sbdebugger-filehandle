@@ -1,5 +1,5 @@
-Bottom: e39664bb6a7a70884e92b0208e6fe78d69c41ddb
-Top:    001380b2b3e8562a7581cbda0e8dae206a130bd7
+Bottom: d8a0b482e69c64d0951ebf3d1c70ccf5892ec71c
+Top:    0edec079b2e40bed6d777d0e13519b60f08ecb8f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:39:39 -0700
 
@@ -7,7 +7,7 @@ convert SBDebugger::***FileHandle() wrappers to native files.
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index fbddfb18846..c794ed1a4c0 100644
+index 632609fde4b..8b1ada9e596 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -130,8 +130,6 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -28,7 +28,7 @@ index fbddfb18846..c794ed1a4c0 100644
      def test_legacy_file_err_with_get(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetErrorFileHandle(f, False)
-@@ -827,3 +823,33 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -826,3 +822,33 @@ class FileHandleTestCase(lldbtest.TestBase):
  
          with open(self.out_filename, 'r') as f:
              self.assertEqual("foobar", f.read().strip())

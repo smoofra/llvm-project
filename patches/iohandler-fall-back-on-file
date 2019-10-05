@@ -1,5 +1,5 @@
-Bottom: 937bf0c8cc004e1f48211c1c5a4c2dbfd99f793f
-Top:    1b59ff886d1af97569f0a079ce526031c8b7a76f
+Bottom: 0bffc492a7d576a54a236c2b3e48cbeef2a5dc98
+Top:    b3ca92a1a69d2dbbfc9af668c5e56eac29c99717
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:57:15 -0700
 
@@ -19,10 +19,10 @@ index 0c50a2d80a9..37142a5a839 100644
  
  // The order of base classes is important. Look at the constructor of
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index cac4380339b..7720ac46c17 100644
+index 60917b68a6c..e21db25f6a6 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -401,9 +401,9 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -400,9 +400,9 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -34,7 +34,7 @@ index cac4380339b..7720ac46c17 100644
          outf = io.StringIO()
          status = self.debugger.SetOutputFile(lldb.SBFile(outf))
          self.assertTrue(status.Success())
-@@ -414,10 +414,11 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -413,10 +413,11 @@ class FileHandleTestCase(lldbtest.TestBase):
          self.debugger.GetOutputFile().Flush()
          output = outf.getvalue()
          self.assertIn('Show a list of all debugger commands', output)

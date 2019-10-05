@@ -1,7 +1,7 @@
 Bottom: 314bd3f80a4c76870dd18a025e523e06d5c37067
-Top:    601feb20098e8cb52bf6eec340722b0dd8c1267e
+Top:    50a715f14f82cdbf6e9f0c379fd344ff692b1747
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-03 21:49:34 -0700
+Date:   2019-10-05 15:10:19 -0700
 
 SBFile: add a bunch of tests that should eventually work.
 
@@ -28,7 +28,7 @@ Differential Revision: https://reviews.llvm.org/D68433
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index c6bfc35f0ac..12989e4b0d0 100644
+index c6bfc35f0ac..db7703a49be 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -13,7 +13,7 @@ from contextlib import contextmanager
@@ -40,7 +40,18 @@ index c6bfc35f0ac..12989e4b0d0 100644
  
  class OhNoe(Exception):
      pass
-@@ -180,6 +180,19 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -162,7 +162,9 @@ class FileHandleTestCase(lldbtest.TestBase):
+         with open(self.out_filename, 'w') as f:
+             self.debugger.SetErrorFileHandle(f, False)
+             self.handleCmd('lolwut', check=False, collect_result=False)
+-            self.debugger.GetErrorFileHandle().write('FOOBAR\n')
++            f2 = self.debugger.GetErrorFileHandle()
++            f2.write('FOOBAR\n')
++            f2.flush()
+         lldb.SBDebugger.Destroy(self.debugger)
+         with open(self.out_filename, 'r') as f:
+             errors = f.read()
+@@ -180,6 +182,16 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertIn("is not a valid command", f.read())
  
  
@@ -50,17 +61,14 @@ index c6bfc35f0ac..12989e4b0d0 100644
 +        with open(self.out_filename, 'w') as f:
 +            debugger.SetErrorFileHandle(f, False)
 +            self.handleCmd('lolwut', check=False, collect_result=False)
-+            debugger.GetErrorFileHandle().write('FOOBAR\n')
 +        with open(self.out_filename, 'r') as f:
 +            errors = f.read()
 +            self.assertTrue(re.search(r'error:.*lolwut', errors))
-+            self.assertTrue(re.search(r'FOOBAR', errors))
-+
 +
      @add_test_categories(['pyapi'])
      def test_sbfile_type_errors(self):
          sbf = lldb.SBFile()
-@@ -269,6 +282,17 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -269,6 +281,17 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
  
  
@@ -78,7 +86,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_immediate(self):
          with open(self.out_filename, 'w') as f:
-@@ -278,15 +302,44 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -278,15 +301,44 @@ class FileHandleTestCase(lldbtest.TestBase):
              interpreter.HandleCommand("help help", ret)
              # make sure the file wasn't closed early.
              f.write("\nQUUX\n")
@@ -125,7 +133,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_fileno_inout(self):
          with open(self.in_filename, 'w') as f:
-@@ -310,6 +363,76 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -310,6 +362,76 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(re.search(r'Show a list of all debugger commands', f.read()))
  
  
@@ -202,7 +210,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_fileno_error(self):
          with open(self.out_filename, 'w') as f:
-@@ -339,6 +462,23 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -339,6 +461,23 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertEqual(sys.stdout, f)
  
  
@@ -226,7 +234,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_sbfile_write_borrowed(self):
          with open(self.out_filename, 'w') as f:
-@@ -408,6 +548,31 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -408,6 +547,31 @@ class FileHandleTestCase(lldbtest.TestBase):
          sbf.Close()
          self.assertTrue(f.closed)
  
@@ -258,7 +266,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      @skipIf(py_version=['<', (3,)])
      def test_sbfile_write_bytes(self):
-@@ -466,6 +631,18 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -466,6 +630,18 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertEqual(f.read().strip(), '4')
  
  
@@ -277,7 +285,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_sbfile_error(self):
          with open(self.out_filename, 'w') as f:
-@@ -478,6 +655,18 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -478,6 +654,18 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertTrue(re.search(r'error:.*lolwut', errors))
  
  
@@ -296,7 +304,7 @@ index c6bfc35f0ac..12989e4b0d0 100644
      @add_test_categories(['pyapi'])
      def test_exceptions(self):
          self.assertRaises(TypeError, lldb.SBFile, None)
-@@ -556,3 +745,91 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -556,3 +744,91 @@ class FileHandleTestCase(lldbtest.TestBase):
              self.assertFalse(f.closed)
              f.seek(0)
              self.assertEqual(f.read(), 'foobar')

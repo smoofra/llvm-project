@@ -1,5 +1,5 @@
-Bottom: 6aef6783cafc19a1f7c401b27451fe6ed576d2bd
-Top:    c303047ab02b15c5f14cab7442208f65e63ec9e1
+Bottom: c732fb449f39526ee5351bb80607e55387816a28
+Top:    b6b798e3d6ad138620a4fccdfb9be25c0cbf547f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 22:23:32 -0700
 
@@ -28,10 +28,10 @@ index 9e695079733..580f6281fbb 100644
  
    SBFile GetOutputFile();
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 7720ac46c17..e7e1bc41cf8 100644
+index e21db25f6a6..7bac3ce6ffd 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -552,7 +552,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -551,7 +551,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
      @add_test_categories(['pyapi'])
      @skipIf(py_version=['<', (3,)])
@@ -39,7 +39,7 @@ index 7720ac46c17..e7e1bc41cf8 100644
      def test_string_out(self):
          f = io.StringIO()
          status = self.debugger.SetOutputFile(f)
-@@ -562,7 +561,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -561,7 +560,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -47,7 +47,7 @@ index 7720ac46c17..e7e1bc41cf8 100644
      @skipIf(py_version=['<', (3,)])
      def test_string_error(self):
          f = io.StringIO()
-@@ -633,7 +631,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -632,7 +630,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -55,7 +55,7 @@ index 7720ac46c17..e7e1bc41cf8 100644
      @skipIf(py_version=['<', (3,)])
      def test_file_out(self):
          with open(self.out_filename, 'w') as f:
-@@ -657,7 +654,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -656,7 +653,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -63,7 +63,7 @@ index 7720ac46c17..e7e1bc41cf8 100644
      def test_file_error(self):
          with open(self.out_filename, 'w') as f:
              status = self.debugger.SetErrorFile(f)
-@@ -749,7 +745,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -748,7 +744,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -71,7 +71,7 @@ index 7720ac46c17..e7e1bc41cf8 100644
      def test_close(self):
          debugger = self.debugger
          with open(self.out_filename, 'w') as f:
-@@ -770,7 +765,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -769,7 +764,6 @@ class FileHandleTestCase(lldbtest.TestBase):
  
      @add_test_categories(['pyapi'])
      @skipIf(py_version=['<', (3,)])
