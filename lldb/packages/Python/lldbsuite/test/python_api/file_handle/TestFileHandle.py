@@ -841,12 +841,19 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.debugger.SetOutputFileHandle(None, False)
             self.debugger.SetErrorFileHandle(None, False)
             sbf = self.debugger.GetOutputFile()
-            self.assertEqual(sbf.GetFile().fileno(), 1)
+            if sys.version_info.major >= 3:
+                # python 2 lacks PyFile_FromFd, so GetFile() will
+                # have to duplicate the file descriptor and make a FILE*
+                # in order to convert a NativeFile it back to a python
+                # file.
+                self.assertEqual(sbf.GetFile().fileno(), 1)
             sbf = self.debugger.GetErrorFile()
-            self.assertEqual(sbf.GetFile().fileno(), 2)
+            if sys.version_info.major >= 3:
+                self.assertEqual(sbf.GetFile().fileno(), 2)
         with open(self.out_filename, 'r') as f:
             status = self.debugger.SetInputFile(f)
             self.assertTrue(status.Success())
             self.debugger.SetInputFileHandle(None, False)
             sbf = self.debugger.GetInputFile()
-            self.assertEqual(sbf.GetFile().fileno(), 0)
+            if sys.version_info.major >= 3:
+                self.assertEqual(sbf.GetFile().fileno(), 0)
