@@ -1,5 +1,5 @@
 Version: 1
-Previous: 5260522d37ee86db27f61d25eb7247f3b2285f16
+Previous: d9be82ac0d86f787de160f82214b86aab88e4178
 Head: 6614dfa219579cd8e94bdee90062afbc160e66c5
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
@@ -16,7 +16,7 @@ Applied:
   sbfile-getfile-convert-sbfile: ee2f7119cb86f6b501d4338d648b1574acacfea5
   TestRunCommandInterpreterAPI: 0ad548aa8a9d126c88a005f12c291f7eb348d228
   convert-sbdebugger-filehandle: 75821ccfe74073c8ade90fd3a05e5441de363ee3
-  remove-file-ussage-from: 605fdfeb01ba0d96adf09af86b261e3e26cd8b65
+  SBInstruction: 605fdfeb01ba0d96adf09af86b261e3e26cd8b65
   SBStream: d505ee9dffbabae4410c76fac75a70a1fe0a5c5e
   update-scriptinterpreterpython: 8385e18f4896bf091edfa91d5b43a9cea08e4968
   delete-swig-typemaps-for-file: eff3481352b1811e92588e3b6ec2f03b575db397
