@@ -38,7 +38,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
-static const char *GetStreamOpenModeFromOptions(uint32_t options) {
+const char *File::GetStreamOpenModeFromOptions(uint32_t options) {
   if (options & File::eOpenOptionAppend) {
     if (options & File::eOpenOptionRead) {
       if (options & File::eOpenOptionCanCreateNewOnly)
@@ -215,6 +215,10 @@ size_t File::PrintfVarArg(const char *format, va_list args) {
   return result;
 }
 
+void *File::GetPythonObject() const { return nullptr; }
+
+uint32_t File::GetOptions() const { return 0; }
+
 uint32_t File::GetPermissions(Status &error) const {
   int fd = GetDescriptor();
   if (!DescriptorIsValid(fd)) {
@@ -229,6 +233,8 @@ uint32_t File::GetPermissions(Status &error) const {
   error.Clear();
   return file_stats.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
 }
+
+uint32_t NativeFile::GetOptions() const { return m_options; }
 
 int NativeFile::GetDescriptor() const {
   if (DescriptorIsValid())
