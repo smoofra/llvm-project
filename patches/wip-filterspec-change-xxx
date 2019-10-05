@@ -3,7 +3,18 @@ Top:    b10f66331eb1fcf8210f011f0ee6c374afcc3221
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-17 13:27:34 -0700
 
-WIP filterspec change XXX
+DWIMy filterspecs for dotest.py
+
+dotest.py currently requires a filterspec to be of the
+form `TestCase.test_method`.   This patch makes it more
+flexible, so you can pass TestModule.TestCase.test_method
+or TestModule.TestCase or TestCase.test_method or just
+test_method.
+
+This makes it more convenient to just copy a test name
+out of the terminal after running a bunch of tests and use
+it as a filterspec.
+
 
 
 ---
