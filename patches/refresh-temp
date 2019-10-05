@@ -1,0 +1,21 @@
+Bottom: 1a578b445ba8934454cf4a7561bfa3f2c1aef7b8
+Top:    5c63c5eb42120bdd707682e9fb308975adb078d9
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-04 18:25:11 -0700
+
+Refresh of allow-arbitrary-python-streams
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 9c716617201..823733dd886 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -21,7 +21,7 @@
+ // correctly.  It should all be converted to return Expected<> or
+ // Error types to capture the exception.
+ //
+-// Everythign in this file except functions that return Error or
++// Everything in this file except functions that return Error or
+ // Expected<> is considered deprecated and should not be
+ // used in new code.  If you need to use it, fix it first.
+ //
