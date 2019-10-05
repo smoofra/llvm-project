@@ -1,5 +1,5 @@
-Bottom: c33e01d211edd4e85a7bdb8b63ed184facc61eb8
-Top:    5e45ff30fe524c597fcc72bb3adeb47a7403de2d
+Bottom: f8f98cce29d7c53cddc03c7272adc671e4cdaeea
+Top:    0a9d5cd1d01f93e509ab4699de98bbfd031ee384
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 12:06:03 -0700
 
@@ -185,10 +185,10 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 16401ba98a6..ad7b2fe618f 100644
+index 0dcc667cdf3..b84815caa7b 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1011,6 +1011,19 @@ void PythonFile::Reset(File &file, const char *mode) {
+@@ -1052,6 +1052,19 @@ void PythonFile::Reset(File &file, const char *mode) {
      return;
    }
  
@@ -208,18 +208,18 @@ index 16401ba98a6..ad7b2fe618f 100644
    char *cmode = const_cast<char *>(mode);
  #if PY_MAJOR_VERSION >= 3
    Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
-@@ -1181,6 +1194,8 @@ public:
+@@ -1213,6 +1226,8 @@ public:
      return base_error;
    };
  
 +  void *GetPythonObject() const override { return m_py_obj; }
 +
  protected:
-   PyObject *m_py_obj;
+   PythonFile m_py_obj;
    bool m_borrowed;
-@@ -1252,6 +1267,15 @@ public:
-       error = llvm::make_error<PythonException>("Flush");
-     return error;
+@@ -1293,6 +1308,15 @@ public:
+       return Status(r.takeError());
+     return Status();
    }
 +
 +  uint32_t GetOptions() const override {
@@ -234,10 +234,10 @@ index 16401ba98a6..ad7b2fe618f 100644
  }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 943d805a9fb..cbc2c6ab803 100644
+index 2709adf37e6..64c91c2e848 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -459,7 +459,7 @@ public:
+@@ -612,7 +612,7 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -246,7 +246,7 @@ index 943d805a9fb..cbc2c6ab803 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -469,7 +469,7 @@ public:
+@@ -622,7 +622,7 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;

@@ -1,5 +1,5 @@
-Bottom: a0ce20c3856fe5cedf2e18896f2a2275a70942d0
-Top:    e20a3769d46be5e626530a8bbbb53dfa84c1f250
+Bottom: 5b18cbe89d3e8fc2ec0eb4b81e7e0d3ab2c7dc8b
+Top:    0d29adb1fe849672299a04cb664fa49c8ff7acd9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -144,10 +144,10 @@ index 4d9e2c2cd7d..2da8fd3e0cf 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index ad7b2fe618f..e4daf27b91f 100644
+index b84815caa7b..1172078d84f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1036,22 +1036,6 @@ void PythonFile::Reset(File &file, const char *mode) {
+@@ -1077,22 +1077,6 @@ void PythonFile::Reset(File &file, const char *mode) {
  #endif
  }
  
@@ -171,10 +171,10 @@ index ad7b2fe618f..e4daf27b91f 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index cbc2c6ab803..94b2a879467 100644
+index 64c91c2e848..6bc3087f496 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -471,8 +471,6 @@ public:
+@@ -624,8 +624,6 @@ public:
    void Reset(PyRefType type, PyObject *py_obj) override;
    void Reset(File &file, const char *mode = nullptr);
  
