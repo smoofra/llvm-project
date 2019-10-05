@@ -631,7 +631,6 @@ public:
 class PythonFile : public PythonObject {
 public:
   PythonFile();
-  PythonFile(File &file, const char *mode);
   PythonFile(PyRefType type, PyObject *o);
 
   ~PythonFile() override;
@@ -641,7 +640,18 @@ public:
   using PythonObject::Reset;
 
   void Reset(PyRefType type, PyObject *py_obj) override;
-  void Reset(File &file, const char *mode);
+
+  static llvm::Expected<PythonFile> FromFile(File &file, const char *mode = nullptr);
+
+  PythonFile(File &file, const char *mode = nullptr) {
+    auto f = FromFile(file, mode);
+    if (f)
+      *this = std::move(f.get());
+    else {
+      Reset();
+      llvm::consumeError(f.takeError());
+    }
+  }
 
   lldb::FileUP GetUnderlyingFile() const;
 

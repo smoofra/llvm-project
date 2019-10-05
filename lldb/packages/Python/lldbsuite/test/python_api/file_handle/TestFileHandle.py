@@ -773,7 +773,6 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
-    @expectedFailure # FIXME implement SBFile::GetFile
     @skipIf(py_version=['<', (3,)])
     def test_identity(self):
 
