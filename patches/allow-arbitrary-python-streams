@@ -1,5 +1,5 @@
 Bottom: f0db9c3f7be09df1647947c726aa77882bbf6a50
-Top:    9b646bf857e9816ef4dd63d6572d6d62a29db884
+Top:    314bd3f80a4c76870dd18a025e523e06d5c37067
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-16 12:47:19 -0700
 
@@ -477,60 +477,64 @@ index 3231fdfe688..c6bfc35f0ac 100644
 +            f.seek(0)
 +            self.assertEqual(f.read(), 'foobar')
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 7eedfdbdb8d..6c261f58953 100644
+index 7eedfdbdb8d..ad464d38037 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -372,6 +372,65 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -372,6 +372,69 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    $1 = $1 || PyCallable_Check(reinterpret_cast<PyObject*>($input));
  }
  
 +
 +%typemap(in) lldb::FileSP {
 +  using namespace lldb_private;
-+  if (PythonFile::Check($input)) {
-+    PythonFile py_file(PyRefType::Borrowed, $input);
-+    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile());
-+    if (sp)
-+      $1 = sp;
-+    else
-+      return nullptr;
++  PythonFile py_file(PyRefType::Borrowed, $input);
++  if (!py_file) {
++    PyErr_SetString(PyExc_TypeError, "not a file");
++    return nullptr;
 +  }
++  auto sp = unwrapOrSetPythonException(py_file.ConvertToFile());
++  if (!sp)
++    return nullptr;
++  $1 = sp;
 +}
 +
 +%typemap(in) lldb::FileSP FORCE_IO_METHODS {
 +  using namespace lldb_private;
-+  if (PythonFile::Check($input)) {
-+    PythonFile py_file(PyRefType::Borrowed, $input);
-+    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods());
-+    if (sp)
-+      $1 = sp;
-+    else
-+      return nullptr;
++  PythonFile py_file(PyRefType::Borrowed, $input);
++  if (!py_file) {
++    PyErr_SetString(PyExc_TypeError, "not a file");
++    return nullptr;
 +  }
++  auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods());
++  if (!sp)
++    return nullptr;
++  $1 = sp;
 +}
 +
 +%typemap(in) lldb::FileSP BORROWED {
-+  using namespace lldb_private;
-+  if (PythonFile::Check($input)) {
-+    PythonFile py_file(PyRefType::Borrowed, $input);
-+    auto sp = unwrapOrSetPythonException(py_file.ConvertToFile(/*borrowed=*/true));
-+    if (sp)
-+      $1 = sp;
-+    else
-+      return nullptr;
++ using namespace lldb_private;
++  PythonFile py_file(PyRefType::Borrowed, $input);
++  if (!py_file) {
++    PyErr_SetString(PyExc_TypeError, "not a file");
++    return nullptr;
 +  }
++  auto sp = unwrapOrSetPythonException(py_file.ConvertToFile(/*borrowed=*/true));
++  if (!sp)
++    return nullptr;
++  $1 = sp;
 +}
 +
 +%typemap(in) lldb::FileSP BORROWED_FORCE_IO_METHODS {
 +  using namespace lldb_private;
-+  if (PythonFile::Check($input)) {
-+    PythonFile py_file(PyRefType::Borrowed, $input);
-+    auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods(/*borrowed=*/true));
-+    if (sp)
-+      $1 = sp;
-+    else
-+      return nullptr;
++  PythonFile py_file(PyRefType::Borrowed, $input);
++  if (!py_file) {
++    PyErr_SetString(PyExc_TypeError, "not a file");
++    return nullptr;
 +  }
++  auto sp = unwrapOrSetPythonException(py_file.ConvertToFileForcingUseOfScriptingIOMethods(/*borrowed=*/true));
++  if (!sp)
++    return nullptr;
++  $1 = sp;
 +}
 +
 +%typecheck(SWIG_TYPECHECK_POINTER) lldb::FileSP {
