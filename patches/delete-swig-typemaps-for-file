@@ -1,5 +1,5 @@
-Bottom: 2549c256db9087ff32e87dec013f57578b044e4d
-Top:    8b50ea9ce0749a418b377fd261e0a50e20f3df21
+Bottom: 000c6fc9ea4dd1bc16459a3e71bb680a476a12ff
+Top:    3f234341a4f5861ea639ed19bde99a7df53fbb48
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -41,10 +41,10 @@ index 3128a8540b1..b1133bcdd6f 100644
    FILE *GetStream() override;
    off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr) override;
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 880a5c5cb15..bbe906fbd47 100644
+index f3d13edca18..8ff178bc5e5 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -449,66 +449,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -451,66 +451,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    }
  }
  
@@ -144,11 +144,11 @@ index 4d9e2c2cd7d..2da8fd3e0cf 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index b84815caa7b..1172078d84f 100644
+index 96ab39b89d0..5f545dd95a4 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1077,22 +1077,6 @@ void PythonFile::Reset(File &file, const char *mode) {
- #endif
+@@ -1075,22 +1075,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   return Take<PythonFile>(file_obj);
  }
  
 -
@@ -171,12 +171,12 @@ index b84815caa7b..1172078d84f 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 2350701be53..3e9d1c86c50 100644
+index bba2193323c..4285c56bd26 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -631,8 +631,6 @@ public:
-   void Reset(PyRefType type, PyObject *py_obj) override;
-   void Reset(File &file, const char *mode = nullptr);
+@@ -641,8 +641,6 @@ public:
+     }
+   }
  
 -  lldb::FileUP GetUnderlyingFile() const;
 -

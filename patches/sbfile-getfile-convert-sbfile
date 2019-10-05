@@ -1,7 +1,7 @@
 Bottom: 530114ea2f4fc3795a9f19d97a248b3a6211b2bc
-Top:    ef1fba7080e41ae33e6b977cc961d701c48a8037
+Top:    b52007f77344b5ee5e21680cff19f060928824e4
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-19 12:06:03 -0700
+Date:   2019-10-05 13:46:39 -0700
 
 SBFile::GetFile: convert SBFile back into python native files.
 
@@ -11,7 +11,6 @@ the result back into a python native file.
 If the underlying File itself came from a python file, it is returned
 identically.   Otherwise a new python file object is created using
 the file descriptor.
-
 
 ---
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
@@ -89,10 +88,10 @@ index e7e1bc41cf8..fbddfb18846 100644
      def test_identity(self):
  
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 54f9182c7eb..880a5c5cb15 100644
+index 54f9182c7eb..f3d13edca18 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -434,6 +434,20 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -434,6 +434,22 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
    }
  }
  
@@ -101,7 +100,9 @@ index 54f9182c7eb..880a5c5cb15 100644
 +  $result = nullptr;
 +  lldb::FileSP &sp = $1;
 +  if (sp) {
-+    PythonFile pyfile(*sp);
++    PythonFile pyfile = unwrapOrSetPythonException(PythonFile::FromFile(*sp));
++    if (!pyfile.IsValid())
++      return nullptr;
 +    $result = pyfile.release();
 +  }
 +  if (!$result)
@@ -185,30 +186,65 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 0dcc667cdf3..b84815caa7b 100644
+index 0dcc667cdf3..96ab39b89d0 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1052,6 +1052,19 @@ void PythonFile::Reset(File &file, const char *mode) {
-     return;
-   }
+@@ -997,8 +997,6 @@ operator()(std::initializer_list<PythonObject> args) {
  
+ PythonFile::PythonFile() : PythonObject() {}
+ 
+-PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
+-
+ PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
+ 
+ PythonFile::~PythonFile() {}
+@@ -1046,22 +1044,35 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+   PythonObject::Reset(PyRefType::Borrowed, result.get());
+ }
+ 
+-void PythonFile::Reset(File &file, const char *mode) {
+-  if (!file.IsValid()) {
+-    Reset();
+-    return;
+-  }
++Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
++  if (!file.IsValid())
++      return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid file");
++
 +  PyObject *file_obj = (PyObject *)file.GetPythonObject();
-+  if (file_obj) {
-+    Reset(PyRefType::Borrowed, file_obj);
-+    return;
-+  }
++  if (file_obj)
++    return Retain<PythonFile>(file_obj);
 +
 +  if (!mode)
 +    mode = file.GetOpenMode();
-+  if (!mode) {
-+    Reset();
-+    return;
-+  }
-+
-   char *cmode = const_cast<char *>(mode);
++  if (!mode)
++      return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "can't determine open mode for file");
+ 
+-  char *cmode = const_cast<char *>(mode);
  #if PY_MAJOR_VERSION >= 3
-   Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
-@@ -1213,6 +1226,8 @@ public:
+-  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
+-                                        -1, nullptr, "ignore", nullptr, 0));
++  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode,
++                                        -1, nullptr, "ignore", nullptr, 0);
+ #else
+   // Read through the Python source, doesn't seem to modify these strings
+-  Reset(PyRefType::Owned,
+-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
++  char *cmode = const_cast<char *>(mode);
++  file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
+                         nullptr));
+ #endif
++
++  if (!file_obj)
++    return exception();
++
++  return Take<PythonFile>(file_obj);
+ }
+ 
+ 
+@@ -1213,6 +1224,8 @@ public:
      return base_error;
    };
  
@@ -217,7 +253,7 @@ index 0dcc667cdf3..b84815caa7b 100644
  protected:
    PythonFile m_py_obj;
    bool m_borrowed;
-@@ -1293,6 +1308,15 @@ public:
+@@ -1293,6 +1306,15 @@ public:
        return Status(r.takeError());
      return Status();
    }
@@ -234,23 +270,33 @@ index 0dcc667cdf3..b84815caa7b 100644
  }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index d3fccbb6e86..2350701be53 100644
+index d3fccbb6e86..bba2193323c 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -619,7 +619,7 @@ public:
+@@ -619,7 +619,6 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
 -  PythonFile(File &file, const char *mode);
-+  PythonFile(File &file, const char *mode = nullptr);
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -629,7 +629,7 @@ public:
+@@ -629,7 +628,18 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;
 -  void Reset(File &file, const char *mode);
-+  void Reset(File &file, const char *mode = nullptr);
++
++  static llvm::Expected<PythonFile> FromFile(File &file, const char *mode = nullptr);
++
++  PythonFile(File &file, const char *mode = nullptr) {
++    auto f = FromFile(file, mode);
++    if (f)
++      *this = std::move(f.get());
++    else {
++      Reset();
++      llvm::consumeError(f.takeError());
++    }
++  }
  
    lldb::FileUP GetUnderlyingFile() const;
