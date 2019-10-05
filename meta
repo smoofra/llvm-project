@@ -1,25 +1,25 @@
 Version: 1
-Previous: 2f3ab48130010d975c9eb429d7a790e52500e4bb
-Head: d30ee01c1e23f66833ba620d3f7518d868bf5590
+Previous: 72da58fc0d93378967c6ff9c771dca97bb0d9d13
+Head: da83cb33c33fcacc98ce776a9db079b65dd631f7
 Applied:
-  lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
-  fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
-  stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
-  allow-arbitrary-python-streams: 3834d6d7541c2bd865e0a72a33afe4b6651bd868
-  bunch-o-tests: 797d427ccac0a3c38b14285e05169b16eb585c9b
-  SBCommandReturnObject: c931a09d2b3d9660542f5120b6f88ca63c89313f
-  remove-a-smattering-of-0: b6eaa09ffe79d5b5af3b9581f7b46b55f261339e
-  HandleProcessEvent: 12035feb5fb2fedaa0ba6f99a0d25ca05ac2ab84
-  iohandler-fall-back-on-file: e1bc0c520d488e4252edba36ff320c93d2f82e84
-  protect-libedit-and-lldb-gui: fdaed116dccd05bf4813cfdaa9c51c09efbe443f
-  update-sbdebugger-setinputfile: 98f5823260d38abbe8bb8388697d03bb052ce252
-  GetFile: 90ec8c81503d76795c0bc3d6c06fd35a2c1c45bd
-  TestRunCommandInterpreterAPI: 566c5132392676e60328eb18115cfecd2adab000
-  convert-legacy: c53c034f63e9f73eabcea1d134c314bd7f459738
-  SBInstruction: e90b584ba7668e9711c1dd0b2789af23e345f49f
-  SBStream: c8b896128e66bbe50ed4a56b9abccdeca938467b
-  update-scriptinterpreterpython: 145b19ef4e9e7bc3a92a63d7fe59b1175917c65a
-  delete-swig-typemaps-for-file: babefb17649ff8e87c181b82a3e26e61d7912232
-  dwimy-filterspecs-for-dotest: d30ee01c1e23f66833ba620d3f7518d868bf5590
+  dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
+  lldbpexpect-make-sure-term-is: 4dbc4da50a622b38a249de8bd3d8bb127bd0bdf4
+  fix-python-library-path-on: 07df64660566c4c5934446adf07958bc9f119f8d
+  stringliteral-intellisense: 278a3db7942a70a9b52771c43180cd0874f36250
+  allow-arbitrary-python-streams: 81bc61f7a67d697d2f4dc694fae6c7711f70d8c9
+  bunch-o-tests: 4de2d11573c3f548af5f1d26a65c8b2c68ef12cd
+  SBCommandReturnObject: d95c5e0c0edc59bf8795d0a97b795d4674ee15bb
+  remove-a-smattering-of-0: bd9209c11491a16a9394ad53241d7f8ffdb7dc53
+  HandleProcessEvent: 525f2043474c48059b474ea0be380d189bdffca9
+  iohandler-fall-back-on-file: 1b367c36463afce16498130c05275aa8b0556d00
+  protect-libedit-and-lldb-gui: 105234cf724c8d98ae18da0ff91c3a89cef0992e
+  update-sbdebugger-setinputfile: 4f0a16129c5c51089119b1347aa04e790257220c
+  GetFile: 43b5d30e434c948b0415c3bdab55d41843a9d2a2
+  TestRunCommandInterpreterAPI: 64f97fa7c024009943a39a543014dd10a415de86
+  convert-legacy: d45638f89cd50c188f4c252b2a26519d52d9f155
+  SBInstruction: 19e9b7d8959877b51b3b6fc9aec7f4e7e3d0db04
+  SBStream: 5c8c202bca919f180ed66c3e364e51188fd40fe4
+  update-scriptinterpreterpython: c608433a14483e3e5f6e3c5f5c7bde0d6fbc7b7b
+  delete-swig-typemaps-for-file: da83cb33c33fcacc98ce776a9db079b65dd631f7
 Unapplied:
 Hidden:
