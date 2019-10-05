@@ -219,8 +219,8 @@ public:
     void
     HandleProcessEvent (const lldb::SBProcess &process,
                         const lldb::SBEvent &event,
-                        FileSP &BORROWED,
-                        FileSP &BORROWED);
+                        FileSP BORROWED,
+                        FileSP BORROWED);
 
     lldb::SBTarget
     CreateTarget (const char *filename,
