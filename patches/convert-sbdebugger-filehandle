@@ -1,5 +1,5 @@
 Bottom: d93997364e2ccb234372036dd9fab5f26c3f86fe
-Top:    c3e5d1d1a3fd3ee5d7c2d10f855234e8ff752263
+Top:    c66cdea94af01c56b07ae54406f5df3fe4d40390
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:39:39 -0700
 
@@ -63,10 +63,10 @@ index fbddfb18846..c794ed1a4c0 100644
 +            sbf = self.debugger.GetInputFile()
 +            self.assertEqual(sbf.GetFile().fileno(), 0)
 diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
-index 3851c428bfb..28b7d9ffa74 100644
+index 3851c428bfb..0aa0f460b94 100644
 --- a/lldb/scripts/interface/SBDebugger.i
 +++ b/lldb/scripts/interface/SBDebugger.i
-@@ -165,29 +165,47 @@ public:
+@@ -165,29 +165,44 @@ public:
      void
      SkipLLDBInitFiles (bool b);
  
@@ -78,34 +78,31 @@ index 3851c428bfb..28b7d9ffa74 100644
 +            "DEPRECATED, use SetOutputFile"
 +            if file is None:
 +                import sys
-+                self.SetOutputFile(SBFile.Create(sys.stdout, borrow=True))
-+            else:
-+                self.SetOutputFile(file)
- 
--    %feature("autodoc", "DEPRECATED, use SetOutputFile");
--    void
--    SetOutputFileHandle (FILE *f, bool transfer_ownership);
++                file = sys.stdout
++            self.SetOutputFile(SBFile.Create(file, borrow=True))
++
 +        def SetInputFileHandle(self, file, transfer_ownership):
 +            "DEPRECATED, use SetInputFile"
 +            if file is None:
 +                import sys
-+                self.SetInputFile(SBFile.Create(sys.stdin, borrow=True))
-+            else:
-+                self.SetInputFile(file)
- 
--    %feature("autodoc", "DEPRECATED, use SetErrorFile");
--    void
--    SetErrorFileHandle (FILE *f, bool transfer_ownership);
++                file = sys.stdin
++            self.SetInputFile(SBFile.Create(file, borrow=True))
++
 +        def SetErrorFileHandle(self, file, transfer_ownership):
 +            "DEPRECATED, use SetErrorFile"
 +            if file is None:
 +                import sys
-+                self.SetErrorFile(SBFile.Create(sys.stderr, borrow=True))
-+            else:
-+                self.SetErrorFile(file)
++                file = sys.stderr
++            self.SetErrorFile(SBFile.Create(file, borrow=True))
 +    %}
-+
-+
+ 
+-    %feature("autodoc", "DEPRECATED, use SetOutputFile");
+-    void
+-    SetOutputFileHandle (FILE *f, bool transfer_ownership);
+ 
+-    %feature("autodoc", "DEPRECATED, use SetErrorFile");
+-    void
+-    SetErrorFileHandle (FILE *f, bool transfer_ownership);
 +    %extend {
  
 -    %feature("autodoc", "DEPRECATED, use GetInputFile");
