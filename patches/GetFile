@@ -1,7 +1,7 @@
 Bottom: c303047ab02b15c5f14cab7442208f65e63ec9e1
-Top:    ed517fabe35d4fe5adf07c6ebb4dc6d89733f97d
+Top:    d79da51795dc33064db22455e992bb5d8ed71d31
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-05 13:46:39 -0700
+Date:   2019-10-05 15:09:47 -0700
 
 SBFile::GetFile: convert SBFile back into python native files.
 
@@ -186,7 +186,7 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 0dcc667cdf3..96ab39b89d0 100644
+index 0dcc667cdf3..f53f4397da0 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -997,8 +997,6 @@ operator()(std::initializer_list<PythonObject> args) {
@@ -232,9 +232,10 @@ index 0dcc667cdf3..96ab39b89d0 100644
    // Read through the Python source, doesn't seem to modify these strings
 -  Reset(PyRefType::Owned,
 -        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
+-                        nullptr));
 +  char *cmode = const_cast<char *>(mode);
 +  file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
-                         nullptr));
++                        nullptr);
  #endif
 +
 +  if (!file_obj)
