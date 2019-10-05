@@ -1,7 +1,7 @@
 Bottom: 4f8fe857d21e5840a337c357ad9420985521a5a0
-Top:    60e5798b9c443ed484bfab41739d5e68e27750d0
+Top:    a4dc53521faa0a03b4e1ab29b1a344d5e9975b9e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-09-16 12:47:19 -0700
+Date:   2019-10-05 16:52:36 -0700
 
 allow arbitrary python streams to be converted to SBFile
 
@@ -22,7 +22,6 @@ Subscribers: lldb-commits
 Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68188
-
 
 ---
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
@@ -624,7 +623,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..0dcc667cdf3 100644
+index fedd8f66a1f..374567f46dc 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -772,7 +771,34 @@ index fedd8f66a1f..0dcc667cdf3 100644
  }
  
  StructuredData::StringSP PythonString::CreateStructuredString() const {
-@@ -963,20 +1013,19 @@ bool PythonFile::Check(PyObject *py_obj) {
+@@ -826,9 +876,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
+   return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
+ }
+ 
+-PythonModule PythonModule::ImportModule(llvm::StringRef module) {
+-  std::string str = module.str();
+-  return PythonModule(PyRefType::Owned, PyImport_ImportModule(str.c_str()));
++Expected<PythonModule> PythonModule::Import(const char *name) {
++  PyObject *mod = PyImport_ImportModule(name);
++  if (!mod)
++    return exception();
++  return Take<PythonModule>(mod);
++}
++
++Expected<PythonObject> PythonModule::Get(const char *name) {
++  if (!IsValid())
++    return nullDeref();
++  PyObject *dict = PyModule_GetDict(m_py_obj);
++  if (!dict)
++    return exception();
++  PyObject *item = PyDict_GetItemString(dict, name);
++  if (!item)
++    return exception();
++  return Retain<PythonObject>(item);
+ }
+ 
+ bool PythonModule::Check(PyObject *py_obj) {
+@@ -963,20 +1027,19 @@ bool PythonFile::Check(PyObject *py_obj) {
    // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
    // over `io.open()`, which returns some object derived from `io.IOBase`. As a
    // result, the only way to detect a file in Python 3 is to check whether it
@@ -798,7 +824,7 @@ index fedd8f66a1f..0dcc667cdf3 100644
  
    return true;
  #endif
-@@ -1031,4 +1080,432 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1094,437 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -1188,27 +1214,32 @@ index fedd8f66a1f..0dcc667cdf3 100644
 +    fd = File::kInvalidDescriptor;
 +  }
 +
-+  auto io_module = Take<PythonObject>(PyImport_ImportModule("io"));
-+  auto io_dict = Retain<PythonDictionary>(PyModule_GetDict(io_module.get()));
-+  auto textIOBase = io_dict.GetItemForKey(PythonString("TextIOBase"));
-+  auto rawIOBase = io_dict.GetItemForKey(PythonString("BufferedIOBase"));
-+  auto bufferedIOBase = io_dict.GetItemForKey(PythonString("RawIOBase"));
-+  // python interpreter badly janked if we can't get those.
-+  assert(!PyErr_Occurred());
++  auto io_module = PythonModule::Import("io");
++  if (!io_module)
++    return io_module.takeError();
++  auto textIOBase = io_module.get().Get("TextIOBase");
++  if (!textIOBase)
++    return textIOBase.takeError();
++  auto rawIOBase = io_module.get().Get("RawIOBase");
++  if (!rawIOBase)
++    return rawIOBase.takeError();
++  auto bufferedIOBase = io_module.get().Get("BufferedIOBase");
++  if (!bufferedIOBase)
++    return bufferedIOBase.takeError();
 +
 +  FileSP file_sp;
 +
-+  auto isTextIO = IsInstance(textIOBase);
++  auto isTextIO = IsInstance(textIOBase.get());
 +  if (!isTextIO)
 +    return isTextIO.takeError();
 +  if (isTextIO.get())
 +    file_sp = std::static_pointer_cast<File>(
 +        std::make_shared<TextPythonFile>(fd, *this, borrowed));
 +
-+  auto isRawIO = IsInstance(rawIOBase);
++  auto isRawIO = IsInstance(rawIOBase.get());
 +  if (!isRawIO)
 +    return isRawIO.takeError();
-+  auto isBufferedIO = IsInstance(bufferedIOBase);
++  auto isBufferedIO = IsInstance(bufferedIOBase.get());
 +  if (!isBufferedIO)
 +    return isBufferedIO.takeError();
 +
@@ -1232,7 +1263,7 @@ index fedd8f66a1f..0dcc667cdf3 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..d3fccbb6e86 100644
+index 8fd2be1460f..89c4cfb7a02 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -1388,13 +1419,13 @@ index 8fd2be1460f..d3fccbb6e86 100644
  
 -  bool IsValid() const;
 +  bool IsNone() const { return m_py_obj == Py_None; }
-+
-+  bool IsValid() const { return m_py_obj != nullptr; }
  
 -  bool IsAllocated() const;
-+  bool IsAllocated() const { return IsValid() && !IsNone(); }
++  bool IsValid() const { return m_py_obj != nullptr; }
  
 -  bool IsNone() const;
++  bool IsAllocated() const { return IsValid() && !IsNone(); }
++
 +  operator bool() const { return IsValid() && !IsNone(); }
  
    template <typename T> T AsType() const {
@@ -1522,7 +1553,29 @@ index 8fd2be1460f..d3fccbb6e86 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -467,8 +632,38 @@ public:
+@@ -406,7 +571,20 @@ public:
+ 
+   static PythonModule AddModule(llvm::StringRef module);
+ 
+-  static PythonModule ImportModule(llvm::StringRef module);
++  // safe, returns invalid on error;
++  static PythonModule ImportModule(llvm::StringRef name) {
++    std::string s = name;
++    auto mod = Import(s.c_str());
++    if (!mod) {
++      llvm::consumeError(mod.takeError());
++      return PythonModule();
++    }
++    return std::move(mod.get());
++  }
++
++  static llvm::Expected<PythonModule> Import(const char *name);
++
++  llvm::Expected<PythonObject> Get(const char *name);
+ 
+   // Bring in the no-argument base class version
+   using PythonObject::Reset;
+@@ -467,8 +645,38 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
