@@ -1,5 +1,5 @@
-Bottom: 8a5c84edd506efc48d641edbf0ed1807d92c1e19
-Top:    59c8ed732c5d297898607b02c12b3b7e7a9ccf4b
+Bottom: dabe7262bf6c34d25130ac870fc990ae76e7a0b8
+Top:    7bdfd8ce58ffecf7aef035aa81ec0c60b9a1578f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 12:06:03 -0700
 
@@ -234,10 +234,10 @@ index 0dcc667cdf3..b84815caa7b 100644
  }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 677c0738b8a..058edc073cc 100644
+index d3fccbb6e86..2350701be53 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -614,7 +614,7 @@ public:
+@@ -619,7 +619,7 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -246,7 +246,7 @@ index 677c0738b8a..058edc073cc 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -624,7 +624,7 @@ public:
+@@ -629,7 +629,7 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;

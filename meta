@@ -1,23 +1,23 @@
 Version: 1
-Previous: 6d0589b6acedb647d013f9721b24973dcc2103cc
-Head: e310550691fba84dc995481913143594c6076561
+Previous: d482be9e77deb481387ea0113b2be64f5f78b51f
+Head: e0f787453cb0820f610cc859ac2555aab44cf847
 Applied:
   lldbpexpect-make-sure-term-is: 6c765b1645ef5ae552cd3099d4d9f04ed12e9dca
   fix-python-library-path-on: 05ea88a4e03bcc9be6a62faec61e1c85160639fb
   stringliteral-intellisense: 73e0fc138c914a101efb1b3c906ed750ea3eec57
   allow-arbitrary-python-streams: e310550691fba84dc995481913143594c6076561
+  sbfile-add-a-bunch-of-tests: 38ce438387d0a0d2401339552d523be6b642f758
+  SBCommandReturnObject: 96eebac5ddf205d247ded09d9fee2d6650798f2e
+  remove-a-smattering-of-0: 45b0e8f22fb6d05f13a668fa11488f87a956ab48
+  HandleProcessEvent: 022b75b5beda7b73acbf617f9e950740cb71fe93
+  iohandler-fall-back-on-file: 426a63726cc597990d71320f2b1c191cdabe0b48
+  protect-libedit-and-lldb-gui: 003dd623f82f1f228c67dcf3e6e9ccd5e0bf2ace
+  update-sbdebugger-setinputfile: d17954ed7a07e3b55f8cf9bbcb9ad8ffdd069f1c
+  sbfile-getfile-convert-sbfile: 40de6d0b7e18ba2fc366afc0b20492ac151b2621
+  convert-sbdebugger-filehandle: fe627f7ddbed8926ed4e82cae6624719d9310dc8
+  SBInstruction: c646ea730333f514df969308ece94d27e00bad6a
+  SBStream: d23b9869927238faa33eff92d1ea7d3d1a08274d
+  update-scriptinterpreterpython: 8c2a4baab4313999156909899c784d7ac0ee93d1
+  delete-swig-typemaps-for-file: e0f787453cb0820f610cc859ac2555aab44cf847
 Unapplied:
-  sbfile-add-a-bunch-of-tests: 645184c4d9700bc0c09cba36f6e7352b5d5a7bcf
-  SBCommandReturnObject: e1afd1b746fa9cb1eee459c47330e71f52e569ea
-  remove-a-smattering-of-0: 720974e7de6d47607d3f7213df2eee5706841521
-  HandleProcessEvent: 350c37b552e418a9821dfbe543c36c395abcd806
-  iohandler-fall-back-on-file: f9f3046066cf07f5b092ebf28c0eca380780ed38
-  protect-libedit-and-lldb-gui: 56f3185039e8c8b77dfb3851a88fef221b5c1674
-  update-sbdebugger-setinputfile: 75553dce5ea392b2a757c2958dad1778145de956
-  sbfile-getfile-convert-sbfile: 1f6e899052549122695fcfd679d08da078c539e6
-  convert-sbdebugger-filehandle: f3a07515570cbfdb6ad64e21c48fa6e4223ebb90
-  SBInstruction: 08b5520a6e841445cb3cae733b1c910f500663db
-  SBStream: 801d61174a33265abdadaafaabc8201b80336e13
-  update-scriptinterpreterpython: 01679dd0362f5a4b51cdadc7d0b29f907c1dd22a
-  delete-swig-typemaps-for-file: d8b34d94a1091f4ea5b750954b6d617dbff396e7
 Hidden:
