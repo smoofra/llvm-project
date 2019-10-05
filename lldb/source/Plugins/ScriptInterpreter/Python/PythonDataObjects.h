@@ -417,7 +417,7 @@ public:
 
   void Reset(PyRefType type, PyObject *py_obj) override;
 
-  llvm::StringRef GetString() const; // safe, null on error
+  llvm::StringRef GetString() const; // safe, empty string on error
 
   Expected<llvm::StringRef> AsUTF8() const;
 
