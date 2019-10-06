@@ -1,11 +1,12 @@
 Version: 1
-Previous: 886ace905b7b64d023f1ede577c1135c7e815b7c
-Head: 278a3db7942a70a9b52771c43180cd0874f36250
+Previous: 5189812b3903cd8ab6736b26b85fe2623cd41730
+Head: e884fd37f8f73aad85b095b015a36cd9e404badf
 Applied:
   dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
   lldbpexpect-make-sure-term-is: 4dbc4da50a622b38a249de8bd3d8bb127bd0bdf4
   fix-python-library-path-on: 07df64660566c4c5934446adf07958bc9f119f8d
   stringliteral-intellisense: 278a3db7942a70a9b52771c43180cd0874f36250
+  PythonDataObjects-reform: e884fd37f8f73aad85b095b015a36cd9e404badf
 Unapplied:
   allow-arbitrary-python-streams: 5ff641ad37fd08fb0c07185449208ffe44b92360
   bunch-o-tests: 4792e7aeb22b7b35b8dce9f3e73d89db79ef3a15
