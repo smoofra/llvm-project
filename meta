@@ -1,5 +1,5 @@
 Version: 1
-Previous: 819be58498c5620bb73863924194b6d046532505
+Previous: 243da465081da360061caca0c6c3b71fc14c8011
 Head: 906ecb3c71b37fb71e29c268089cb9736a4e4b20
 Applied:
   dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
@@ -8,7 +8,6 @@ Applied:
   stringliteral-intellisense: 278a3db7942a70a9b52771c43180cd0874f36250
   exception-handling-in: 906ecb3c71b37fb71e29c268089cb9736a4e4b20
 Unapplied:
-  PythonDataObjects-reform: 67bf51b972bf6b9a3ff094ceea815d9c73b8a97b
   allow-arbitrary-python-streams: 2a40e8aa958c7402000dae22a3b97903f92bf0cc
   bunch-o-tests: 4792e7aeb22b7b35b8dce9f3e73d89db79ef3a15
   SBCommandReturnObject: e94a4e9a22ecc14bafb21c886e8eba63fb3ca624
