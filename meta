@@ -1,6 +1,6 @@
 Version: 1
-Previous: 2ec4c660e2f9e19facfe7a1abd6024f776b39253
-Head: 3433da62070ebcc0f8004a6217a1289f56193c7a
+Previous: fab98228d388778505f00a4d114c21de26ad5ae1
+Head: 1ec0bce5e6c03139837caf5ccbb4809336d77ea8
 Applied:
   dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
   lldbpexpect-make-sure-term-is: 4dbc4da50a622b38a249de8bd3d8bb127bd0bdf4
@@ -8,19 +8,19 @@ Applied:
   stringliteral-intellisense: 278a3db7942a70a9b52771c43180cd0874f36250
   exception-handling-in: 906ecb3c71b37fb71e29c268089cb9736a4e4b20
   allow-arbitrary-python-streams: 3433da62070ebcc0f8004a6217a1289f56193c7a
+  bunch-o-tests: d4e7b48a11cd2cbff0f0bd378fa987c8af7e9124
+  SBCommandReturnObject: 1bb351bf2edd2fac317443f232e99e1d2de6efd2
+  remove-a-smattering-of-0: 45802e763073917a1d002a1f0c39eceb68151b6d
+  HandleProcessEvent: 0b10ec9db8050ba1a6f9b29267d8cc8b1c96df65
+  iohandler-fall-back-on-file: b27487449fa123215756a5f5ff3b36d8d0d3cfa5
+  protect-libedit-and-lldb-gui: e22913fe734f85fd27b2028cc4c11358070d8b2b
+  update-sbdebugger-setinputfile: c771c5d8ed23a17bd6aaf9f509c979977dd08f75
+  GetFile: 39aad895ac7fce0aae513d189ced91a750ba0c50
+  TestRunCommandInterpreterAPI: 0ac26c0c109bd8deaa63442f629b8dca25098294
+  convert-legacy: dac680cc91da5c76f097b91a3cb7bb61e8a06496
+  SBInstruction: d9da21e21d70cc9255040d1a4a25bee16a358b20
+  SBStream: 059d0cbb5a0e2538f92d43a0e45746a73d110f95
+  update-scriptinterpreterpython: 72fa13fab776d414a91f2805600c6d3eed9256c8
+  delete-swig-typemaps-for-file: 1ec0bce5e6c03139837caf5ccbb4809336d77ea8
 Unapplied:
-  bunch-o-tests: 4792e7aeb22b7b35b8dce9f3e73d89db79ef3a15
-  SBCommandReturnObject: e94a4e9a22ecc14bafb21c886e8eba63fb3ca624
-  remove-a-smattering-of-0: c22811867bbe564236b36cd0151e98f81e4ed086
-  HandleProcessEvent: b2ec66e20b7e9544356e40fc23861797e52ff9d5
-  iohandler-fall-back-on-file: 80dced5ec44257c81836d445b489c6ed530dc92b
-  protect-libedit-and-lldb-gui: 20659f125eb0223f4460d659a1485814335191b6
-  update-sbdebugger-setinputfile: 479ad8add305c1dd008a6cd0c4b8afcd16fdd765
-  GetFile: 70f759922887f0f7a597037d51a5f5fa4f8d428f
-  TestRunCommandInterpreterAPI: 82a1fb5ae3c90ec5451ac674bf47420b95af7afc
-  convert-legacy: afcb46b5ec7e6b32df67cae2f852edd79193b786
-  SBInstruction: bf28d517574438120ff4dfba597720e5731456c6
-  SBStream: fecb13624775c9ddc56c3c7ac05fd81a75257107
-  update-scriptinterpreterpython: 736a19a2601ef5936f700e1a47d93b3dbbb59d20
-  delete-swig-typemaps-for-file: 9cbeb94c6a6079ffce92d3dfd34e41b4716e3ccd
 Hidden:

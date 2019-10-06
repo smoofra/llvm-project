@@ -1,5 +1,5 @@
-Bottom: ab546d1cee948b8c673fce300ac012c627f5901d
-Top:    bf88578144d942152f8a727c9c9cde38aa675c07
+Bottom: 8b9d197ae424f4d8ae4f4f5e148c5e835fb2409e
+Top:    99883517fd4feec84da5697eeaa8ef324363c218
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -144,10 +144,10 @@ index 4d9e2c2cd7d..2da8fd3e0cf 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 0bdf684df56..14dc47a4685 100644
+index 99f36e1a046..658e43e8941 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1089,22 +1089,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+@@ -1091,22 +1091,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
    return Take<PythonFile>(file_obj);
  }
  
@@ -171,10 +171,10 @@ index 0bdf684df56..14dc47a4685 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index ed35cfa4c7e..8728ed68041 100644
+index c398ccde91b..e524b3757c3 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -654,8 +654,6 @@ public:
+@@ -653,8 +653,6 @@ public:
      }
    }
  
