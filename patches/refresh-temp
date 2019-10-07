@@ -1,0 +1,44 @@
+Bottom: fcc22b3b8bba6e5cc77bcf29e15edfc81eb8a4c3
+Top:    709ed76fa169ce0ae735ccf227a1a58359797e36
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 16:30:31 -0700
+
+Refresh of SBCommandReturnObject
+
+---
+diff --git a/lldb/include/lldb/Utility/ReproducerInstrumentation.h b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
+index 850c37c5194..ab80e011372 100644
+--- a/lldb/include/lldb/Utility/ReproducerInstrumentation.h
++++ b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
+@@ -178,10 +178,6 @@ template <typename... Ts> inline std::string stringify_args(const Ts &... ts) {
+   lldb_private::repro::Recorder sb_recorder(LLVM_PRETTY_FUNCTION,              \
+                                             stringify_args(__VA_ARGS__));
+ 
+-namespace lldb {
+-class SBFile;
+-}
+-
+ namespace lldb_private {
+ namespace repro {
+ 
+@@ -243,7 +239,9 @@ struct FundamentalReferenceTag {};
+ struct NotImplementedTag {};
+ 
+ /// Return the deserialization tag for the given type T.
+-template <class T> struct serializer_tag { typedef ValueTag type; };
++template <class T> struct serializer_tag {
++  typedef typename std::conditional<std::is_trivially_copyable<T>::value, ValueTag, NotImplementedTag>::type type;
++};
+ template <class T> struct serializer_tag<T *> {
+   typedef
+       typename std::conditional<std::is_fundamental<T>::value,
+@@ -254,9 +252,6 @@ template <class T> struct serializer_tag<T &> {
+                                     FundamentalReferenceTag, ReferenceTag>::type
+       type;
+ };
+-template <> struct serializer_tag<lldb::SBFile> {
+-  typedef NotImplementedTag type;
+-};
+ 
+ /// Deserializes data from a buffer. It is used to deserialize function indices
+ /// to replay, their arguments and return values.
