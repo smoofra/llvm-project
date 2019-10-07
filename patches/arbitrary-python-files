@@ -1,7 +1,7 @@
 Bottom: 8810c5dd1e06ce7ffc2f481ebfd304b9e8300df7
-Top:    3709d5b4205211423d958111badaee78262b2350
+Top:    1f76b863c6ef146b6f1da0f2fc0ab62335d224b9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-05 16:52:36 -0700
+Date:   2019-10-07 15:48:28 -0700
 
 allow arbitrary python streams to be converted to SBFile
 
@@ -623,7 +623,7 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index d0a6dadbfa8..ca65fd1ab77 100644
+index d0a6dadbfa8..66c1dbe0ecc 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1024,22 +1024,23 @@ bool PythonFile::Check(PyObject *py_obj) {
@@ -655,7 +655,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 -
 -  return true;
 +  }
-+  int r = PyObject_IsInstance(py_obj, iobase.get());
++  int r = PyObject_IsInstance(py_obj, iobase.get().get());
 +  if (r < 0) {
 +    llvm::consumeError(exception()); // clear the exception and log it.
 +    return false;
@@ -685,17 +685,17 @@ index d0a6dadbfa8..ca65fd1ab77 100644
  const char *PythonException::toCString() const {
    if (m_repr_bytes) {
      return PyBytes_AS_STRING(m_repr_bytes);
-@@ -1148,4 +1163,369 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1148,4 +1163,378 @@ std::error_code PythonException::convertToErrorCode() const {
  
  char PythonException::ID = 0;
  
-+llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
++llvm::Expected<uint32_t> GetOptionsForPyObject(const PythonObject &obj) {
 +  uint32_t options = 0;
 +#if PY_MAJOR_VERSION >= 3
-+  auto readable = AsBool(obj.CallMethod("readable", "()"));
++  auto readable = As<bool>(obj.CallMethod("readable"));
 +  if (!readable)
 +    return readable.takeError();
-+  auto writable = AsBool(obj.CallMethod("writable", "()"));
++  auto writable = As<bool>(obj.CallMethod("writable"));
 +  if (!writable)
 +    return writable.takeError();
 +  if (readable.get())
@@ -730,7 +730,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +
 +  bool IsPythonSideValid() const {
 +    GIL takeGIL;
-+    auto closed = AsBool(m_py_obj.GetAttribute("closed"));
++    auto closed = As<bool>(m_py_obj.GetAttribute("closed"));
 +    if (!closed) {
 +      llvm::consumeError(closed.takeError());
 +      return false;
@@ -747,7 +747,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +    Status py_error, base_error;
 +    GIL takeGIL;
 +    if (!m_borrowed) {
-+      auto r = m_py_obj.CallMethod("close", "()");
++      auto r = m_py_obj.CallMethod("close");
 +      if (!r)
 +        py_error = Status(r.takeError());
 +    }
@@ -821,7 +821,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +    GIL takeGIL;
 +    if (m_borrowed)
 +      return Flush();
-+    auto r = m_py_obj.CallMethod("close", "()");
++    auto r = m_py_obj.CallMethod("close");
 +    if (!r)
 +      return Status(r.takeError());
 +    return Status();
@@ -829,10 +829,18 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +
 +  Status Flush() override {
 +    GIL takeGIL;
-+    auto r = m_py_obj.CallMethod("flush", "()");
++    auto r = m_py_obj.CallMethod("flush");
 +    if (!r)
 +      return Status(r.takeError());
 +    return Status();
++  }
++
++  uint32_t GetOptions() const override {
++    auto opts = GetOptionsForPyObject(m_py_obj);
++    if (opts)
++      return opts.get();
++    llvm::consumeError(opts.takeError());
++    return 0;
 +  }
 +};
 +} // namespace
@@ -852,12 +860,13 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +
 +  Status Write(const void *buf, size_t &num_bytes) override {
 +    GIL takeGIL;
-+    auto pybuffer = Take<PythonObject>(PyMemoryView_FromMemory(
-+        const_cast<char *>((const char *)buf), num_bytes, PyBUF_READ));
++    PyObject *pybuffer_p = PyMemoryView_FromMemory(
++        const_cast<char *>((const char *)buf), num_bytes, PyBUF_READ);
++    if (!pybuffer_p)
++      return Status(llvm::make_error<PythonException>());
++    auto pybuffer = Take<PythonObject>(pybuffer_p);
 +    num_bytes = 0;
-+
-+    auto bytes_written = AsLongLong(
-+        m_py_obj.CallMethod("write", "(O)", (PyObject *)pybuffer.get()));
++    auto bytes_written = As<long long>(m_py_obj.CallMethod("write", pybuffer));
 +    if (!bytes_written)
 +      return Status(bytes_written.takeError());
 +    if (bytes_written.get() < 0)
@@ -871,7 +880,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +    GIL takeGIL;
 +    static_assert(sizeof(long long) >= sizeof(size_t), "overflow");
 +    auto pybuffer_obj =
-+        m_py_obj.CallMethod("read", "(L)", (unsigned long long)num_bytes);
++        m_py_obj.CallMethod("read", (unsigned long long)num_bytes);
 +    if (!pybuffer_obj)
 +      return Status(pybuffer_obj.takeError());
 +    num_bytes = 0;
@@ -910,8 +919,8 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +    if (!pystring)
 +      return Status(pystring.takeError());
 +    num_bytes = 0;
-+    auto bytes_written = AsLongLong(
-+        m_py_obj.CallMethod("write", "(O)", (PyObject *)pystring.get()));
++    auto bytes_written =
++        As<long long>(m_py_obj.CallMethod("write", pystring.get()));
 +    if (!bytes_written)
 +      return Status(bytes_written.takeError());
 +    if (bytes_written.get() < 0)
@@ -929,8 +938,8 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +    if (orig_num_bytes < 6) {
 +      return Status("can't read less than 6 bytes from a utf8 text stream");
 +    }
-+    auto pystring = AsType<PythonString>(
-+        m_py_obj.CallMethod("read", "(L)", (unsigned long long)num_chars));
++    auto pystring = As<PythonString>(
++        m_py_obj.CallMethod("read", (unsigned long long)num_chars));
 +    if (!pystring)
 +      return Status(pystring.takeError());
 +    if (pystring.get().IsNone()) {
@@ -965,7 +974,7 @@ index d0a6dadbfa8..ca65fd1ab77 100644
 +
 +  // LLDB and python will not share I/O buffers.  We should probably
 +  // flush the python buffers now.
-+  auto r = CallMethod("flush", "()");
++  auto r = CallMethod("flush");
 +  if (!r)
 +    return r.takeError();
 +
