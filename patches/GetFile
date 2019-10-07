@@ -1,7 +1,7 @@
 Bottom: 388dc744398428bb0ab9a6d9aef19c0787cfd5a8
-Top:    7394d1e923f8e76a0df61a073e5d98abee1ede07
+Top:    12fece430a4fc4ff2e5026fc3b9af00eb4ac55dd
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-05 15:09:47 -0700
+Date:   2019-10-07 15:38:19 -0700
 
 SBFile::GetFile: convert SBFile back into python native files.
 
@@ -186,7 +186,7 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 66c1dbe0ecc..c049e664c7c 100644
+index 66c1dbe0ecc..cd2f261add6 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1008,8 +1008,6 @@ operator()(std::initializer_list<PythonObject> args) {
@@ -249,7 +249,7 @@ index 66c1dbe0ecc..c049e664c7c 100644
      return base_error;
    };
  
-+  void *GetPythonObject() const override { return m_py_obj; }
++  void *GetPythonObject() const override { return m_py_obj.get(); }
 +
  protected:
    PythonFile m_py_obj;
