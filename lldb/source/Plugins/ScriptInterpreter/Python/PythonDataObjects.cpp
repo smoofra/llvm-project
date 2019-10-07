@@ -1226,7 +1226,7 @@ public:
     return base_error;
   };
 
-  void *GetPythonObject() const override { return m_py_obj; }
+  void *GetPythonObject() const override { return m_py_obj.get(); }
 
 protected:
   PythonFile m_py_obj;
