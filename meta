@@ -1,6 +1,6 @@
 Version: 1
-Previous: 963de4e52fa76d29680c5eced981ac876fe734a5
-Head: d757fb0d9d41f3224748b606452d3cd0009569f4
+Previous: 6020e72981b19afd912f9a2f9180d18a34b475fa
+Head: aae0121479bbbe7cdcf9146cdeb6a343795e3c74
 Applied:
   dwimy-filterspecs-for-dotest: 60e6e088cf65a1d3ddd3eecbf29f612cf7d057f1
   lldbpexpect-make-sure-term-is: 02ae4c8512d2d633f534dfd2c28881abbe77892b
@@ -9,8 +9,8 @@ Applied:
   exceptions: 650cb6bc4344a93821cee37567a03682bfd93632
   arbitrary-python-files: 33ae393113dc41b6461c20e4e25c8cff7e3edfcf
   bunch-o-tests: d757fb0d9d41f3224748b606452d3cd0009569f4
+  SBCommandReturnObject: aae0121479bbbe7cdcf9146cdeb6a343795e3c74
 Unapplied:
-  SBCommandReturnObject: 6dd6d5dd3f46c592e6bd0cb10b13191693427a67
   remove-a-smattering-of-0: b34e32c3d7673b05783b08be34c7f9e1620df9ad
   HandleProcessEvent: 41113c1b8a43779aed8626e531f0f65e813c447a
   iohandler-fall-back-on-file: bf0f9d82c80bc8a1eb0b341c30443e1a3873f0ce
