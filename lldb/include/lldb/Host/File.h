@@ -53,6 +53,7 @@ public:
   static mode_t ConvertOpenOptionsForPOSIXOpen(uint32_t open_options);
   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
   static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
+  static const char *GetStreamOpenModeFromOptions(uint32_t options);
 
   File()
       : IOObject(eFDTypeFile), m_is_interactive(eLazyBoolCalculate),
@@ -308,6 +309,28 @@ public:
   ///     format string \a format.
   virtual size_t PrintfVarArg(const char *format, va_list args);
 
+  /// If this file is a wrapper for a python file object, return it.
+  ///
+  /// \return
+  ///    The PyObject* that this File wraps, or NULL.
+  virtual void *GetPythonObject() const;
+
+  /// Return the OpenOptions for this file.
+  ///
+  /// Some options like eOpenOptionDontFollowSymlinks only make
+  /// sense when a file is being opened (or not at all)
+  /// and may not be preserved for this method.  But any valid
+  /// File should return either or both of eOpenOptionRead and
+  /// eOpenOptionWrite here.
+  ///
+  /// \return
+  ///    OpenOptions flags for this file, or 0 if unknown.
+  virtual uint32_t GetOptions() const;
+
+  const char *GetOpenMode() const {
+    return GetStreamOpenModeFromOptions(GetOptions());
+  }
+
   /// Get the permissions for a this file.
   ///
   /// \return
@@ -390,6 +413,7 @@ public:
   Status Flush() override;
   Status Sync() override;
   size_t PrintfVarArg(const char *format, va_list args) override;
+  uint32_t GetOptions() const override;
 
 protected:
   bool DescriptorIsValid() const {
