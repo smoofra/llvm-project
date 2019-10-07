@@ -304,8 +304,9 @@ public:
                                           const T &... t) const {
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
 #if PY_MAJOR_VERSION < 3
-    PyObject *obj = PyObject_CallMethod(
-        m_py_obj, name, const_cast<char *>(format), PythonFormat<T>::get(t)...);
+    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
+                                        const_cast<char *>(format),
+                                        PythonFormat<T>::get(t)...);
 #else
     PyObject *obj =
         PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
