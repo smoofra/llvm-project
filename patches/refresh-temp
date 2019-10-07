@@ -1,0 +1,35 @@
+Bottom: df210451908abb1ce9144433abe1d5c164a64ded
+Top:    a601b66fce44e4e64c2294041c3c381f22bcb918
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 16:16:19 -0700
+
+Refresh of exceptions
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index d0a6dadbfa8..85a53a27783 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -370,10 +370,6 @@ PythonString::PythonString(llvm::StringRef string) : PythonObject() {
+   SetString(string);
+ }
+ 
+-PythonString::PythonString(const char *string) : PythonObject() {
+-  SetString(llvm::StringRef(string));
+-}
+-
+ PythonString::PythonString() : PythonObject() {}
+ 
+ PythonString::~PythonString() {}
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 3d733c98e16..cb87bfa2366 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -435,7 +435,6 @@ public:
+ 
+   PythonString();
+   explicit PythonString(llvm::StringRef string); // safe, null on error
+-  explicit PythonString(const char *string);     // safe, null on error
+   PythonString(PyRefType type, PyObject *o);
+ 
+   ~PythonString() override;
