@@ -1,7 +1,7 @@
 Bottom: 4f8fe857d21e5840a337c357ad9420985521a5a0
-Top:    8ba0107d3d8155c702bae43c886110f5e553cae5
+Top:    24ca0151deaf7cb309c8f978827c36f912e9602b
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-05 17:00:46 -0700
+Date:   2019-10-07 15:33:01 -0700
 
 exception handling in PythonDataObjects.
 
@@ -29,10 +29,9 @@ Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68547
 
-
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..9fc61ddf7b0 100644
+index fedd8f66a1f..d0a6dadbfa8 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -43,23 +42,24 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  #include "lldb/Utility/Stream.h"
  
  #include "llvm/ADT/StringSwitch.h"
-@@ -28,6 +29,27 @@
+@@ -28,6 +29,28 @@
  
  using namespace lldb_private;
  using namespace lldb;
 +using namespace lldb_private::python;
++using llvm::Error;
++using llvm::Expected;
 +
 +namespace lldb_private {
 +namespace python {
-+// This is why C++ needs monads.
-+Expected<bool> AsBool(Expected<PythonObject> &&obj) {
++template <> Expected<bool> As<bool>(Expected<PythonObject> &&obj) {
 +  if (obj) {
 +    return obj.get().IsTrue();
 +  } else {
 +    return obj.takeError();
 +  }
 +}
-+Expected<long long> AsLongLong(Expected<PythonObject> &&obj) {
++template <> Expected<long long> As<long long>(Expected<PythonObject> &&obj) {
 +  if (obj) {
 +    return obj.get().AsLongLong();
 +  } else {
@@ -71,7 +71,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  
  void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
    s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
-@@ -167,12 +189,6 @@ PythonObject PythonObject::GetAttributeValue(llvm::StringRef attr) const {
+@@ -167,12 +190,6 @@ PythonObject PythonObject::GetAttributeValue(llvm::StringRef attr) const {
                        PyObject_GetAttr(m_py_obj, py_attr.get()));
  }
  
@@ -84,7 +84,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  StructuredData::ObjectSP PythonObject::CreateStructuredObject() const {
    switch (GetObjectType()) {
    case PyObjectType::Dictionary:
-@@ -334,6 +350,21 @@ StructuredData::StringSP PythonByteArray::CreateStructuredString() const {
+@@ -334,6 +351,17 @@ StructuredData::StringSP PythonByteArray::CreateStructuredString() const {
  
  // PythonString
  
@@ -96,17 +96,13 @@ index fedd8f66a1f..9fc61ddf7b0 100644
 +#endif
 +  if (!str)
 +    return llvm::make_error<PythonException>();
-+  return AssertTake<PythonString>(str);
-+}
-+
-+Expected<PythonString> PythonString::FromUTF8(const char *string) {
-+  return FromUTF8(llvm::StringRef(string));
++  return Take<PythonString>(str);
 +}
 +
  PythonString::PythonString(PyRefType type, PyObject *py_obj) : PythonObject() {
    Reset(type, py_obj); // Use "Reset()" to ensure that py_obj is a string
  }
-@@ -376,8 +407,12 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
+@@ -376,8 +404,12 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
    // In Python 2, Don't store PyUnicode objects directly, because we need
    // access to their underlying character buffers which Python 2 doesn't
    // provide.
@@ -121,7 +117,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  #endif
    // Calling PythonObject::Reset(const PythonObject&) will lead to stack
    // overflow since it calls back into the virtual implementation.
-@@ -385,8 +420,17 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
+@@ -385,8 +417,17 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
  }
  
  llvm::StringRef PythonString::GetString() const {
@@ -140,7 +136,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  
    Py_ssize_t size;
    const char *data;
-@@ -394,10 +438,16 @@ llvm::StringRef PythonString::GetString() const {
+@@ -394,10 +435,16 @@ llvm::StringRef PythonString::GetString() const {
  #if PY_MAJOR_VERSION >= 3
    data = PyUnicode_AsUTF8AndSize(m_py_obj, &size);
  #else
@@ -159,7 +155,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
    return llvm::StringRef(data, size);
  }
  
-@@ -413,13 +463,13 @@ size_t PythonString::GetSize() const {
+@@ -413,13 +460,13 @@ size_t PythonString::GetSize() const {
  }
  
  void PythonString::SetString(llvm::StringRef string) {
@@ -180,7 +176,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  }
  
  StructuredData::StringSP PythonString::CreateStructuredString() const {
-@@ -826,9 +876,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
+@@ -826,9 +873,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
    return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
  }
  
@@ -207,7 +203,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
  }
  
  bool PythonModule::Check(PyObject *py_obj) {
-@@ -1031,4 +1095,60 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1092,60 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -269,7 +265,7 @@ index fedd8f66a1f..9fc61ddf7b0 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..94f39a77a99 100644
+index 8fd2be1460f..23a3de2485f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -299,13 +295,10 @@ index 8fd2be1460f..94f39a77a99 100644
  #ifndef LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
  #define LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
  
-@@ -21,11 +41,16 @@
+@@ -21,11 +41,13 @@
  
  namespace lldb_private {
  
-+using llvm::Error;
-+using llvm::Expected;
-+
 +class PythonObject;
  class PythonBytes;
  class PythonString;
@@ -316,7 +309,7 @@ index 8fd2be1460f..94f39a77a99 100644
  
  class StructuredPythonObject : public StructuredData::Generic {
  public:
-@@ -72,10 +97,43 @@ enum class PyRefType {
+@@ -72,8 +94,67 @@ enum class PyRefType {
              // not call Py_INCREF.
  };
  
@@ -324,43 +317,67 @@ index 8fd2be1460f..94f39a77a99 100644
 +
 +// Take a reference that you already own, and turn it into
 +// a PythonObject.
-+template <typename T> static T Take(PyObject *obj) {
-+  return T(PyRefType::Owned, obj);
++//
++// Most python API methods will return a +1 reference
++// if they succeed or NULL if and only if
++// they set an exception.   Use this to collect such return
++// values, after checking for NULL.
++//
++// If T is not just PythonObject, then obj must be already be
++// checked to be of the correct type.
++template <typename T> T Take(PyObject *obj) {
++  assert(obj);
++  assert(!PyErr_Occurred());
++  T thing(PyRefType::Owned, obj);
++  assert(thing.IsValid());
++  return std::move(thing);
 +}
 +
 +// Retain a reference you have borrowed, and turn it into
 +// a PythonObject.
-+template <typename T> static T Retain(PyObject *obj) {
-+  return T(PyRefType::Borrowed, obj);
-+}
-+
-+// Most python API methods will return NULL if and only if
-+// they set an exception.   Use this to collect such return
-+// values.
 +//
-+// If you pass something ohter than PythonObject as T,
-+// you are NOT asserting that the thing is actually of
-+// type T.   You'll get an invalid T back in that case,
-+// so check if you need to.
-+template <typename T> static T AssertTake(PyObject *obj) {
++// A minority of python APIs return a borrowed reference
++// instead of a +1.   They will also return NULL if and only
++// if they set an exception.   Use this to collect such return
++// values, after checking for NULL.
++//
++// If T is not just PythonObject, then obj must be already be
++// checked to be of the correct type.
++template <typename T> T Retain(PyObject *obj) {
 +  assert(obj);
 +  assert(!PyErr_Occurred());
-+  T thing(PyRefType::Owned, obj);
-+  return thing;
++  T thing(PyRefType::Borrowed, obj);
++  assert(thing.IsValid());
++  return std::move(thing);
 +}
 +
 +} // namespace python
 +
  enum class PyInitialValue { Invalid, Empty };
  
++template <typename T, typename Enable = void> struct PythonFormat;
++
++template <> struct PythonFormat<unsigned long long> {
++  static constexpr char format = 'K';
++  static auto get(unsigned long long value) { return value; }
++};
++
++template <> struct PythonFormat<long long> {
++  static constexpr char format = 'L';
++  static auto get(long long value) { return value; }
++};
++
++template <typename T>
++struct PythonFormat<
++    T, typename std::enable_if<std::is_base_of<PythonObject, T>::value>::type> {
++  static constexpr char format = 'O';
++  static auto get(const T &value) { return value.get(); }
++};
++
  class PythonObject {
  public:
-+  operator PyObject *() const { return m_py_obj; };
-+
    PythonObject() : m_py_obj(nullptr) {}
- 
-   PythonObject(PyRefType type, PyObject *py_obj) : m_py_obj(nullptr) {
-@@ -84,14 +142,19 @@ public:
+@@ -84,14 +165,19 @@ public:
  
    PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
  
@@ -382,7 +399,7 @@ index 8fd2be1460f..94f39a77a99 100644
      m_py_obj = nullptr;
    }
  
-@@ -110,6 +173,8 @@ public:
+@@ -110,6 +196,8 @@ public:
    // PyRefType doesn't make sense, and the copy constructor should be used.
    void Reset(PyRefType type, const PythonObject &ref) = delete;
  
@@ -391,7 +408,7 @@ index 8fd2be1460f..94f39a77a99 100644
    virtual void Reset(PyRefType type, PyObject *py_obj) {
      if (py_obj == m_py_obj)
        return;
-@@ -123,7 +188,7 @@ public:
+@@ -123,7 +211,7 @@ public:
      // an owned reference by incrementing it.  If it is an owned
      // reference (for example the caller allocated it with PyDict_New()
      // then we must *not* increment it.
@@ -400,7 +417,7 @@ index 8fd2be1460f..94f39a77a99 100644
        Py_XINCREF(m_py_obj);
    }
  
-@@ -149,6 +214,17 @@ public:
+@@ -149,6 +237,17 @@ public:
      return *this;
    }
  
@@ -418,7 +435,7 @@ index 8fd2be1460f..94f39a77a99 100644
    PyObjectType GetObjectType() const;
  
    PythonString Repr() const;
-@@ -174,11 +250,13 @@ public:
+@@ -174,11 +273,13 @@ public:
  
    PythonObject GetAttributeValue(llvm::StringRef attribute) const;
  
@@ -431,50 +448,50 @@ index 8fd2be1460f..94f39a77a99 100644
 +  bool IsAllocated() const { return IsValid() && !IsNone(); }
  
 -  bool IsNone() const;
-+  operator bool() const { return IsValid() && !IsNone(); }
++  explicit operator bool() const { return IsValid() && !IsNone(); }
  
    template <typename T> T AsType() const {
      if (!T::Check(m_py_obj))
-@@ -188,10 +266,91 @@ public:
+@@ -188,10 +289,94 @@ public:
  
    StructuredData::ObjectSP CreateStructuredObject() const;
  
 +protected:
-+  static Error nullDeref() {
++  static llvm::Error nullDeref() {
 +    return llvm::createStringError(llvm::inconvertibleErrorCode(),
 +                                   "A NULL PyObject* was dereferenced");
 +  }
-+  static Error exception(const char *s = nullptr) {
++  static llvm::Error exception(const char *s = nullptr) {
 +    return llvm::make_error<PythonException>(s);
 +  }
 +
 +public:
-+  template <typename... Args>
-+  Expected<PythonObject> CallMethod(const char *name, const char *format,
-+                                    Args... args) {
-+    if (!m_py_obj)
-+      return nullDeref();
++  template <typename... T>
++  llvm::Expected<PythonObject> CallMethod(const char *name,
++                                          const T &... t) const {
++    const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
 +#if PY_MAJOR_VERSION < 3
-+    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
-+                                        const_cast<char *>(format), args...);
++    PyObject *obj = PyObject_CallMethod(
++        m_py_obj, name, const_cast<char *>(format), PythonFormat<T>::get(t)...);
 +#else
-+    PyObject *obj = PyObject_CallMethod(m_py_obj, name, format, args...);
++    PyObject *obj =
++        PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
 +#endif
 +    if (!obj)
 +      return exception();
-+    return python::AssertTake<PythonObject>(obj);
++    return python::Take<PythonObject>(obj);
 +  }
 +
-+  Expected<PythonObject> GetAttribute(const char *name) const {
++  llvm::Expected<PythonObject> GetAttribute(const char *name) const {
 +    if (!m_py_obj)
 +      return nullDeref();
 +    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
 +    if (!obj)
 +      return exception();
-+    return python::AssertTake<PythonObject>(obj);
++    return python::Take<PythonObject>(obj);
 +  }
 +
-+  Expected<bool> IsTrue() {
++  llvm::Expected<bool> IsTrue() {
 +    if (!m_py_obj)
 +      return nullDeref();
 +    int r = PyObject_IsTrue(m_py_obj);
@@ -483,7 +500,7 @@ index 8fd2be1460f..94f39a77a99 100644
 +    return !!r;
 +  }
 +
-+  Expected<long long> AsLongLong() {
++  llvm::Expected<long long> AsLongLong() {
 +    if (!m_py_obj)
 +      return nullDeref();
 +    assert(!PyErr_Occurred());
@@ -493,10 +510,10 @@ index 8fd2be1460f..94f39a77a99 100644
 +    return r;
 +  }
 +
-+  Expected<bool> IsInstance(PyObject *cls) {
-+    if (!m_py_obj || !cls)
++  llvm::Expected<bool> IsInstance(const PythonObject &cls) {
++    if (!m_py_obj || !cls.IsValid())
 +      return nullDeref();
-+    int r = PyObject_IsInstance(m_py_obj, cls);
++    int r = PyObject_IsInstance(m_py_obj, cls.get());
 +    if (r < 0)
 +      return exception();
 +    return !!r;
@@ -507,32 +524,34 @@ index 8fd2be1460f..94f39a77a99 100644
  };
  
 +namespace python {
++
 +// This is why C++ needs monads.
-+Expected<bool> AsBool(Expected<PythonObject> &&obj);
-+
-+Expected<long long> AsLongLong(Expected<PythonObject> &&obj);
-+
-+template <typename T> Expected<T> AsType(Expected<PythonObject> &&obj) {
++template <typename T> llvm::Expected<T> As(llvm::Expected<PythonObject> &&obj) {
 +  if (obj) {
-+    if (!T::Check(obj.get()))
++    if (!T::Check(obj.get().get()))
 +      return llvm::createStringError(llvm::inconvertibleErrorCode(),
 +                                     "type error");
-+    return T(PyRefType::Borrowed, std::move(obj.get()));
++    return T(PyRefType::Borrowed, std::move(obj.get().get()));
 +  } else {
 +    return obj.takeError();
 +  }
 +}
++
++template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
++
++template <>
++llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
++
 +} // namespace python
 +
  class PythonBytes : public PythonObject {
  public:
    PythonBytes();
-@@ -245,9 +404,12 @@ public:
+@@ -245,9 +430,11 @@ public:
  
  class PythonString : public PythonObject {
  public:
-+  static Expected<PythonString> FromUTF8(llvm::StringRef string);
-+  static Expected<PythonString> FromUTF8(const char *string);
++  static llvm::Expected<PythonString> FromUTF8(llvm::StringRef string);
 +
    PythonString();
 -  explicit PythonString(llvm::StringRef string);
@@ -542,14 +561,14 @@ index 8fd2be1460f..94f39a77a99 100644
    PythonString(PyRefType type, PyObject *o);
  
    ~PythonString() override;
-@@ -259,11 +421,13 @@ public:
+@@ -259,11 +446,13 @@ public:
  
    void Reset(PyRefType type, PyObject *py_obj) override;
  
 -  llvm::StringRef GetString() const;
 +  llvm::StringRef GetString() const; // safe, empty string on error
 +
-+  Expected<llvm::StringRef> AsUTF8() const;
++  llvm::Expected<llvm::StringRef> AsUTF8() const;
  
    size_t GetSize() const;
  
@@ -558,7 +577,7 @@ index 8fd2be1460f..94f39a77a99 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -406,7 +570,20 @@ public:
+@@ -406,7 +595,20 @@ public:
  
    static PythonModule AddModule(llvm::StringRef module);
  
@@ -580,7 +599,7 @@ index 8fd2be1460f..94f39a77a99 100644
  
    // Bring in the no-argument base class version
    using PythonObject::Reset;
-@@ -467,8 +644,38 @@ public:
+@@ -467,8 +669,59 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
@@ -588,8 +607,8 @@ index 8fd2be1460f..94f39a77a99 100644
 +  llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
 +  llvm::Expected<lldb::FileSP>
 +  ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
- };
- 
++};
++
 +class PythonException : public llvm::ErrorInfo<PythonException> {
 +private:
 +  PyObject *m_exception_type, *m_exception, *m_traceback;
@@ -603,8 +622,29 @@ index 8fd2be1460f..94f39a77a99 100644
 +  ~PythonException();
 +  void log(llvm::raw_ostream &OS) const override;
 +  std::error_code convertToErrorCode() const override;
-+};
-+
+ };
+ 
++// This extracts the underlying T out of an Expected<T> and returns it.
++// If the Expected is an Error instead of a T, that error will be converted
++// into a python exception, and this will return a default-constructed T.
++//
++// This is appropriate for use right at the boundary of python calling into
++// C++, such as in a SWIG typemap.   In such a context you should simply
++// check if the returned T is valid, and if it is, return a NULL back
++// to python.   This will result in the Error being raised as an exception
++// from python code's point of view.
++//
++// For example:
++// ```
++// Expected<Foo *> efoop = some_cpp_function();
++// Foo *foop = unwrapOrSetPythonException(efoop);
++// if (!foop)
++//    return NULL;
++// do_something(*foop);
++//
++// If the Error returned was itself created because a python exception was
++// raised when C++ code called into python, then the original exception
++// will be restored.   Otherwise a simple string exception will be raised.
 +template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
 +  if (expected)
 +    return expected.get();
