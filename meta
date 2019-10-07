@@ -1,6 +1,6 @@
 Version: 1
-Previous: ed1f0bfb6d9efc854c1b140cfcc556ef821f3dfe
-Head: 52d55ffd21f6a22e84fc3d095fc0147fac52d2ca
+Previous: ae0059e0d2e2c1da81f026eadaa06e25330ea1e5
+Head: c21ce7e8f5d68a94aadaecdc6036ed657ccc1ab7
 Applied:
   dwimy-filterspecs-for-dotest: bbedc760095db66f3bf7f9fbbfe2981eecf92471
   lldbpexpect-make-sure-term-is: 4dbc4da50a622b38a249de8bd3d8bb127bd0bdf4
@@ -8,6 +8,8 @@ Applied:
   stringliteral-intellisense: 278a3db7942a70a9b52771c43180cd0874f36250
   exceptions: 813946eeed468776ebb038e37539380a1acfa146
   allow-arbitrary-python-streams: d2badbf8fea3e35087a08cbfd9cb4d313b21e0a5
+  fix-files: c21ce7e8f5d68a94aadaecdc6036ed657ccc1ab7
+Unapplied:
   bunch-o-tests: fec1cc50837bcd48f86113cfcde67bcb8803e53f
   SBCommandReturnObject: 613b51776ddd730e9bc6dea08f2cebb0481265bd
   remove-a-smattering-of-0: 26d4155db518f09aaecb5feb25f46235f0d9da3e
@@ -22,8 +24,6 @@ Applied:
   SBStream: 909d99949fc1a88ca2196d3baef5db31ad45ecc8
   update-scriptinterpreterpython: f2c8a04adea5a87da6054e4e836169d76a9a6a5e
   delete-swig-typemaps-for-file: b5af72cf97fd0db14aa48b0820bb9bcd671cbd84
-  fix-files: e999b39013bfd52bb709353cc80c952eca1ad24d
   fix-getfile: d67c3edb6684c190ab2583bc5431f36dee58f120
   fix-filterspec: 52d55ffd21f6a22e84fc3d095fc0147fac52d2ca
-Unapplied:
 Hidden:
