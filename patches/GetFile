@@ -1,5 +1,5 @@
-Bottom: b4ce5acd76177042586a5e2f16c2bd111fc98f6e
-Top:    7470de085537ce6b3c88142c18e024b9a64975aa
+Bottom: 8eac5dbad863fde6fee06a6b5625bd2605a04208
+Top:    13ea27192cec2ecd7304ac5493cd350414e9cb6b
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -186,10 +186,10 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 15a7629d3c4..72f2d8fb92f 100644
+index 2f4e3033964..d7f407ef767 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1008,8 +1008,6 @@ operator()(std::initializer_list<PythonObject> args) {
+@@ -1004,8 +1004,6 @@ operator()(std::initializer_list<PythonObject> args) {
  
  PythonFile::PythonFile() : PythonObject() {}
  
@@ -198,7 +198,7 @@ index 15a7629d3c4..72f2d8fb92f 100644
  PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
  
  PythonFile::~PythonFile() {}
-@@ -1059,22 +1057,35 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+@@ -1055,22 +1053,35 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
    PythonObject::Reset(PyRefType::Borrowed, result.get());
  }
  
@@ -245,7 +245,7 @@ index 15a7629d3c4..72f2d8fb92f 100644
  }
  
  
-@@ -1231,6 +1242,8 @@ public:
+@@ -1227,6 +1238,8 @@ public:
      return base_error;
    };
  
@@ -255,10 +255,10 @@ index 15a7629d3c4..72f2d8fb92f 100644
    PythonFile m_py_obj;
    bool m_borrowed;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 3d733c98e16..9421bcebcd2 100644
+index cb87bfa2366..c5c0c31a502 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -657,7 +657,6 @@ public:
+@@ -656,7 +656,6 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -266,7 +266,7 @@ index 3d733c98e16..9421bcebcd2 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -667,7 +666,18 @@ public:
+@@ -666,7 +665,18 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;
