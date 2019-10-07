@@ -1309,13 +1309,6 @@ public:
     return Status();
   }
 
-  uint32_t GetOptions() const override {
-    auto opts = GetOptionsForPyObject(m_py_obj);
-    if (opts)
-      return opts.get();
-    llvm::consumeError(opts.takeError());
-    return 0;
-  }
 };
 } // namespace
 
