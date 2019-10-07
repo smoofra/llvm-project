@@ -1,5 +1,5 @@
 Bottom: f517222933e10a50f43a2df9f02ca5d3384afd6a
-Top:    df210451908abb1ce9144433abe1d5c164a64ded
+Top:    a601b66fce44e4e64c2294041c3c381f22bcb918
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:54:03 -0700
 
@@ -31,7 +31,7 @@ Differential Revision: https://reviews.llvm.org/D68547
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index fedd8f66a1f..d0a6dadbfa8 100644
+index fedd8f66a1f..85a53a27783 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -18,6 +18,7 @@
@@ -102,7 +102,18 @@ index fedd8f66a1f..d0a6dadbfa8 100644
  PythonString::PythonString(PyRefType type, PyObject *py_obj) : PythonObject() {
    Reset(type, py_obj); // Use "Reset()" to ensure that py_obj is a string
  }
-@@ -376,8 +404,12 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
+@@ -342,10 +370,6 @@ PythonString::PythonString(llvm::StringRef string) : PythonObject() {
+   SetString(string);
+ }
+ 
+-PythonString::PythonString(const char *string) : PythonObject() {
+-  SetString(llvm::StringRef(string));
+-}
+-
+ PythonString::PythonString() : PythonObject() {}
+ 
+ PythonString::~PythonString() {}
+@@ -376,8 +400,12 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
    // In Python 2, Don't store PyUnicode objects directly, because we need
    // access to their underlying character buffers which Python 2 doesn't
    // provide.
@@ -117,7 +128,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
  #endif
    // Calling PythonObject::Reset(const PythonObject&) will lead to stack
    // overflow since it calls back into the virtual implementation.
-@@ -385,8 +417,17 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
+@@ -385,8 +413,17 @@ void PythonString::Reset(PyRefType type, PyObject *py_obj) {
  }
  
  llvm::StringRef PythonString::GetString() const {
@@ -136,7 +147,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
  
    Py_ssize_t size;
    const char *data;
-@@ -394,10 +435,16 @@ llvm::StringRef PythonString::GetString() const {
+@@ -394,10 +431,16 @@ llvm::StringRef PythonString::GetString() const {
  #if PY_MAJOR_VERSION >= 3
    data = PyUnicode_AsUTF8AndSize(m_py_obj, &size);
  #else
@@ -155,7 +166,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
    return llvm::StringRef(data, size);
  }
  
-@@ -413,13 +460,13 @@ size_t PythonString::GetSize() const {
+@@ -413,13 +456,13 @@ size_t PythonString::GetSize() const {
  }
  
  void PythonString::SetString(llvm::StringRef string) {
@@ -176,7 +187,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
  }
  
  StructuredData::StringSP PythonString::CreateStructuredString() const {
-@@ -826,9 +873,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
+@@ -826,9 +869,23 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
    return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
  }
  
@@ -203,7 +214,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
  }
  
  bool PythonModule::Check(PyObject *py_obj) {
-@@ -1031,4 +1092,60 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1031,4 +1088,60 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -265,7 +276,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..3d733c98e16 100644
+index 8fd2be1460f..cb87bfa2366 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -548,7 +559,7 @@ index 8fd2be1460f..3d733c98e16 100644
  class PythonBytes : public PythonObject {
  public:
    PythonBytes();
-@@ -245,9 +431,11 @@ public:
+@@ -245,9 +431,10 @@ public:
  
  class PythonString : public PythonObject {
  public:
@@ -558,11 +569,10 @@ index 8fd2be1460f..3d733c98e16 100644
 -  explicit PythonString(llvm::StringRef string);
 -  explicit PythonString(const char *string);
 +  explicit PythonString(llvm::StringRef string); // safe, null on error
-+  explicit PythonString(const char *string);     // safe, null on error
    PythonString(PyRefType type, PyObject *o);
  
    ~PythonString() override;
-@@ -259,11 +447,13 @@ public:
+@@ -259,11 +446,13 @@ public:
  
    void Reset(PyRefType type, PyObject *py_obj) override;
  
@@ -578,7 +588,7 @@ index 8fd2be1460f..3d733c98e16 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -406,7 +596,20 @@ public:
+@@ -406,7 +595,20 @@ public:
  
    static PythonModule AddModule(llvm::StringRef module);
  
@@ -600,7 +610,7 @@ index 8fd2be1460f..3d733c98e16 100644
  
    // Bring in the no-argument base class version
    using PythonObject::Reset;
-@@ -467,8 +670,59 @@ public:
+@@ -467,8 +669,59 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
