@@ -1,5 +1,5 @@
 Bottom: 59e02ebb5838f9f6a0a5853187ecfec079167ace
-Top:    709ed76fa169ce0ae735ccf227a1a58359797e36
+Top:    0035b654fd3e76069e6151e56e47f94da933b8cc
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:52:58 -0700
 
@@ -210,7 +210,7 @@ index 1e04a8fa1bf..73d4001aaba 100644
      }
  
 diff --git a/lldb/source/API/SBCommandReturnObject.cpp b/lldb/source/API/SBCommandReturnObject.cpp
-index 6e01843944c..9795392d389 100644
+index 6e01843944c..d562736bdf5 100644
 --- a/lldb/source/API/SBCommandReturnObject.cpp
 +++ b/lldb/source/API/SBCommandReturnObject.cpp
 @@ -10,6 +10,7 @@
@@ -315,13 +315,13 @@ index 6e01843944c..9795392d389 100644
 +void SBCommandReturnObject::SetImmediateOutputFile(FileSP file_sp) {
 +  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
 +                     (FileSP), file_sp);
-+  return SetImmediateOutputFile(SBFile(file_sp));
++  SetImmediateOutputFile(SBFile(file_sp));
 +}
 +
 +void SBCommandReturnObject::SetImmediateErrorFile(FileSP file_sp) {
 +  LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
 +                     (FileSP), file_sp);
-+  return SetImmediateErrorFile(SBFile(file_sp));
++  SetImmediateErrorFile(SBFile(file_sp));
  }
  
  void SBCommandReturnObject::PutCString(const char *string, int len) {
