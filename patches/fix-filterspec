@@ -1,0 +1,24 @@
+Bottom: a5c9f7c303467436243d3d5a955185cd8e88c714
+Top:    dad4fd5cade58c86df8fd36574de9e98deffeeff
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 13:52:20 -0700
+
+fix-filterspec
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/dotest_args.py b/lldb/packages/Python/lldbsuite/test/dotest_args.py
+index 8de4d8dbb2f..4922f27c7bf 100644
+--- a/lldb/packages/Python/lldbsuite/test/dotest_args.py
++++ b/lldb/packages/Python/lldbsuite/test/dotest_args.py
+@@ -61,7 +61,9 @@ def create_parser():
+         '-f',
+         metavar='filterspec',
+         action='append',
+-        help='Specify a filter, which consists of the test class name, a dot, followed by the test method, to only admit such test into the test suite')  # FIXME: Example?
++        help=('Specify a filter, which looks like "TestModule.TestClass.test_name".  '+
++            'You may also use shortened filters, such as '+
++            '"TestModule.TestClass", "TestClass.test_name", or just "test_name".'))
+     group.add_argument(
+         '-p',
+         metavar='pattern',

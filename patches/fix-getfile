@@ -1,0 +1,22 @@
+Bottom: e0860cfb3dc46c50efdc8fb6434cccabdd28809a
+Top:    a5c9f7c303467436243d3d5a955185cd8e88c714
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 13:31:18 -0700
+
+fix-getfile
+
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 59b1b6b1498..9d1295e4fbb 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1226,7 +1226,7 @@ public:
+     return base_error;
+   };
+ 
+-  void *GetPythonObject() const override { return m_py_obj; }
++  void *GetPythonObject() const override { return m_py_obj.get(); }
+ 
+ protected:
+   PythonFile m_py_obj;
