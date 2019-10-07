@@ -1,0 +1,25 @@
+Bottom: 1f76b863c6ef146b6f1da0f2fc0ab62335d224b9
+Top:    504783f592a86b81b3e1d1a0d35a8d175c88f67e
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 15:53:24 -0700
+
+Refresh of arbitrary-python-files
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 66c1dbe0ecc..15a7629d3c4 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1309,13 +1309,6 @@ public:
+     return Status();
+   }
+ 
+-  uint32_t GetOptions() const override {
+-    auto opts = GetOptionsForPyObject(m_py_obj);
+-    if (opts)
+-      return opts.get();
+-    llvm::consumeError(opts.takeError());
+-    return 0;
+-  }
+ };
+ } // namespace
