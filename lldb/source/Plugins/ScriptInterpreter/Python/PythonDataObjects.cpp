@@ -1033,7 +1033,7 @@ bool PythonFile::Check(PyObject *py_obj) {
     llvm::consumeError(iobase.takeError());
     return false;
   }
-  int r = PyObject_IsInstance(py_obj, iobase.get());
+  int r = PyObject_IsInstance(py_obj, iobase.get().get());
   if (r < 0) {
     llvm::consumeError(exception()); // clear the exception and log it.
     return false;
@@ -1158,13 +1158,13 @@ std::error_code PythonException::convertToErrorCode() const {
 
 char PythonException::ID = 0;
 
-llvm::Expected<uint32_t> GetOptionsForPyObject(PythonObject &obj) {
+llvm::Expected<uint32_t> GetOptionsForPyObject(const PythonObject &obj) {
   uint32_t options = 0;
 #if PY_MAJOR_VERSION >= 3
-  auto readable = AsBool(obj.CallMethod("readable", "()"));
+  auto readable = As<bool>(obj.CallMethod("readable"));
   if (!readable)
     return readable.takeError();
-  auto writable = AsBool(obj.CallMethod("writable", "()"));
+  auto writable = As<bool>(obj.CallMethod("writable"));
   if (!writable)
     return writable.takeError();
   if (readable.get())
@@ -1199,7 +1199,7 @@ public:
 
   bool IsPythonSideValid() const {
     GIL takeGIL;
-    auto closed = AsBool(m_py_obj.GetAttribute("closed"));
+    auto closed = As<bool>(m_py_obj.GetAttribute("closed"));
     if (!closed) {
       llvm::consumeError(closed.takeError());
       return false;
@@ -1216,7 +1216,7 @@ public:
     Status py_error, base_error;
     GIL takeGIL;
     if (!m_borrowed) {
-      auto r = m_py_obj.CallMethod("close", "()");
+      auto r = m_py_obj.CallMethod("close");
       if (!r)
         py_error = Status(r.takeError());
     }
@@ -1292,7 +1292,7 @@ public:
     GIL takeGIL;
     if (m_borrowed)
       return Flush();
-    auto r = m_py_obj.CallMethod("close", "()");
+    auto r = m_py_obj.CallMethod("close");
     if (!r)
       return Status(r.takeError());
     return Status();
@@ -1300,15 +1300,14 @@ public:
 
   Status Flush() override {
     GIL takeGIL;
-    auto r = m_py_obj.CallMethod("flush", "()");
+    auto r = m_py_obj.CallMethod("flush");
     if (!r)
       return Status(r.takeError());
     return Status();
   }
 
   uint32_t GetOptions() const override {
-    auto obj = Retain<PythonObject>(m_py_obj);
-    auto opts = GetOptionsForPyObject(obj);
+    auto opts = GetOptionsForPyObject(m_py_obj);
     if (opts)
       return opts.get();
     llvm::consumeError(opts.takeError());
@@ -1332,12 +1331,13 @@ public:
 
   Status Write(const void *buf, size_t &num_bytes) override {
     GIL takeGIL;
-    auto pybuffer = Take<PythonObject>(PyMemoryView_FromMemory(
-        const_cast<char *>((const char *)buf), num_bytes, PyBUF_READ));
+    PyObject *pybuffer_p = PyMemoryView_FromMemory(
+        const_cast<char *>((const char *)buf), num_bytes, PyBUF_READ);
+    if (!pybuffer_p)
+      return Status(llvm::make_error<PythonException>());
+    auto pybuffer = Take<PythonObject>(pybuffer_p);
     num_bytes = 0;
-
-    auto bytes_written = AsLongLong(
-        m_py_obj.CallMethod("write", "(O)", (PyObject *)pybuffer.get()));
+    auto bytes_written = As<long long>(m_py_obj.CallMethod("write", pybuffer));
     if (!bytes_written)
       return Status(bytes_written.takeError());
     if (bytes_written.get() < 0)
@@ -1351,7 +1351,7 @@ public:
     GIL takeGIL;
     static_assert(sizeof(long long) >= sizeof(size_t), "overflow");
     auto pybuffer_obj =
-        m_py_obj.CallMethod("read", "(L)", (unsigned long long)num_bytes);
+        m_py_obj.CallMethod("read", (unsigned long long)num_bytes);
     if (!pybuffer_obj)
       return Status(pybuffer_obj.takeError());
     num_bytes = 0;
@@ -1390,8 +1390,8 @@ public:
     if (!pystring)
       return Status(pystring.takeError());
     num_bytes = 0;
-    auto bytes_written = AsLongLong(
-        m_py_obj.CallMethod("write", "(O)", (PyObject *)pystring.get()));
+    auto bytes_written =
+        As<long long>(m_py_obj.CallMethod("write", pystring.get()));
     if (!bytes_written)
       return Status(bytes_written.takeError());
     if (bytes_written.get() < 0)
@@ -1409,8 +1409,8 @@ public:
     if (orig_num_bytes < 6) {
       return Status("can't read less than 6 bytes from a utf8 text stream");
     }
-    auto pystring = AsType<PythonString>(
-        m_py_obj.CallMethod("read", "(L)", (unsigned long long)num_chars));
+    auto pystring = As<PythonString>(
+        m_py_obj.CallMethod("read", (unsigned long long)num_chars));
     if (!pystring)
       return Status(pystring.takeError());
     if (pystring.get().IsNone()) {
@@ -1445,7 +1445,7 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
 
   // LLDB and python will not share I/O buffers.  We should probably
   // flush the python buffers now.
-  auto r = CallMethod("flush", "()");
+  auto r = CallMethod("flush");
   if (!r)
     return r.takeError();
 
