@@ -370,10 +370,6 @@ PythonString::PythonString(llvm::StringRef string) : PythonObject() {
   SetString(string);
 }
 
-PythonString::PythonString(const char *string) : PythonObject() {
-  SetString(llvm::StringRef(string));
-}
-
 PythonString::PythonString() : PythonObject() {}
 
 PythonString::~PythonString() {}

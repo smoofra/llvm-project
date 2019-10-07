@@ -435,7 +435,6 @@ public:
 
   PythonString();
   explicit PythonString(llvm::StringRef string); // safe, null on error
-  explicit PythonString(const char *string);     // safe, null on error
   PythonString(PyRefType type, PyObject *o);
 
   ~PythonString() override;
