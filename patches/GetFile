@@ -1,5 +1,5 @@
-Bottom: 388dc744398428bb0ab9a6d9aef19c0787cfd5a8
-Top:    12fece430a4fc4ff2e5026fc3b9af00eb4ac55dd
+Bottom: b4ce5acd76177042586a5e2f16c2bd111fc98f6e
+Top:    7470de085537ce6b3c88142c18e024b9a64975aa
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -186,7 +186,7 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 66c1dbe0ecc..cd2f261add6 100644
+index 15a7629d3c4..72f2d8fb92f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1008,8 +1008,6 @@ operator()(std::initializer_list<PythonObject> args) {
@@ -255,10 +255,10 @@ index 66c1dbe0ecc..cd2f261add6 100644
    PythonFile m_py_obj;
    bool m_borrowed;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 23a3de2485f..fc68df4428c 100644
+index 3d733c98e16..9421bcebcd2 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -656,7 +656,6 @@ public:
+@@ -657,7 +657,6 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -266,7 +266,7 @@ index 23a3de2485f..fc68df4428c 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -666,7 +665,18 @@ public:
+@@ -667,7 +666,18 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;
