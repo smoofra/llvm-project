@@ -77,6 +77,9 @@ public:
     operator bool() const;
 
     SBError Close();
+
+    %feature("docstring", "convert this SBFile into a python io.IOBase file object");
+    FileSP GetFile();
 };
 
 } // namespace lldb
