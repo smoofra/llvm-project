@@ -1,5 +1,5 @@
-Bottom: df210451908abb1ce9144433abe1d5c164a64ded
-Top:    125e0e829c2b75740334a1e0cdf272f0629a8e14
+Bottom: a601b66fce44e4e64c2294041c3c381f22bcb918
+Top:    3c75768405a632603ad5d585777ba006fa2952fe
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:48:28 -0700
 
@@ -623,10 +623,10 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index d0a6dadbfa8..15a7629d3c4 100644
+index 85a53a27783..2f4e3033964 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1024,22 +1024,23 @@ bool PythonFile::Check(PyObject *py_obj) {
+@@ -1020,22 +1020,23 @@ bool PythonFile::Check(PyObject *py_obj) {
    // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
    // over `io.open()`, which returns some object derived from `io.IOBase`. As a
    // result, the only way to detect a file in Python 3 is to check whether it
@@ -664,7 +664,7 @@ index d0a6dadbfa8..15a7629d3c4 100644
  #endif
  }
  
-@@ -1092,6 +1093,20 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1088,6 +1089,20 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -685,7 +685,7 @@ index d0a6dadbfa8..15a7629d3c4 100644
  const char *PythonException::toCString() const {
    if (m_repr_bytes) {
      return PyBytes_AS_STRING(m_repr_bytes);
-@@ -1148,4 +1163,371 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1144,4 +1159,371 @@ std::error_code PythonException::convertToErrorCode() const {
  
  char PythonException::ID = 0;
  
