@@ -1,5 +1,5 @@
 Bottom: e2a10c18773b49e88455c49f06a4066ff0b9ad03
-Top:    e2a10c18773b49e88455c49f06a4066ff0b9ad03
+Top:    2d6a838beee38a3c49485e914c37a50600a764b3
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 15:09:47 -0700
 
@@ -13,4 +13,275 @@ identically.   Otherwise a new python file object is created using
 the file descriptor.
 
 ---
-
+diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
+index 747e2eaad13..09218262faa 100644
+--- a/lldb/include/lldb/API/SBFile.h
++++ b/lldb/include/lldb/API/SBFile.h
+@@ -34,6 +34,8 @@ public:
+   operator bool() const;
+   bool operator!() const;
+ 
++  FileSP GetFile() const;
++
+ private:
+   FileSP m_opaque_sp;
+ };
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index b36b523e320..3128a8540b1 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -53,6 +53,7 @@ public:
+   static mode_t ConvertOpenOptionsForPOSIXOpen(uint32_t open_options);
+   static uint32_t GetOptionsFromMode(llvm::StringRef mode);
+   static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
++  static const char *GetStreamOpenModeFromOptions(uint32_t options);
+ 
+   File()
+       : IOObject(eFDTypeFile), m_is_interactive(eLazyBoolCalculate),
+@@ -308,6 +309,28 @@ public:
+   ///     format string \a format.
+   virtual size_t PrintfVarArg(const char *format, va_list args);
+ 
++  /// If this file is a wrapper for a python file object, return it.
++  ///
++  /// \return
++  ///    The PyObject* that this File wraps, or NULL.
++  virtual void *GetPythonObject() const;
++
++  /// Return the OpenOptions for this file.
++  ///
++  /// Some options like eOpenOptionDontFollowSymlinks only make
++  /// sense when a file is being opened (or not at all)
++  /// and may not be preserved for this method.  But any valid
++  /// File should return either or both of eOpenOptionRead and
++  /// eOpenOptionWrite here.
++  ///
++  /// \return
++  ///    OpenOptions flags for this file, or 0 if unknown.
++  virtual uint32_t GetOptions() const;
++
++  const char *GetOpenMode() const {
++    return GetStreamOpenModeFromOptions(GetOptions());
++  }
++
+   /// Get the permissions for a this file.
+   ///
+   /// \return
+@@ -390,6 +413,7 @@ public:
+   Status Flush() override;
+   Status Sync() override;
+   size_t PrintfVarArg(const char *format, va_list args) override;
++  uint32_t GetOptions() const override;
+ 
+ protected:
+   bool DescriptorIsValid() const {
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 7bac3ce6ffd..632609fde4b 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -773,7 +773,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+ 
+ 
+     @add_test_categories(['pyapi'])
+-    @expectedFailure # FIXME implement SBFile::GetFile
+     @skipIf(py_version=['<', (3,)])
+     def test_identity(self):
+ 
+diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
+index 54f9182c7eb..f3d13edca18 100644
+--- a/lldb/scripts/Python/python-typemaps.swig
++++ b/lldb/scripts/Python/python-typemaps.swig
+@@ -434,6 +434,22 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+   }
+ }
+ 
++%typemap(out) lldb::FileSP {
++  using namespace lldb_private;
++  $result = nullptr;
++  lldb::FileSP &sp = $1;
++  if (sp) {
++    PythonFile pyfile = unwrapOrSetPythonException(PythonFile::FromFile(*sp));
++    if (!pyfile.IsValid())
++      return nullptr;
++    $result = pyfile.release();
++  }
++  if (!$result)
++  {
++      $result = Py_None;
++      Py_INCREF(Py_None);
++  }
++}
+ 
+ // FIXME both of these paths wind up calling fdopen() with no provision for ever calling
+ // fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
+diff --git a/lldb/scripts/interface/SBFile.i b/lldb/scripts/interface/SBFile.i
+index 179446d5a53..ea3389e5924 100644
+--- a/lldb/scripts/interface/SBFile.i
++++ b/lldb/scripts/interface/SBFile.i
+@@ -77,6 +77,9 @@ public:
+     operator bool() const;
+ 
+     SBError Close();
++
++    %feature("docstring", "convert this SBFile into a python io.IOBase file object");
++    FileSP GetFile();
+ };
+ 
+ } // namespace lldb
+diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
+index 628a9f8a130..d6d3300f5e4 100644
+--- a/lldb/source/API/SBFile.cpp
++++ b/lldb/source/API/SBFile.cpp
+@@ -103,6 +103,11 @@ bool SBFile::operator!() const {
+   return LLDB_RECORD_RESULT(!IsValid());
+ }
+ 
++FileSP SBFile::GetFile() const {
++  LLDB_RECORD_METHOD_CONST_NO_ARGS(FileSP, SBFile, GetFile);
++  return m_opaque_sp;
++}
++
+ static SBFile *dummy() { return new SBFile(); }
+ static SBFile *dummy(int, const char *, bool) { return new SBFile(); }
+ static SBFile *dummy(FILE *, bool) { return new SBFile(); }
+@@ -122,6 +127,7 @@ template <> void RegisterMethods<SBFile>(Registry &R) {
+   LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
+   LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator bool,());
+   LLDB_REGISTER_METHOD_CONST(bool, SBFile, operator!,());
++  LLDB_REGISTER_METHOD_CONST(FileSP, SBFile, GetFile, ());
+   LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Close, ());
+ }
+ } // namespace repro
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index bd4cfcdb334..4d9e2c2cd7d 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -38,7 +38,7 @@
+ using namespace lldb;
+ using namespace lldb_private;
+ 
+-static const char *GetStreamOpenModeFromOptions(uint32_t options) {
++const char *File::GetStreamOpenModeFromOptions(uint32_t options) {
+   if (options & File::eOpenOptionAppend) {
+     if (options & File::eOpenOptionRead) {
+       if (options & File::eOpenOptionCanCreateNewOnly)
+@@ -215,6 +215,10 @@ size_t File::PrintfVarArg(const char *format, va_list args) {
+   return result;
+ }
+ 
++void *File::GetPythonObject() const { return nullptr; }
++
++uint32_t File::GetOptions() const { return 0; }
++
+ uint32_t File::GetPermissions(Status &error) const {
+   int fd = GetDescriptor();
+   if (!DescriptorIsValid(fd)) {
+@@ -230,6 +234,8 @@ uint32_t File::GetPermissions(Status &error) const {
+   return file_stats.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+ }
+ 
++uint32_t NativeFile::GetOptions() const { return m_options; }
++
+ int NativeFile::GetDescriptor() const {
+   if (DescriptorIsValid())
+     return m_descriptor;
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 66c1dbe0ecc..c049e664c7c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1008,8 +1008,6 @@ operator()(std::initializer_list<PythonObject> args) {
+ 
+ PythonFile::PythonFile() : PythonObject() {}
+ 
+-PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
+-
+ PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
+ 
+ PythonFile::~PythonFile() {}
+@@ -1059,22 +1057,35 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+   PythonObject::Reset(PyRefType::Borrowed, result.get());
+ }
+ 
+-void PythonFile::Reset(File &file, const char *mode) {
+-  if (!file.IsValid()) {
+-    Reset();
+-    return;
+-  }
++Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
++  if (!file.IsValid())
++      return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid file");
++
++  PyObject *file_obj = (PyObject *)file.GetPythonObject();
++  if (file_obj)
++    return Retain<PythonFile>(file_obj);
++
++  if (!mode)
++    mode = file.GetOpenMode();
++  if (!mode)
++      return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "can't determine open mode for file");
+ 
+-  char *cmode = const_cast<char *>(mode);
+ #if PY_MAJOR_VERSION >= 3
+-  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
+-                                        -1, nullptr, "ignore", nullptr, 0));
++  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode,
++                                        -1, nullptr, "ignore", nullptr, 0);
+ #else
+   // Read through the Python source, doesn't seem to modify these strings
+-  Reset(PyRefType::Owned,
+-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
+-                        nullptr));
++  char *cmode = const_cast<char *>(mode);
++  file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
++                        nullptr);
+ #endif
++
++  if (!file_obj)
++    return exception();
++
++  return Take<PythonFile>(file_obj);
+ }
+ 
+ 
+@@ -1231,6 +1242,8 @@ public:
+     return base_error;
+   };
+ 
++  void *GetPythonObject() const override { return m_py_obj; }
++
+ protected:
+   PythonFile m_py_obj;
+   bool m_borrowed;
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 23a3de2485f..fc68df4428c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -656,7 +656,6 @@ public:
+ class PythonFile : public PythonObject {
+ public:
+   PythonFile();
+-  PythonFile(File &file, const char *mode);
+   PythonFile(PyRefType type, PyObject *o);
+ 
+   ~PythonFile() override;
+@@ -666,7 +665,18 @@ public:
+   using PythonObject::Reset;
+ 
+   void Reset(PyRefType type, PyObject *py_obj) override;
+-  void Reset(File &file, const char *mode);
++
++  static llvm::Expected<PythonFile> FromFile(File &file, const char *mode = nullptr);
++
++  PythonFile(File &file, const char *mode = nullptr) {
++    auto f = FromFile(file, mode);
++    if (f)
++      *this = std::move(f.get());
++    else {
++      Reset();
++      llvm::consumeError(f.takeError());
++    }
++  }
+ 
+   lldb::FileUP GetUnderlyingFile() const;
