@@ -1,7 +1,7 @@
 Bottom: f517222933e10a50f43a2df9f02ca5d3384afd6a
-Top:    8810c5dd1e06ce7ffc2f481ebfd304b9e8300df7
+Top:    df210451908abb1ce9144433abe1d5c164a64ded
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-07 15:33:01 -0700
+Date:   2019-10-07 15:54:03 -0700
 
 exception handling in PythonDataObjects.
 
@@ -265,7 +265,7 @@ index fedd8f66a1f..d0a6dadbfa8 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 8fd2be1460f..23a3de2485f 100644
+index 8fd2be1460f..3d733c98e16 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -6,6 +6,26 @@
@@ -452,7 +452,7 @@ index 8fd2be1460f..23a3de2485f 100644
  
    template <typename T> T AsType() const {
      if (!T::Check(m_py_obj))
-@@ -188,10 +289,94 @@ public:
+@@ -188,10 +289,95 @@ public:
  
    StructuredData::ObjectSP CreateStructuredObject() const;
  
@@ -471,8 +471,9 @@ index 8fd2be1460f..23a3de2485f 100644
 +                                          const T &... t) const {
 +    const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
 +#if PY_MAJOR_VERSION < 3
-+    PyObject *obj = PyObject_CallMethod(
-+        m_py_obj, name, const_cast<char *>(format), PythonFormat<T>::get(t)...);
++    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
++                                        const_cast<char *>(format),
++                                        PythonFormat<T>::get(t)...);
 +#else
 +    PyObject *obj =
 +        PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
@@ -547,7 +548,7 @@ index 8fd2be1460f..23a3de2485f 100644
  class PythonBytes : public PythonObject {
  public:
    PythonBytes();
-@@ -245,9 +430,11 @@ public:
+@@ -245,9 +431,11 @@ public:
  
  class PythonString : public PythonObject {
  public:
@@ -561,7 +562,7 @@ index 8fd2be1460f..23a3de2485f 100644
    PythonString(PyRefType type, PyObject *o);
  
    ~PythonString() override;
-@@ -259,11 +446,13 @@ public:
+@@ -259,11 +447,13 @@ public:
  
    void Reset(PyRefType type, PyObject *py_obj) override;
  
@@ -577,7 +578,7 @@ index 8fd2be1460f..23a3de2485f 100644
  
    StructuredData::StringSP CreateStructuredString() const;
  };
-@@ -406,7 +595,20 @@ public:
+@@ -406,7 +596,20 @@ public:
  
    static PythonModule AddModule(llvm::StringRef module);
  
@@ -599,7 +600,7 @@ index 8fd2be1460f..23a3de2485f 100644
  
    // Bring in the no-argument base class version
    using PythonObject::Reset;
-@@ -467,8 +669,59 @@ public:
+@@ -467,8 +670,59 @@ public:
    void Reset(File &file, const char *mode);
  
    lldb::FileUP GetUnderlyingFile() const;
