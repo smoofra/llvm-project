@@ -1,12 +1,13 @@
 Version: 1
-Previous: d5cdff35901d4952090fa801af5db945dd05b66a
-Head: 2bf22e1e9a0d143edbf112296448bed3738231ee
+Previous: cfd0c1370cf2be6b237aa6b587c97fc60d0b5259
+Head: dd4eb3f9a8ecac2af55d3bb8f765d9b9ab867d7c
 Applied:
   dwimy-filterspecs-for-dotest: 60e6e088cf65a1d3ddd3eecbf29f612cf7d057f1
   lldbpexpect-make-sure-term-is: 02ae4c8512d2d633f534dfd2c28881abbe77892b
   fix-python-library-path-on: 0f499502c417312e39371fb00f6785b4648d5fbd
   stringliteral-intellisense: 1ba596b0485f7553c80cd472ffe3bf99332f99ad
   exceptions: dd4eb3f9a8ecac2af55d3bb8f765d9b9ab867d7c
+Unapplied:
   allow-arbitrary-python-streams: e4532fd70725ecad9cddbf2f1903fdbaefca025e
   fix-files: 668ccdf460fb0c7613298dcf2a6f34b6848ec22e
   bunch-o-tests: 90e7da765fcac0b99600d71f8e2c2c6bd3aede98
@@ -23,5 +24,4 @@ Applied:
   SBStream: 3504ce19475f0b33c6c3f04dad03e7c98c2e2053
   update-scriptinterpreterpython: 60b4e8c817217349bc52eec816f9da5fded41daf
   delete-swig-typemaps-for-file: 2bf22e1e9a0d143edbf112296448bed3738231ee
-Unapplied:
 Hidden:
