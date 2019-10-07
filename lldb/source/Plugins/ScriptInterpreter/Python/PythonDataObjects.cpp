@@ -30,18 +30,19 @@
 using namespace lldb_private;
 using namespace lldb;
 using namespace lldb_private::python;
+using llvm::Error;
+using llvm::Expected;
 
 namespace lldb_private {
 namespace python {
-// This is why C++ needs monads.
-Expected<bool> AsBool(Expected<PythonObject> &&obj) {
+template <> Expected<bool> As<bool>(Expected<PythonObject> &&obj) {
   if (obj) {
     return obj.get().IsTrue();
   } else {
     return obj.takeError();
   }
 }
-Expected<long long> AsLongLong(Expected<PythonObject> &&obj) {
+template <> Expected<long long> As<long long>(Expected<PythonObject> &&obj) {
   if (obj) {
     return obj.get().AsLongLong();
   } else {
@@ -358,11 +359,7 @@ Expected<PythonString> PythonString::FromUTF8(llvm::StringRef string) {
 #endif
   if (!str)
     return llvm::make_error<PythonException>();
-  return AssertTake<PythonString>(str);
-}
-
-Expected<PythonString> PythonString::FromUTF8(const char *string) {
-  return FromUTF8(llvm::StringRef(string));
+  return Take<PythonString>(str);
 }
 
 PythonString::PythonString(PyRefType type, PyObject *py_obj) : PythonObject() {
