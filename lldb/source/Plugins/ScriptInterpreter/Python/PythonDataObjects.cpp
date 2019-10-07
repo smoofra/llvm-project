@@ -1008,8 +1008,6 @@ operator()(std::initializer_list<PythonObject> args) {
 
 PythonFile::PythonFile() : PythonObject() {}
 
-PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
-
 PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
 
 PythonFile::~PythonFile() {}
@@ -1059,22 +1057,35 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
   PythonObject::Reset(PyRefType::Borrowed, result.get());
 }
 
-void PythonFile::Reset(File &file, const char *mode) {
-  if (!file.IsValid()) {
-    Reset();
-    return;
-  }
+Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+  if (!file.IsValid())
+      return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "invalid file");
 
-  char *cmode = const_cast<char *>(mode);
+  PyObject *file_obj = (PyObject *)file.GetPythonObject();
+  if (file_obj)
+    return Retain<PythonFile>(file_obj);
+
+  if (!mode)
+    mode = file.GetOpenMode();
+  if (!mode)
+      return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "can't determine open mode for file");
+
 #if PY_MAJOR_VERSION >= 3
-  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
-                                        -1, nullptr, "ignore", nullptr, 0));
+  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode,
+                                        -1, nullptr, "ignore", nullptr, 0);
 #else
   // Read through the Python source, doesn't seem to modify these strings
-  Reset(PyRefType::Owned,
-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
-                        nullptr));
+  char *cmode = const_cast<char *>(mode);
+  file_obj = PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
+                        nullptr);
 #endif
+
+  if (!file_obj)
+    return exception();
+
+  return Take<PythonFile>(file_obj);
 }
 
 
@@ -1230,6 +1241,8 @@ public:
       return py_error;
     return base_error;
   };
+
+  void *GetPythonObject() const override { return m_py_obj.get(); }
 
 protected:
   PythonFile m_py_obj;
