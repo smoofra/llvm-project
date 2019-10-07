@@ -293,13 +293,13 @@ void SBCommandReturnObject::SetImmediateErrorFile(SBFile file) {
 void SBCommandReturnObject::SetImmediateOutputFile(FileSP file_sp) {
   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateOutputFile,
                      (FileSP), file_sp);
-  return SetImmediateOutputFile(SBFile(file_sp));
+  SetImmediateOutputFile(SBFile(file_sp));
 }
 
 void SBCommandReturnObject::SetImmediateErrorFile(FileSP file_sp) {
   LLDB_RECORD_METHOD(void, SBCommandReturnObject, SetImmediateErrorFile,
                      (FileSP), file_sp);
-  return SetImmediateErrorFile(SBFile(file_sp));
+  SetImmediateErrorFile(SBFile(file_sp));
 }
 
 void SBCommandReturnObject::PutCString(const char *string, int len) {
