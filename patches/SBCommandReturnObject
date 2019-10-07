@@ -1,5 +1,5 @@
 Bottom: 59e02ebb5838f9f6a0a5853187ecfec079167ace
-Top:    fcc22b3b8bba6e5cc77bcf29e15edfc81eb8a4c3
+Top:    709ed76fa169ce0ae735ccf227a1a58359797e36
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:52:58 -0700
 
@@ -108,39 +108,24 @@ index 670002dada8..61e57fb798a 100644
    }
  
 diff --git a/lldb/include/lldb/Utility/ReproducerInstrumentation.h b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
-index 2151708ff4f..850c37c5194 100644
+index 2151708ff4f..ab80e011372 100644
 --- a/lldb/include/lldb/Utility/ReproducerInstrumentation.h
 +++ b/lldb/include/lldb/Utility/ReproducerInstrumentation.h
-@@ -178,6 +178,10 @@ template <typename... Ts> inline std::string stringify_args(const Ts &... ts) {
-   lldb_private::repro::Recorder sb_recorder(LLVM_PRETTY_FUNCTION,              \
-                                             stringify_args(__VA_ARGS__));
- 
-+namespace lldb {
-+class SBFile;
-+}
-+
- namespace lldb_private {
- namespace repro {
- 
-@@ -236,6 +240,7 @@ struct ReferenceTag {};
+@@ -236,9 +236,12 @@ struct ReferenceTag {};
  struct ValueTag {};
  struct FundamentalPointerTag {};
  struct FundamentalReferenceTag {};
 +struct NotImplementedTag {};
  
  /// Return the deserialization tag for the given type T.
- template <class T> struct serializer_tag { typedef ValueTag type; };
-@@ -249,6 +254,9 @@ template <class T> struct serializer_tag<T &> {
-                                     FundamentalReferenceTag, ReferenceTag>::type
-       type;
- };
-+template <> struct serializer_tag<lldb::SBFile> {
-+  typedef NotImplementedTag type;
+-template <class T> struct serializer_tag { typedef ValueTag type; };
++template <class T> struct serializer_tag {
++  typedef typename std::conditional<std::is_trivially_copyable<T>::value, ValueTag, NotImplementedTag>::type type;
 +};
- 
- /// Deserializes data from a buffer. It is used to deserialize function indices
- /// to replay, their arguments and return values.
-@@ -302,6 +310,11 @@ public:
+ template <class T> struct serializer_tag<T *> {
+   typedef
+       typename std::conditional<std::is_fundamental<T>::value,
+@@ -302,6 +305,11 @@ public:
    }
  
  private:
