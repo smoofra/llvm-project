@@ -1,14 +1,13 @@
 Version: 1
-Previous: 302661abc4d513c716ada35acd3a9fd96b668628
-Head: 9e6b4c976cf2e6f02aaf90fb2a4d6ada686f4278
+Previous: bf7a9a0b96e05aba079c0d76114c4c87476c50de
+Head: a5f5e9f4273f7b74054a2039784808e481799fc0
 Applied:
   test-fix-testloadusingpaths: 989558e0d041c824df2a52e762b5c0a8f15c6af6
   dwimy-filterspecs-for-dotest: d08681a8381d4f102d58c831ce4f356ef42e1876
   lldbpexpect-make-sure-term-is: 0c3de9e83de2b29a32b435ea95926ab604ca9398
   fix-python-library-path-on: 8c437502efdbadad8408ec2766611bc6b21a1ebf
   stringliteral-intellisense: fb3d80d1a29f72782f28c8c2bbb0d090bc42f7d6
-  exceptions: c398c840e8e87ccf2805c78c5e609fcf8a010cc3
-  refresh-temp: 9e6b4c976cf2e6f02aaf90fb2a4d6ada686f4278
+  exceptions: a5f5e9f4273f7b74054a2039784808e481799fc0
 Unapplied:
   arbitrary-python-files: 2d50a71cd20fc1111b304153ef8bef4e3ccc4f54
   bunch-o-tests: 0c6d62574b300bd7e50ff7e142af38f7a505b0c7
