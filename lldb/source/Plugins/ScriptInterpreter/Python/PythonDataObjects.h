@@ -361,14 +361,12 @@ namespace python {
 
 // This is why C++ needs monads.
 template <typename T> llvm::Expected<T> As(llvm::Expected<PythonObject> &&obj) {
-  if (obj) {
-    if (!T::Check(obj.get().get()))
-      return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                     "type error");
-    return T(PyRefType::Borrowed, std::move(obj.get().get()));
-  } else {
+  if (!obj)
     return obj.takeError();
-  }
+  if (!T::Check(obj.get().get()))
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "type error");
+  return T(PyRefType::Borrowed, std::move(obj.get().get()));
 }
 
 template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);

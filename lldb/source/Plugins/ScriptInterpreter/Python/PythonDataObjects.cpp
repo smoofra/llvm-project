@@ -33,24 +33,18 @@ using namespace lldb_private::python;
 using llvm::Error;
 using llvm::Expected;
 
-namespace lldb_private {
-namespace python {
-template <> Expected<bool> As<bool>(Expected<PythonObject> &&obj) {
-  if (obj) {
-    return obj.get().IsTrue();
-  } else {
+template <> Expected<bool> python::As<bool>(Expected<PythonObject> &&obj) {
+  if (!obj)
     return obj.takeError();
-  }
+  return obj.get().IsTrue();
 }
-template <> Expected<long long> As<long long>(Expected<PythonObject> &&obj) {
-  if (obj) {
-    return obj.get().AsLongLong();
-  } else {
+
+template <>
+Expected<long long> python::As<long long>(Expected<PythonObject> &&obj) {
+  if (!obj)
     return obj.takeError();
-  }
+  return obj.get().AsLongLong();
 }
-} // namespace python
-} // namespace lldb_private
 
 void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
   s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
@@ -1089,11 +1083,9 @@ FileUP PythonFile::GetUnderlyingFile() const {
 }
 
 const char *PythonException::toCString() const {
-  if (m_repr_bytes) {
-    return PyBytes_AS_STRING(m_repr_bytes);
-  } else {
+  if (!m_repr_bytes)
     return "unknown exception";
-  }
+  return PyBytes_AS_STRING(m_repr_bytes);
 }
 
 PythonException::PythonException(const char *caller) {
