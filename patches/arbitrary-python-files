@@ -1,5 +1,5 @@
-Bottom: b3662f32eb5e7b47c3dc6a26194b9e88e8ae1b51
-Top:    814525129e1146147aad8a53b011da7d7d41d5b5
+Bottom: 191ec73f246b6aec975f44f46dea8d5f6ad0fb6a
+Top:    22914ae1a903491bdc49a808e7352721fb6a9b31
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:48:28 -0700
 
@@ -623,10 +623,10 @@ index 07122916d23..e9e6987a8ff 100644
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 85a53a27783..2f4e3033964 100644
+index 1763c90d1b2..2dae3b027d8 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1020,22 +1020,23 @@ bool PythonFile::Check(PyObject *py_obj) {
+@@ -1014,22 +1014,23 @@ bool PythonFile::Check(PyObject *py_obj) {
    // first-class object type anymore.  `PyFile_FromFd` is just a thin wrapper
    // over `io.open()`, which returns some object derived from `io.IOBase`. As a
    // result, the only way to detect a file in Python 3 is to check whether it
@@ -664,7 +664,7 @@ index 85a53a27783..2f4e3033964 100644
  #endif
  }
  
-@@ -1088,6 +1089,20 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1082,6 +1083,20 @@ FileUP PythonFile::GetUnderlyingFile() const {
    return file;
  }
  
@@ -683,9 +683,9 @@ index 85a53a27783..2f4e3033964 100644
 +} // namespace
 +
  const char *PythonException::toCString() const {
-   if (m_repr_bytes) {
-     return PyBytes_AS_STRING(m_repr_bytes);
-@@ -1144,4 +1159,371 @@ std::error_code PythonException::convertToErrorCode() const {
+   if (!m_repr_bytes)
+     return "unknown exception";
+@@ -1136,4 +1151,371 @@ std::error_code PythonException::convertToErrorCode() const {
  
  char PythonException::ID = 0;
  
