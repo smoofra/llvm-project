@@ -1,5 +1,5 @@
-Bottom: 611eee8e708af2976e52e99a39b135ba09e79fe9
-Top:    323dc55ff499dcde536d0e681194652fd74b9f2c
+Bottom: e48814c262a9a41f067ad753142d5e88751ed05d
+Top:    1160f1493075502f189e591a39dd9baf312be0c9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-18 08:32:48 -0700
 
@@ -30,7 +30,7 @@ index 09cb685a42f..fac2e962778 100644
        if (io_handler_sp)
          debugger.PushIOHandler(io_handler_sp);
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index 750c7e6fb20..b337caf1893 100644
+index 8d58c7a1bfb..0e0118ecea7 100644
 --- a/lldb/source/Core/IOHandler.cpp
 +++ b/lldb/source/Core/IOHandler.cpp
 @@ -266,7 +266,8 @@ IOHandlerEditline::IOHandlerEditline(
