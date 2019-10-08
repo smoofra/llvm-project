@@ -1,6 +1,6 @@
 Version: 1
-Previous: 0ccf61ac6f49dee4902e6ec85b905009bb2b6fbe
-Head: 58aad424189fb00c649a955da8e083bde1bfe607
+Previous: d670c1dc3e248f7f4e4f4879037b392fc1d64cdc
+Head: c398c840e8e87ccf2805c78c5e609fcf8a010cc3
 Applied:
   test-fix-testloadusingpaths: 989558e0d041c824df2a52e762b5c0a8f15c6af6
   dwimy-filterspecs-for-dotest: d08681a8381d4f102d58c831ce4f356ef42e1876
@@ -8,6 +8,7 @@ Applied:
   fix-python-library-path-on: 8c437502efdbadad8408ec2766611bc6b21a1ebf
   stringliteral-intellisense: fb3d80d1a29f72782f28c8c2bbb0d090bc42f7d6
   exceptions: c398c840e8e87ccf2805c78c5e609fcf8a010cc3
+Unapplied:
   arbitrary-python-files: 2d50a71cd20fc1111b304153ef8bef4e3ccc4f54
   bunch-o-tests: 0c6d62574b300bd7e50ff7e142af38f7a505b0c7
   SBCommandReturnObject: c7e0bcf6b75338f69ca1259247c8178ac798df97
@@ -23,5 +24,4 @@ Applied:
   SBStream: 9cfdabbf1cf319fbca6cf8fcf7ade2a5261b38da
   update-scriptinterpreterpython: bb00e9d1f5c607b11a4be0cad6e7a36e0c25f483
   delete-swig-typemaps-for-file: 58aad424189fb00c649a955da8e083bde1bfe607
-Unapplied:
 Hidden:
