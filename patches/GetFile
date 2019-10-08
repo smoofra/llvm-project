@@ -1,5 +1,5 @@
-Bottom: 86399f212ec1b087ef42049749177e49b4ef3070
-Top:    14adccefa6e39609e4f96dd61487eb0af00a1592
+Bottom: 4ffa84f5721e6577a039190b3c8d5e25ed8980a4
+Top:    ce06e4fd4d41442ef8647c02bf2bba263e0c9ffb
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -186,10 +186,10 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2f4e3033964..e9d8b69952c 100644
+index 2dae3b027d8..8e5dc258f97 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1004,8 +1004,6 @@ operator()(std::initializer_list<PythonObject> args) {
+@@ -998,8 +998,6 @@ operator()(std::initializer_list<PythonObject> args) {
  
  PythonFile::PythonFile() : PythonObject() {}
  
@@ -198,7 +198,7 @@ index 2f4e3033964..e9d8b69952c 100644
  PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
  
  PythonFile::~PythonFile() {}
-@@ -1055,24 +1053,36 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+@@ -1049,24 +1047,36 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
    PythonObject::Reset(PyRefType::Borrowed, result.get());
  }
  
@@ -247,7 +247,7 @@ index 2f4e3033964..e9d8b69952c 100644
  
  FileUP PythonFile::GetUnderlyingFile() const {
    if (!IsValid())
-@@ -1227,6 +1237,8 @@ public:
+@@ -1219,6 +1229,8 @@ public:
      return base_error;
    };
  
@@ -257,10 +257,10 @@ index 2f4e3033964..e9d8b69952c 100644
    PythonFile m_py_obj;
    bool m_borrowed;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index cb87bfa2366..41508245cde 100644
+index 3c16bcadf07..0a5e5db2857 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -656,7 +656,6 @@ public:
+@@ -654,7 +654,6 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -268,7 +268,7 @@ index cb87bfa2366..41508245cde 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -666,7 +665,19 @@ public:
+@@ -664,7 +663,19 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;
