@@ -1,0 +1,37 @@
+Bottom: f3329b18234210df1ea4e15276502ab29e55c7a2
+Top:    b4ee330793643e493516b2344ad8ad7b8d758894
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-07 18:02:18 -0700
+
+test fix: TestLoadUsingPaths should use realpath
+
+Summary:
+TestLoadUsingPaths will fail if the build directory has
+symlinks in its path, because the real paths reported by
+the debugger won't match the symlink-laden paths it's expecting.
+
+This can be solved just by using os.path.realpath on the base
+path for the test.
+
+Reviewers: JDevlieghere, jasonmolenda, labath
+
+Subscribers: lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D68618
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py b/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
+index 0ffce6213ef..e9cafba8932 100644
+--- a/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
++++ b/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
+@@ -33,7 +33,7 @@ class LoadUsingPathsTestCase(TestBase):
+             ext = 'dylib'
+         self.lib_name = 'libloadunload.' + ext
+ 
+-        self.wd = self.getBuildDir()
++        self.wd = os.path.realpath(self.getBuildDir())
+         self.hidden_dir = os.path.join(self.wd, 'hidden')
+         self.hidden_lib = os.path.join(self.hidden_dir, self.lib_name)
