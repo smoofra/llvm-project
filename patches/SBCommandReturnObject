@@ -1,5 +1,5 @@
 Bottom: 59e02ebb5838f9f6a0a5853187ecfec079167ace
-Top:    0035b654fd3e76069e6151e56e47f94da933b8cc
+Top:    5b72cb0327d65259e65c92780ea4924280a6a5d9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 21:52:58 -0700
 
@@ -368,37 +368,33 @@ index b9ee5047545..928149a13e2 100644
      if (!m_opaque_sp->GetAsyncExecution()) {
        SBProcess process(GetCommandInterpreter().GetProcess());
 diff --git a/lldb/source/API/SBFile.cpp b/lldb/source/API/SBFile.cpp
-index e9e6987a8ff..628a9f8a130 100644
+index e9e6987a8ff..5c003bc3879 100644
 --- a/lldb/source/API/SBFile.cpp
 +++ b/lldb/source/API/SBFile.cpp
-@@ -23,6 +23,7 @@ SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {
+@@ -23,12 +23,13 @@ SBFile::SBFile(FileSP file_sp) : m_opaque_sp(file_sp) {
  SBFile::SBFile() { LLDB_RECORD_CONSTRUCTOR_NO_ARGS(SBFile); }
  
  SBFile::SBFile(FILE *file, bool transfer_ownership) {
-+  LLDB_RECORD_CONSTRUCTOR(SBFile, (FILE *, bool), file, transfer_ownership);
++  LLDB_RECORD_DUMMY(void, SBFile, (FILE *, bool), file, transfer_ownership);
    m_opaque_sp = std::make_shared<NativeFile>(file, transfer_ownership);
  }
  
-@@ -102,11 +103,21 @@ bool SBFile::operator!() const {
-   return LLDB_RECORD_RESULT(!IsValid());
+ SBFile::SBFile(int fd, const char *mode, bool transfer_owndership) {
+-  LLDB_RECORD_CONSTRUCTOR(SBFile, (int, const char *, bool), fd, mode,
+-                          transfer_owndership);
++  LLDB_RECORD_DUMMY(void, SBFile, (int, const char *, bool), fd, mode,
++                    transfer_owndership);
+   auto options = File::GetOptionsFromMode(mode);
+   m_opaque_sp = std::make_shared<NativeFile>(fd, options, transfer_owndership);
  }
+@@ -104,9 +105,9 @@ bool SBFile::operator!() const {
  
-+static SBFile *dummy() { return new SBFile(); }
-+static SBFile *dummy(int, const char *, bool) { return new SBFile(); }
-+static SBFile *dummy(FILE *, bool) { return new SBFile(); }
-+
  namespace lldb_private {
  namespace repro {
 +
  template <> void RegisterMethods<SBFile>(Registry &R) {
 -  LLDB_REGISTER_CONSTRUCTOR(SBFile, ());
 -  LLDB_REGISTER_CONSTRUCTOR(SBFile, (int, const char *, bool));
-+
-+  R.Register<SBFile *()>(&dummy, "", "SBFile", "SBFile", "()");
-+  R.Register<SBFile *(int, const char *, bool)>(&dummy, "", "SBFile", "SBFile",
-+                                                "(int, const char *, bool)");
-+  R.Register<SBFile *(FILE *, bool)>(&dummy, "", "SBFile", "SBFile",
-+                                     "(FILE*, bool)");
 +
    LLDB_REGISTER_METHOD(lldb::SBError, SBFile, Flush, ());
    LLDB_REGISTER_METHOD_CONST(bool, SBFile, IsValid, ());
