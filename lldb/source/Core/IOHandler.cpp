@@ -315,38 +315,15 @@ static Optional<std::string> SplitLine(std::string &line_buffer) {
   size_t pos = line_buffer.find('\n');
   if (pos == std::string::npos)
     return None;
-  size_t end = pos + 1;
-  while (end > 0 &&
-         (line_buffer[end - 1] == '\n' || line_buffer[end - 1] == '\r'))
-    end--;
-  std::string line = line_buffer.substr(0, end);
+  std::string line = StringRef(line_buffer.c_str(), pos).rtrim("\n\r");
   line_buffer = line_buffer.substr(pos + 1);
-  return line;
-}
-
-// Append newchars to the buffer and split out a line.
-static Optional<std::string> AppendAndSplitLine(std::string &line_buffer,
-                                                StringRef newchars) {
-  size_t pos = newchars.find('\n');
-  if (pos == StringRef::npos) {
-    line_buffer.append(newchars);
-    return None;
-  }
-  size_t end = pos + 1;
-  while (end > 0 && (newchars[end - 1] == '\n' || newchars[end - 1] == '\r'))
-    end--;
-  std::string line = std::move(line_buffer);
-  line.append(newchars.substr(0, end));
-  line_buffer = newchars.substr(pos + 1);
   return line;
 }
 
 // If the final line of the file ends without a end-of-line, return
 // it as a line anyway.
 static Optional<std::string> SplitLineEOF(std::string &line_buffer) {
-  if (line_buffer.empty())
-    return None;
-  if (std::all_of(line_buffer.begin(), line_buffer.end(), isspace))
+  if (llvm::all_of(line_buffer, isspace))
     return None;
   std::string line = std::move(line_buffer);
   line_buffer.clear();
@@ -404,8 +381,8 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
       }
       if (error.Fail())
         break;
-      got_line =
-          AppendAndSplitLine(m_line_buffer, StringRef(buffer, bytes_read));
+      m_line_buffer += StringRef(buffer, bytes_read);
+      got_line = SplitLine(m_line_buffer);
     }
   }
 
@@ -433,7 +410,8 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
           got_line = SplitLineEOF(m_line_buffer);
         break;
       }
-      got_line = AppendAndSplitLine(m_line_buffer, buffer);
+      m_line_buffer += buffer;
+      got_line = SplitLine(m_line_buffer);
     }
     m_editing = false;
   }
