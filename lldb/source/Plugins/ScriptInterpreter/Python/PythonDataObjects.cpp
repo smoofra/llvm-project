@@ -1260,10 +1260,11 @@ public:
 
   static Expected<PythonBuffer> Create(PythonObject &obj,
                                        int flags = PyBUF_SIMPLE) {
-    PythonBuffer buf(obj, flags);
-    if (!buf.m_buffer.obj)
+    Py_buffer py_buffer = {};
+    PyObject_GetBuffer(obj.get(), &py_buffer, flags);
+    if (!py_buffer.obj)
       return llvm::make_error<PythonException>();
-    return std::move(buf);
+    return PythonBuffer(py_buffer);
   }
 
   PythonBuffer(PythonBuffer &&other) {
@@ -1272,18 +1273,15 @@ public:
   }
 
   ~PythonBuffer() {
-    if (m_buffer.obj) {
+    if (m_buffer.obj)
       PyBuffer_Release(&m_buffer);
-    }
   }
 
   Py_buffer &get() { return m_buffer; }
 
 private:
-  PythonBuffer(PythonObject &obj, int flags) : m_buffer({}) {
-    PyObject_GetBuffer(obj.get(), &m_buffer, flags);
-  }
-
+  // takes ownership of the buffer.
+  PythonBuffer(const Py_buffer &py_buffer) : m_buffer(py_buffer) {}
   Py_buffer m_buffer;
 };
 } // namespace
