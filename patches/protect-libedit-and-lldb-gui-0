@@ -1,0 +1,54 @@
+Bottom: e48814c262a9a41f067ad753142d5e88751ed05d
+Top:    1160f1493075502f189e591a39dd9baf312be0c9
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-18 08:32:48 -0700
+
+protect libedit and LLDB gui from receiving null FILE* streams
+
+Summary:
+We now have valid files that will return NULL from GetStream().
+libedit and the LLDB gui are the only places left that need FILE*
+streams.  Both are doing curses-like user interaction that only
+make sense with a real terminal anyway, so there is no need to convert
+them off of their use of FILE*.   But we should check for null streams
+before enabling these features.
+
+Reviewers: JDevlieghere, jasonmolenda, labath
+
+Subscribers: lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D68677
+
+
+---
+diff --git a/lldb/source/Commands/CommandObjectGUI.cpp b/lldb/source/Commands/CommandObjectGUI.cpp
+index 09cb685a42f..fac2e962778 100644
+--- a/lldb/source/Commands/CommandObjectGUI.cpp
++++ b/lldb/source/Commands/CommandObjectGUI.cpp
+@@ -29,7 +29,9 @@ bool CommandObjectGUI::DoExecute(Args &args, CommandReturnObject &result) {
+     Debugger &debugger = GetDebugger();
+ 
+     File &input = debugger.GetInputFile();
+-    if (input.GetIsRealTerminal() && input.GetIsInteractive()) {
++    File &output = debugger.GetOutputFile();
++    if (input.GetStream() && output.GetStream() && input.GetIsRealTerminal() &&
++        input.GetIsInteractive()) {
+       IOHandlerSP io_handler_sp(new IOHandlerCursesGUI(debugger));
+       if (io_handler_sp)
+         debugger.PushIOHandler(io_handler_sp);
+diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
+index 8d58c7a1bfb..0e0118ecea7 100644
+--- a/lldb/source/Core/IOHandler.cpp
++++ b/lldb/source/Core/IOHandler.cpp
+@@ -266,7 +266,8 @@ IOHandlerEditline::IOHandlerEditline(
+ #ifndef LLDB_DISABLE_LIBEDIT
+   bool use_editline = false;
+ 
+-  use_editline = m_input_sp && m_input_sp->GetIsRealTerminal();
++  use_editline = GetInputFILE() && GetOutputFILE() && GetErrorFILE() &&
++                 m_input_sp && m_input_sp->GetIsRealTerminal();
+ 
+   if (use_editline) {
+     m_editline_up.reset(new Editline(editline_name, GetInputFILE(),

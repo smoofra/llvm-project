@@ -1,5 +1,5 @@
 Version: 1
-Previous: 6f4e43dbfb1ddf3e4b20bddc29e4b547ce4e2078
+Previous: 12a4672e9527b1550edc0cb320792f53c0f76cf8
 Head: f8adec4bf174186845239cc69ddcc47c33c807e9
 Applied:
   test-fix-testloadusingpaths: 989558e0d041c824df2a52e762b5c0a8f15c6af6
@@ -14,8 +14,9 @@ Applied:
   remove-a-smattering-of-0: 8615d6cfe5db7a479146926cd4de3361c1ead945
   HandleProcessEvent: c8742775756ac11f95689c81fea9c74561ac5359
   iohandler-fallback: d56e1eb44540fcdc21bf091215814a3516bde3f0
-  protect-libedit-and-lldb-gui: 46cbda2ace527eb69cc0e5f7a04b021b500a9b4c
+  protect-libedit-and-lldb-gui-0: f8adec4bf174186845239cc69ddcc47c33c807e9
 Unapplied:
+  protect-libedit-and-lldb-gui: 46cbda2ace527eb69cc0e5f7a04b021b500a9b4c
   update-sbdebugger-setinputfile: 7d1b0ffd2dd5a0be52689a222a5e0afa17bfe17c
   GetFile: b85d4700f73b1bb3a5af24d1f35dd00f2be82424
   TestRunCommandInterpreterAPI: 08ab53a9cecd1a74449c4bcd6b27ab27d7a59fc1
