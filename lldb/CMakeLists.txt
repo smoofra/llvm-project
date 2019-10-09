@@ -38,8 +38,10 @@ endif()
 
 if (NOT LLDB_DISABLE_PYTHON)
   execute_process(
+    # Some python configurations will misbehave if you pass prefix='', so we pass
+    # 'foo' and then strip it off the returned prefix.
     COMMAND ${PYTHON_EXECUTABLE}
-        -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(False, False, ''))"
+        -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(False, False, 'foo')[4:])"
     OUTPUT_VARIABLE LLDB_PYTHON_DEFAULT_RELATIVE_PATH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
