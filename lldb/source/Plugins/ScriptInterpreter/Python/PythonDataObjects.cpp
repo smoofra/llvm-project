@@ -1255,29 +1255,36 @@ public:
 namespace {
 class PythonBuffer {
 public:
-  // you must check PyErr_Occurred() after calling this constructor.
-  PythonBuffer(PythonObject &obj, int flags = PyBUF_SIMPLE)
-      : m_buffer({}), m_error(Error::success()) {
-    PyObject_GetBuffer(obj.get(), &m_buffer, flags);
-    if (!m_buffer.obj) {
-      m_error = llvm::make_error<PythonException>();
-    }
+  PythonBuffer &operator=(const PythonBuffer &) = delete;
+  PythonBuffer(const PythonBuffer &) = delete;
+
+  static Expected<PythonBuffer> Create(PythonObject &obj,
+                                       int flags = PyBUF_SIMPLE) {
+    PythonBuffer buf(obj, flags);
+    if (!buf.m_buffer.obj)
+      return llvm::make_error<PythonException>();
+    return std::move(buf);
   }
-  operator bool() { return m_buffer.obj != nullptr; }
-  Error takeError() { return std::move(m_error); }
+
+  PythonBuffer(PythonBuffer &&other) {
+    m_buffer = other.m_buffer;
+    other.m_buffer.obj = nullptr;
+  }
+
   ~PythonBuffer() {
     if (m_buffer.obj) {
       PyBuffer_Release(&m_buffer);
     }
-    if (!m_error) {
-      llvm::consumeError(std::move(m_error));
-    }
   }
+
   Py_buffer &get() { return m_buffer; }
 
-protected:
+private:
+  PythonBuffer(PythonObject &obj, int flags) : m_buffer({}) {
+    PyObject_GetBuffer(obj.get(), &m_buffer, flags);
+  }
+
   Py_buffer m_buffer;
-  Error m_error;
 };
 } // namespace
 
@@ -1358,11 +1365,11 @@ public:
       num_bytes = 0;
       return Status();
     }
-    PythonBuffer pybuffer(pybuffer_obj.get());
+    auto pybuffer = PythonBuffer::Create(pybuffer_obj.get());
     if (!pybuffer)
       return Status(pybuffer.takeError());
-    memcpy(buf, pybuffer.get().buf, pybuffer.get().len);
-    num_bytes = pybuffer.get().len;
+    memcpy(buf, pybuffer.get().get().buf, pybuffer.get().get().len);
+    num_bytes = pybuffer.get().get().len;
     return Status();
   }
 };
