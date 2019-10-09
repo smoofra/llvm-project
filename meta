@@ -1,6 +1,6 @@
 Version: 1
-Previous: 59242735e1c7856db88fd0acb912ba02e289ac3d
-Head: 48a1cf6dec0edb059b51ce3966e7a10d288251f7
+Previous: 2faabbd5fe4c9e1cdf95ec6154832a56218d3ef9
+Head: 96ee37b2118e0a6b4709e502d12c17d9d1b2ac04
 Applied:
   test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
   dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
@@ -21,6 +21,5 @@ Applied:
   SBStream: 607327c836f49b973fecc3215d6cffd595df903e
   update-scriptinterpreterpython: bf38c8dbb90d75420def682511d6c4b0f2ac3edb
   delete-swig-typemaps-for-file: 96ee37b2118e0a6b4709e502d12c17d9d1b2ac04
-  fix-python-library-path-on: 48a1cf6dec0edb059b51ce3966e7a10d288251f7
 Unapplied:
 Hidden:
