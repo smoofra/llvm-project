@@ -1,0 +1,28 @@
+Bottom: 6ab745679ece8b90071f79069f035b5bdd963379
+Top:    6ab745679ece8b90071f79069f035b5bdd963379
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-09-27 20:29:07 -0700
+
+fix python library path on ubuntu 18.04 LTS
+
+When building on ubuntu 18.04 LTS, the python path returned by
+./bin/lldb -P does not match the path where the lldb package was
+actually installed by finishSwigPythonLLDB.py.
+
+This is because distutils.sysconfig.get_python_lib can behave
+differently based on whether a prefix is passed in or not.
+Ubuntu's python from this era wll return /usr/lib/python3/dist-packages
+for no prefix, but it will return $prefix/lib/python3.6/site-packages
+if there is one.   XCode's python will also do this, returning
+/Library/Python/3.7/site-packages for the no-prefix case.
+
+In general no-prefix can mean some system-wide special path set by
+the distributor.   We don't want that, we want a path relative to a
+prefix.
+
+Additionally, this patch cleans up the path logic in
+finishSwigPythonLLDB.py, which was very convoluted and misleading.
+
+
+---
+
