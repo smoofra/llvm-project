@@ -3,6 +3,15 @@ Top:    cd7b0669f6fd0c81b5204e4d24c8883a35d86660
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-09 16:43:57 -0700
 
+TestFileHandle.py: fix for Python 3.6
+
+Python 3.6 stringifies exceptions as `ExceptionClass("foo",)` instead
+of `ExceptionClass("foo")`.   This patch makes the test assertions a
+little more flexible so the test passes anyway.
+
+
+
+
 
 
 
