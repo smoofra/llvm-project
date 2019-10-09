@@ -1,5 +1,5 @@
-Bottom: 1187b78abc0abc69daed55665d744a8243c0a797
-Top:    8d6dbb9ee9213c1b08b18e8452a3962226d783a8
+Bottom: 4590017263886977ecb37b002dd1aff7247e1a52
+Top:    b4481b224be29328ed76bc206998fee31c2b24d2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -88,7 +88,7 @@ index 7bac3ce6ffd..632609fde4b 100644
      def test_identity(self):
  
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 54f9182c7eb..f3d13edca18 100644
+index 9428c7c92ff..b9389022512 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
 @@ -434,6 +434,22 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
@@ -186,10 +186,10 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2dae3b027d8..8e5dc258f97 100644
+index e6713d286b5..246151edb05 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -998,8 +998,6 @@ operator()(std::initializer_list<PythonObject> args) {
+@@ -1012,8 +1012,6 @@ operator()(std::initializer_list<PythonObject> args) {
  
  PythonFile::PythonFile() : PythonObject() {}
  
@@ -198,7 +198,7 @@ index 2dae3b027d8..8e5dc258f97 100644
  PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
  
  PythonFile::~PythonFile() {}
-@@ -1049,24 +1047,36 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+@@ -1063,24 +1061,36 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
    PythonObject::Reset(PyRefType::Borrowed, result.get());
  }
  
@@ -247,7 +247,7 @@ index 2dae3b027d8..8e5dc258f97 100644
  
  FileUP PythonFile::GetUnderlyingFile() const {
    if (!IsValid())
-@@ -1219,6 +1229,8 @@ public:
+@@ -1233,6 +1243,8 @@ public:
      return base_error;
    };
  
@@ -257,10 +257,10 @@ index 2dae3b027d8..8e5dc258f97 100644
    PythonFile m_py_obj;
    bool m_borrowed;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 3c16bcadf07..0a5e5db2857 100644
+index a26b64a48d7..fc601679326 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -654,7 +654,6 @@ public:
+@@ -658,7 +658,6 @@ public:
  class PythonFile : public PythonObject {
  public:
    PythonFile();
@@ -268,7 +268,7 @@ index 3c16bcadf07..0a5e5db2857 100644
    PythonFile(PyRefType type, PyObject *o);
  
    ~PythonFile() override;
-@@ -664,7 +663,19 @@ public:
+@@ -668,7 +667,19 @@ public:
    using PythonObject::Reset;
  
    void Reset(PyRefType type, PyObject *py_obj) override;

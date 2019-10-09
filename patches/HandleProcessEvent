@@ -1,5 +1,5 @@
-Bottom: 401eb68333e8c954b478cfde349ff8715e6a4e22
-Top:    3c472652b5aa080f1f8f85dd56e0c770c18b4551
+Bottom: 1144cac5d48de9e8256908d5fa9e66ac8c5708d4
+Top:    5bb35be78b70ffe7f5317ff5d880c263c321161e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:20:44 -0700
 
@@ -233,7 +233,7 @@ index 89179fc4f17..b38e06baeb2 100644
    LLDB_REGISTER_STATIC_METHOD(bool, SBDebugger, SetDefaultArchitecture,
                                (const char *));
 diff --git a/lldb/source/API/SBProcess.cpp b/lldb/source/API/SBProcess.cpp
-index 4226ff77ecd..e29064af59e 100644
+index 59e9608b76f..e7b79947e14 100644
 --- a/lldb/source/API/SBProcess.cpp
 +++ b/lldb/source/API/SBProcess.cpp
 @@ -29,11 +29,11 @@
@@ -291,7 +291,7 @@ index 4226ff77ecd..e29064af59e 100644
    }
  }
  
-@@ -1307,6 +1321,10 @@ void RegisterMethods<SBProcess>(Registry &R) {
+@@ -1310,6 +1324,10 @@ void RegisterMethods<SBProcess>(Registry &R) {
                         (lldb::SBTraceOptions &, lldb::SBError &));
    LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
                               (const lldb::SBEvent &, FILE *));
