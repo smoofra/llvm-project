@@ -1,5 +1,5 @@
 Bottom: e9d023bca29d3a2e39ed3b5a6b6385fbf0a1ade7
-Top:    caa271a7af1defbb3fab4c4b84e62a56dc7b92fc
+Top:    847e2e46f8a5e9f4f398f3c689a977b39c415978
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -186,7 +186,7 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 5346e3f5914..f444e56bec9 100644
+index 5346e3f5914..f9a7468c650 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1012,8 +1012,6 @@ operator()(std::initializer_list<PythonObject> args) {
@@ -256,6 +256,22 @@ index 5346e3f5914..f444e56bec9 100644
  protected:
    PythonFile m_py_obj;
    bool m_borrowed;
+@@ -1316,6 +1328,15 @@ public:
+     return Status();
+   }
+ 
++  uint32_t GetOptions() const override {
++    GIL takeGIL;
++    auto options = GetOptionsForPyObject(m_py_obj);
++    if (!options) {
++      llvm::consumeError(options.takeError());
++      return 0;
++    }
++    return options.get();
++  }
+ };
+ } // namespace
+ 
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 index a26b64a48d7..fc601679326 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
