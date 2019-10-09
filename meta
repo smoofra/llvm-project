@@ -1,13 +1,13 @@
 Version: 1
-Previous: 005ecf58b4b21937e6a56e8410639d041bacd06f
-Head: ff38448148d08e1701ae6361fffe7950b19ecf25
+Previous: b18a1dc241fc1e41a1e5e58aa9cbc34dc7a4123a
+Head: 04b9a418ed07a56a41cddeb239724546f4553787
 Applied:
+  test-fix-testloadusingpaths: aa7ce0543f099c56ae40041db9bfb5d66e9f6d34
+  dwimy-filterspecs-for-dotest: bfe685a5c5416a11988625b7a1889c65537334f8
+  lldbpexpect-make-sure-term-is: affdcf4d69dd69e0d9bf85f64e919b8d9b36a0c3
+  stringliteral-intellisense: f55416cd7f46859680be65b11ba506a2a51e1488
+  arbitrary-python-files: 04b9a418ed07a56a41cddeb239724546f4553787
 Unapplied:
-  test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
-  dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
-  lldbpexpect-make-sure-term-is: b8281188044ab43d5f15ae0c06742b9b8b18a8b4
-  stringliteral-intellisense: 7067d4181ed018815d0310cdae38013262db65e3
-  arbitrary-python-files: 4a00ff6d763211507fff0ec4a13e19ee4f79d8df
   bunch-o-tests: b39da29684e027d3803596a827fe9b0bf7d8a33b
   SBCommandReturnObject: 9a0849009ab30313f9e71a2e0612ea7578fb4fe3
   remove-a-smattering-of-0: 977ab1241f9678aa028cddc5f35e286133f8614b
