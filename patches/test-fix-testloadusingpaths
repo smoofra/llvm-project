@@ -1,5 +1,5 @@
-Bottom: 4539e98cf390a3089163c7160c40fb37b5839c2d
-Top:    8e7f3d316a1c85276d36c20727a2d8f8a9073238
+Bottom: 485ee30af66501d2092cc72cb7bb8f37555551cc
+Top:    485ee30af66501d2092cc72cb7bb8f37555551cc
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 18:02:18 -0700
 
@@ -23,15 +23,4 @@ Differential Revision: https://reviews.llvm.org/D68618
 
 
 ---
-diff --git a/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py b/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
-index 0ffce6213ef..e9cafba8932 100644
---- a/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
-+++ b/lldb/packages/Python/lldbsuite/test/functionalities/load_using_paths/TestLoadUsingPaths.py
-@@ -33,7 +33,7 @@ class LoadUsingPathsTestCase(TestBase):
-             ext = 'dylib'
-         self.lib_name = 'libloadunload.' + ext
- 
--        self.wd = self.getBuildDir()
-+        self.wd = os.path.realpath(self.getBuildDir())
-         self.hidden_dir = os.path.join(self.wd, 'hidden')
-         self.hidden_lib = os.path.join(self.hidden_dir, self.lib_name)
+

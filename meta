@@ -1,12 +1,12 @@
 Version: 1
-Previous: 48d23d5fdb899cd213f19e0e2c6a53ba21742bb5
-Head: 5d415b706f678108fa7f5dca7ade588cd8da24eb
+Previous: edd8e818f3db28e575b7c13b499e84c05a221e71
+Head: f0f2639bcee092b46853fda6f12f4fe863d8050e
 Applied:
+  test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
+  dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
+  lldbpexpect-make-sure-term-is: b8281188044ab43d5f15ae0c06742b9b8b18a8b4
+  fix-python-library-path-on: f0f2639bcee092b46853fda6f12f4fe863d8050e
 Unapplied:
-  test-fix-testloadusingpaths: 989558e0d041c824df2a52e762b5c0a8f15c6af6
-  dwimy-filterspecs-for-dotest: d08681a8381d4f102d58c831ce4f356ef42e1876
-  lldbpexpect-make-sure-term-is: 0c3de9e83de2b29a32b435ea95926ab604ca9398
-  fix-python-library-path-on: 8c437502efdbadad8408ec2766611bc6b21a1ebf
   stringliteral-intellisense: fb3d80d1a29f72782f28c8c2bbb0d090bc42f7d6
   exceptions: a5f5e9f4273f7b74054a2039784808e481799fc0
   arbitrary-python-files: 4a6683ca462ea6cca78c2411dbf912ba0c133ff5

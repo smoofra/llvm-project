@@ -1,5 +1,5 @@
-Bottom: 8e7f3d316a1c85276d36c20727a2d8f8a9073238
-Top:    bf749981f6e25827ccddf6c3001a9e568db641a6
+Bottom: 485ee30af66501d2092cc72cb7bb8f37555551cc
+Top:    485ee30af66501d2092cc72cb7bb8f37555551cc
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:37:49 -0700
 
@@ -25,83 +25,4 @@ Tags: #lldb
 Differential Revision: https://reviews.llvm.org/D68545
 
 ---
-diff --git a/lldb/packages/Python/lldbsuite/test/dotest.py b/lldb/packages/Python/lldbsuite/test/dotest.py
-index 04917185de2..652a02e5ed6 100644
---- a/lldb/packages/Python/lldbsuite/test/dotest.py
-+++ b/lldb/packages/Python/lldbsuite/test/dotest.py
-@@ -667,34 +667,42 @@ def visit_file(dir, name):
- 
-     # Thoroughly check the filterspec against the base module and admit
-     # the (base, filterspec) combination only when it makes sense.
--    filterspec = None
--    for filterspec in configuration.filters:
--        # Optimistically set the flag to True.
--        filtered = True
--        module = __import__(base)
--        parts = filterspec.split('.')
--        obj = module
-+
-+    def check(obj, parts):
-         for part in parts:
-             try:
-                 parent, obj = obj, getattr(obj, part)
-             except AttributeError:
-                 # The filterspec has failed.
--                filtered = False
--                break
--
--        # If filtered, we have a good filterspec.  Add it.
--        if filtered:
--            # print("adding filter spec %s to module %s" % (filterspec, module))
--            configuration.suite.addTests(
--                unittest2.defaultTestLoader.loadTestsFromName(
--                    filterspec, module))
--            continue
-+                return False
-+        return True
-+
-+    module = __import__(base)
-+
-+    def iter_filters():
-+        for filterspec in configuration.filters:
-+            parts = filterspec.split('.')
-+            if check(module, parts):
-+                yield filterspec
-+            elif parts[0] == base and len(parts) > 1 and check(module, parts[1:]):
-+                yield '.'.join(parts[1:])
-+            else:
-+                for key,value in module.__dict__.items():
-+                    if check(value, parts):
-+                        yield key + '.' + filterspec
-+
-+    filtered = False
-+    for filterspec in iter_filters():
-+        filtered = True
-+        print("adding filter spec %s to module %s" % (filterspec, repr(module)))
-+        tests = unittest2.defaultTestLoader.loadTestsFromName(filterspec, module)
-+        configuration.suite.addTests(tests)
- 
-     # Forgo this module if the (base, filterspec) combo is invalid
-     if configuration.filters and not filtered:
-         return
- 
--    if not filterspec or not filtered:
-+    if not filtered:
-         # Add the entire file's worth of tests since we're not filtered.
-         # Also the fail-over case when the filterspec branch
-         # (base, filterspec) combo doesn't make sense.
-diff --git a/lldb/packages/Python/lldbsuite/test/dotest_args.py b/lldb/packages/Python/lldbsuite/test/dotest_args.py
-index 8de4d8dbb2f..4922f27c7bf 100644
---- a/lldb/packages/Python/lldbsuite/test/dotest_args.py
-+++ b/lldb/packages/Python/lldbsuite/test/dotest_args.py
-@@ -61,7 +61,9 @@ def create_parser():
-         '-f',
-         metavar='filterspec',
-         action='append',
--        help='Specify a filter, which consists of the test class name, a dot, followed by the test method, to only admit such test into the test suite')  # FIXME: Example?
-+        help=('Specify a filter, which looks like "TestModule.TestClass.test_name".  '+
-+            'You may also use shortened filters, such as '+
-+            '"TestModule.TestClass", "TestClass.test_name", or just "test_name".'))
-     group.add_argument(
-         '-p',
-         metavar='pattern',
+
