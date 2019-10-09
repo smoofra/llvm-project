@@ -1,5 +1,5 @@
 Bottom: 6ab745679ece8b90071f79069f035b5bdd963379
-Top:    d48abb1d1214e1255c982084181d0ecc75d57fa0
+Top:    56d750a51d4b076095dce025b720ba5fbb647111
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-09 14:28:04 -0700
 
@@ -27,12 +27,15 @@ install prefix.
 
 ---
 diff --git a/lldb/CMakeLists.txt b/lldb/CMakeLists.txt
-index 317643a4422..7ddb552968c 100644
+index 317643a4422..db2a3121d48 100644
 --- a/lldb/CMakeLists.txt
 +++ b/lldb/CMakeLists.txt
-@@ -39,7 +39,7 @@ endif()
+@@ -38,8 +38,10 @@ endif()
+ 
  if (NOT LLDB_DISABLE_PYTHON)
    execute_process(
++    # Some python configurations will misbehave if you pass prefix='', so we pass
++    # 'foo' and then strip it off the returned prefix.
      COMMAND ${PYTHON_EXECUTABLE}
 -        -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(False, False, ''))"
 +        -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(False, False, 'foo')[4:])"
