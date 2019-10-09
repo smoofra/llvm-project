@@ -1,0 +1,104 @@
+Bottom: 847e2e46f8a5e9f4f398f3c689a977b39c415978
+Top:    06e0ef88cab05d3a5ff1b0278f26d868198ed6f3
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-05 14:00:53 -0700
+
+update TestRunCommandInterpreterAPI to use SBFile
+
+Summary:
+If you look at what this test is doing, it's actually quite
+mysterious why it works at all.   It sets the input file
+inside a "with open".   As soon as the with block ends,
+that file will be closed.   And yet somehow LLDB reads
+commands from it anyway.    What's actually happening is that
+the file descriptor gets dup'd when something inside LLDB
+calls File::GetStream().   I think it's fair to say that
+what this test is doing is illegal and it has no right
+to expect it to work.
+
+This patch updates the test with two cases.  One uses
+the SBFile api, and actually transfers ownership of
+the original file descriptor to the debugger.   The other
+just uses the old FILE* API, but in a sane way.
+
+I also set NO_DEBUG_INFO_TESTCASE, because this test doesn't
+use any debug info and doesn't need to run three times.
+
+Reviewers: JDevlieghere, jasonmolenda, labath
+
+Subscribers: aprantl, lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D68738
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+index a82fd7326d8..ede40134fe4 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+@@ -5,8 +5,46 @@ import lldb
+ from lldbsuite.test.decorators import *
+ from lldbsuite.test.lldbtest import *
+ 
++class CommandRunInterpreterLegacyAPICase(TestBase):
++
++    NO_DEBUG_INFO_TESTCASE = True
++    mydir = TestBase.compute_mydir(__file__)
++
++    def setUp(self):
++        TestBase.setUp(self)
++
++        self.stdin_path = self.getBuildArtifact("stdin.txt")
++
++        with open(self.stdin_path, 'w') as input_handle:
++            input_handle.write("nonexistingcommand\nquit")
++
++        # Python will close the file descriptor if all references
++        # to the filehandle object lapse, so we need to keep one
++        # around.
++        self.filehandle = open(self.stdin_path, 'r')
++        self.dbg.SetInputFileHandle(self.filehandle, False)
++
++        # No need to track the output
++        self.devnull = open(os.devnull, 'w')
++        self.dbg.SetOutputFileHandle(self.devnull, False)
++        self.dbg.SetErrorFileHandle (self.devnull, False)
++
++    @add_test_categories(['pyapi'])
++    def test_run_session_with_error_and_quit(self):
++        """Run non-existing and quit command returns appropriate values"""
++
++        n_errors, quit_requested, has_crashed = self.dbg.RunCommandInterpreter(
++                True, False, lldb.SBCommandInterpreterRunOptions(), 0, False,
++                False)
++
++        self.assertGreater(n_errors, 0)
++        self.assertTrue(quit_requested)
++        self.assertFalse(has_crashed)
++
++
+ class CommandRunInterpreterAPICase(TestBase):
+ 
++    NO_DEBUG_INFO_TESTCASE = True
+     mydir = TestBase.compute_mydir(__file__)
+ 
+     def setUp(self):
+@@ -17,13 +55,12 @@ class CommandRunInterpreterAPICase(TestBase):
+         with open(self.stdin_path, 'w') as input_handle:
+             input_handle.write("nonexistingcommand\nquit")
+ 
+-        with open(self.stdin_path, 'r') as input_handle:
+-            self.dbg.SetInputFileHandle(input_handle, False)
++        self.dbg.SetInputFile(open(self.stdin_path, 'r'))
+ 
+         # No need to track the output
+         devnull = open(os.devnull, 'w')
+-        self.dbg.SetOutputFileHandle(devnull, False)
+-        self.dbg.SetErrorFileHandle(devnull, False)
++        self.dbg.SetOutputFile(devnull)
++        self.dbg.SetErrorFile(devnull)
+ 
+     @add_test_categories(['pyapi'])
+     def test_run_session_with_error_and_quit(self):
