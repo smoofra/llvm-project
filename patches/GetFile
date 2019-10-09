@@ -1,5 +1,5 @@
-Bottom: 4590017263886977ecb37b002dd1aff7247e1a52
-Top:    b4481b224be29328ed76bc206998fee31c2b24d2
+Bottom: ef7580659f42ca374b84efe9eeeb0e242575efd1
+Top:    e4dc709ef3bc6d697df129a842da6740bea54046
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-07 15:38:19 -0700
 
@@ -186,7 +186,7 @@ index bd4cfcdb334..4d9e2c2cd7d 100644
    if (DescriptorIsValid())
      return m_descriptor;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index e6713d286b5..246151edb05 100644
+index b866ee97929..d4f485fa6a3 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1012,8 +1012,6 @@ operator()(std::initializer_list<PythonObject> args) {

@@ -1,5 +1,5 @@
-Bottom: 2adf1b56975dd9b296f68f358335314a8371a03a
-Top:    e1e4db3103fb5f26f3875315fb061f81b63db654
+Bottom: c48fe11b652dbc21f9cc738128227ee4cf651730
+Top:    dea4319c6571f7b4f341144b722b6faf7d56ba33
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -152,7 +152,7 @@ index 4d9e2c2cd7d..2da8fd3e0cf 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 246151edb05..7a11d555695 100644
+index d4f485fa6a3..4d6b2b6f644 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1092,21 +1092,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
