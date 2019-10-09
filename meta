@@ -1,6 +1,6 @@
 Version: 1
-Previous: 959ef5e234a6bf8615ac83e1aec018a92e17976f
-Head: b3e6647fa343699d3420f03401f1130f0d39511d
+Previous: 75b8f3c91c6d2375346c817384797119b77530f1
+Head: 90d7c066488048c8119b4f96bf4d482fc2afc957
 Applied:
   test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
   dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
@@ -9,8 +9,7 @@ Applied:
   exceptions: 881fa6b91e84fe709d8a849b7a71ed7efe50a2ad
   arbitrary-python-files: 44dde369b8266c8578919ac4c8ded212ef79eed1
   bunch-o-tests: 90017b8cd0a18eceae0d074b239c3cafb9c59bf3
-  SBCommandReturnObject: 2b7909ebc8d17a820918d3c515e0603b2444097f
-  refresh-temp: b3e6647fa343699d3420f03401f1130f0d39511d
+  SBCommandReturnObject: 90d7c066488048c8119b4f96bf4d482fc2afc957
 Unapplied:
   remove-a-smattering-of-0: 8615d6cfe5db7a479146926cd4de3361c1ead945
   HandleProcessEvent: c8742775756ac11f95689c81fea9c74561ac5359
