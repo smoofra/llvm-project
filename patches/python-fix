@@ -1,0 +1,29 @@
+Bottom: 6ab745679ece8b90071f79069f035b5bdd963379
+Top:    6ab745679ece8b90071f79069f035b5bdd963379
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-09 14:28:04 -0700
+
+fix python library path on ubuntu 18.04 LTS
+
+When building on ubuntu 18.04 LTS, the python path returned by
+./bin/lldb -P is incorrect.   It should be `lib/python3.6/site-packages`,
+but instead we get `lib/python3/dist-packages`
+
+This is because distutils.sysconfig.get_python_lib can behave
+differently based on whether a prefix is passed in or not.
+Ubuntu's python from this era wll return `/usr/lib/python3/dist-packages`
+for no prefix, but it will return `$prefix/lib/python3.6/site-packages`
+if there is one.   If the path passed is the empty string, it will
+return `lib/python3/dist-packages`, which appears to be a bug.
+
+XCode's python will also behave similarly, returning
+/Library/Python/3.7/site-packages for the no-prefix case.
+
+This patch works around strange and buggy python configurations by 
+passing a dummy prefix "foo", and then stripping it out.   That seems
+to be the only way to be sure get_python_lib will not apply some 
+distro-specific logic for installing python libraries without an 
+install prefix.
+
+---
+
