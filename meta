@@ -1,6 +1,6 @@
 Version: 1
-Previous: 7766dfb064c9c0601780f2391b4aab9de8792c34
-Head: ba420d6738e626e1e8250bbfdcc9ab87239b9346
+Previous: b987af5696ce3fe2635a698414a467de164a309b
+Head: 8e828175aed53e1328d39eee52d3386af92dcec1
 Applied:
   test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
   dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
@@ -15,8 +15,8 @@ Applied:
   protect-libedit-and-lldb-gui: 91481e7c680721fb00217e208b97f1f3ee37ac26
   update-sbdebugger-setinputfile: 6bcd30e706937ac6fdac07fd57f0b9dfc0922ed7
   GetFile: ba420d6738e626e1e8250bbfdcc9ab87239b9346
+  TestRunCommandInterpreterAPI: 8e828175aed53e1328d39eee52d3386af92dcec1
 Unapplied:
-  TestRunCommandInterpreterAPI: b3eefb4b66c6deb5f0063641034c2ab08747f097
   convert-legacy: ccf199082f789a9115c14a060048e6a12f18ed50
   SBInstruction: efddd35c3fb6325f868d73c8e7c6d7308dc70075
   SBStream: 607327c836f49b973fecc3215d6cffd595df903e
