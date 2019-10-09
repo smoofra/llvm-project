@@ -1328,6 +1328,15 @@ public:
     return Status();
   }
 
+  uint32_t GetOptions() const override {
+    GIL takeGIL;
+    auto options = GetOptionsForPyObject(m_py_obj);
+    if (!options) {
+      llvm::consumeError(options.takeError());
+      return 0;
+    }
+    return options.get();
+  }
 };
 } // namespace
 
