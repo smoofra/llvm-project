@@ -1,5 +1,5 @@
-Bottom: 22914ae1a903491bdc49a808e7352721fb6a9b31
-Top:    ba7012b0149af4816a272f9923ad08abd79e3c7c
+Bottom: 60522df1f8c05eeb5f30aef7c4f0839ec7f17051
+Top:    343a33c67c0eb65469f8855221f267b5d3af35d0
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 15:10:19 -0700
 
@@ -397,7 +397,7 @@ index c6bfc35f0ac..db7703a49be 100644
 +        with open(self.out_filename, 'r') as f:
 +            self.assertEqual("foobar", f.read().strip())
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index ad464d38037..54f9182c7eb 100644
+index f963e37da6f..9428c7c92ff 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
 @@ -444,19 +444,19 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {

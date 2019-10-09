@@ -1,16 +1,16 @@
 Version: 1
-Previous: 74ac7375956b6a3c2ba24e9074fe9df5ce56b01d
-Head: b8281188044ab43d5f15ae0c06742b9b8b18a8b4
+Previous: 1aa75f50891982e23334e59d8348cdf6000071e8
+Head: 2b7909ebc8d17a820918d3c515e0603b2444097f
 Applied:
   test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
   dwimy-filterspecs-for-dotest: 47a4614faeb00b1779552a05b60ef8b1b02f1a5d
   lldbpexpect-make-sure-term-is: b8281188044ab43d5f15ae0c06742b9b8b18a8b4
+  stringliteral-intellisense: 7067d4181ed018815d0310cdae38013262db65e3
+  exceptions: 881fa6b91e84fe709d8a849b7a71ed7efe50a2ad
+  arbitrary-python-files: 44dde369b8266c8578919ac4c8ded212ef79eed1
+  bunch-o-tests: 90017b8cd0a18eceae0d074b239c3cafb9c59bf3
+  SBCommandReturnObject: 2b7909ebc8d17a820918d3c515e0603b2444097f
 Unapplied:
-  stringliteral-intellisense: fb3d80d1a29f72782f28c8c2bbb0d090bc42f7d6
-  exceptions: a5f5e9f4273f7b74054a2039784808e481799fc0
-  arbitrary-python-files: 4a6683ca462ea6cca78c2411dbf912ba0c133ff5
-  bunch-o-tests: 01acf8c8755fdbd633a96c7adafac84f3184e251
-  SBCommandReturnObject: 9a4a3585f3c32fe834e02188355623d9a94f7077
   remove-a-smattering-of-0: 8615d6cfe5db7a479146926cd4de3361c1ead945
   HandleProcessEvent: c8742775756ac11f95689c81fea9c74561ac5359
   iohandler-fallback: d56e1eb44540fcdc21bf091215814a3516bde3f0
