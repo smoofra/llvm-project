@@ -1,5 +1,5 @@
-Bottom: d324f946cdf9b72b2ceb8b8599e99445d9dd14e4
-Top:    4bf5c1602b1b5c5d86e5b8e1f793f228dbd21442
+Bottom: 73bf61448afaa10f1ca833dbf3cc19a480ba7296
+Top:    8b0c32a34161482cb5841490232e5cf1ccb1f80d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:20:44 -0700
 
@@ -137,7 +137,7 @@ index cbe67ad3b7d..453f98ffe20 100644
      void
      AppendEventStateReport (const lldb::SBEvent &event, lldb::SBCommandReturnObject &result);
 diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
-index 89179fc4f17..b38e06baeb2 100644
+index 4d27b43e675..b71bbf15b83 100644
 --- a/lldb/source/API/SBDebugger.cpp
 +++ b/lldb/source/API/SBDebugger.cpp
 @@ -479,8 +479,7 @@ void SBDebugger::HandleCommand(const char *command) {
@@ -219,7 +219,7 @@ index 89179fc4f17..b38e06baeb2 100644
    }
  }
  
-@@ -1643,6 +1667,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+@@ -1642,6 +1666,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
    LLDB_REGISTER_METHOD(
        void, SBDebugger, HandleProcessEvent,
        (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *));

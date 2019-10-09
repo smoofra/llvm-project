@@ -1,5 +1,5 @@
-Bottom: 802365061fa29c64d388bdfbe4d36f84a926623d
-Top:    e9d023bca29d3a2e39ed3b5a6b6385fbf0a1ade7
+Bottom: 238357fe8c9fb0c29c6180afc115ac0aa832772a
+Top:    f7803a0951782b76920a7d0d237406a7a3b57f32
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-03 22:23:32 -0700
 
@@ -138,7 +138,7 @@ index b6a7a2e4304..695b32be064 100644
      GetInputFile ();
  
 diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
-index b38e06baeb2..e85a52bab42 100644
+index b71bbf15b83..82dc6048900 100644
 --- a/lldb/source/API/SBDebugger.cpp
 +++ b/lldb/source/API/SBDebugger.cpp
 @@ -292,6 +292,11 @@ void SBDebugger::SetInputFileHandle(FILE *fh, bool transfer_ownership) {
@@ -177,7 +177,7 @@ index b38e06baeb2..e85a52bab42 100644
  SBError SBDebugger::SetErrorFile(SBFile file) {
    LLDB_RECORD_METHOD(SBError, SBDebugger, SetErrorFile, (SBFile file), file);
    SBError error;
-@@ -1601,6 +1616,8 @@ static void SetFileHandleRedirect(SBDebugger *, FILE *, bool) {
+@@ -1600,6 +1615,8 @@ static void SetFileHandleRedirect(SBDebugger *, FILE *, bool) {
  
  static SBError SetFileRedirect(SBDebugger *, SBFile file) { return SBError(); }
  
@@ -186,7 +186,7 @@ index b38e06baeb2..e85a52bab42 100644
  static bool GetDefaultArchitectureRedirect(char *arch_name,
                                             size_t arch_name_len) {
    // The function is writing to its argument. Without the redirect it would
-@@ -1631,6 +1648,16 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+@@ -1630,6 +1647,16 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
                   SBFile)>::method<&SBDebugger::SetErrorFile>::doit,
               &SetFileRedirect);
  

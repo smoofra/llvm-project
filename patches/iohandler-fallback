@@ -1,5 +1,5 @@
-Bottom: 4bf5c1602b1b5c5d86e5b8e1f793f228dbd21442
-Top:    62745c057b4d6d11920a4eff662e3e1e9bbbd9ee
+Bottom: 8b0c32a34161482cb5841490232e5cf1ccb1f80d
+Top:    238357fe8c9fb0c29c6180afc115ac0aa832772a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-09 11:54:12 -0700
 
@@ -77,10 +77,10 @@ index 60917b68a6c..e21db25f6a6 100644
          inf = io.BytesIO(b"help help\nhelp b\n")
          outf = io.BytesIO()
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index b134b69456e..9aa988cf420 100644
+index d3152981a56..a69f93614e7 100644
 --- a/lldb/source/Core/IOHandler.cpp
 +++ b/lldb/source/Core/IOHandler.cpp
-@@ -305,94 +305,123 @@ void IOHandlerEditline::Deactivate() {
+@@ -306,94 +306,123 @@ void IOHandlerEditline::Deactivate() {
    m_delegate.IOHandlerDeactivated(*this);
  }
  
