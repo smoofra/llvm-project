@@ -1,5 +1,5 @@
 Version: 1
-Previous: c32e70feb15c7c3c209712d703ffcb513694ccb7
+Previous: a481c7785d8e8eae0d7e92f5e01246cec0baf464
 Head: ba420d6738e626e1e8250bbfdcc9ab87239b9346
 Applied:
   test-fix-testloadusingpaths: ad959b3a96586644153b318002124c0bed0db35f
@@ -14,8 +14,9 @@ Applied:
   iohandler-fallback: 61b8ccb270e3658912c4da5af8c9096af9cdefc7
   protect-libedit-and-lldb-gui: 91481e7c680721fb00217e208b97f1f3ee37ac26
   update-sbdebugger-setinputfile: 6bcd30e706937ac6fdac07fd57f0b9dfc0922ed7
-  GetFile: be1ce392e455d9a91f162e82b9f5328113cfde29
+  sbfile-getfile-convert-sbfile: ba420d6738e626e1e8250bbfdcc9ab87239b9346
 Unapplied:
+  GetFile: be1ce392e455d9a91f162e82b9f5328113cfde29
   TestRunCommandInterpreterAPI: b3eefb4b66c6deb5f0063641034c2ab08747f097
   convert-legacy: ccf199082f789a9115c14a060048e6a12f18ed50
   SBInstruction: efddd35c3fb6325f868d73c8e7c6d7308dc70075
