@@ -6232,9 +6232,8 @@ bool ObjectFileMachO::SaveCore(const lldb::ProcessSP &process_sp,
         }
 
         std::string core_file_path(outfile.GetPath());
-        auto core_file = FileSystem::Instance().Open(
-            outfile, File::eOpenOptionWrite | File::eOpenOptionTruncate |
-                         File::eOpenOptionCanCreate);
+        auto core_file =
+            FileSystem::Instance().Open(outfile, File::eOpenOptionWrite);
         if (!core_file) {
           error = core_file.takeError();
         } else {

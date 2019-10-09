@@ -507,7 +507,10 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
   packet.GetHexByteStringTerminatedBy(path, ',');
   if (!path.empty()) {
     if (packet.GetChar() == ',') {
-      uint32_t flags = packet.GetHexMaxU32(false, 0);
+      // FIXME I don't think this actually works.  Our flags values
+      // do not match the values documented by GDB.
+      // https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
+      auto flags = File::OpenOptions(packet.GetHexMaxU32(false, 0));
       if (packet.GetChar() == ',') {
         mode_t mode = packet.GetHexMaxU32(false, 0600);
         FileSpec path_spec(path);
@@ -546,7 +549,7 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Close(
   int err = -1;
   int save_errno = 0;
   if (fd >= 0) {
-    NativeFile file(fd, 0, true);
+    NativeFile file(fd, File::OpenOptions(), true);
     Status error = file.Close();
     err = 0;
     save_errno = error.GetError();
