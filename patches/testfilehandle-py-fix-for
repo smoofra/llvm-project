@@ -1,5 +1,5 @@
-Bottom: fc618316869c35c3c113eb52c939c85d7c000040
-Top:    cd7b0669f6fd0c81b5204e4d24c8883a35d86660
+Bottom: 2745289dba0c25d61bb00fd6dd6184175ca0cba9
+Top:    2745289dba0c25d61bb00fd6dd6184175ca0cba9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-09 16:43:57 -0700
 
@@ -20,21 +20,4 @@ Differential Revision: https://reviews.llvm.org/D68745
 
 
 ---
-diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index a20b0c63ff6..4aa3fabbd39 100644
---- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-+++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -668,11 +668,11 @@ class FileHandleTestCase(lldbtest.TestBase):
-             error, n = lldb.SBFile(BadIO()).Write(b"FOO")
-             self.assertEqual(n, 0)
-             self.assertTrue(error.Fail())
--            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
-+            self.assertIn('OH NOE', error.GetCString())
-             error, n = lldb.SBFile(BadIO()).Read(bytearray(100))
-             self.assertEqual(n, 0)
-             self.assertTrue(error.Fail())
--            self.assertEqual(error.GetCString(), "OhNoe('OH NOE')")
-+            self.assertIn('OH NOE', error.GetCString())
- 
- 
-     @add_test_categories(['pyapi'])
+

@@ -1,5 +1,5 @@
-Bottom: e4d288bfde51d7f6cc548987a33e1ce1a2758e55
-Top:    a02cd6ab79c6a2d28e0152d77959ad598c5fbf64
+Bottom: d0a51a14c8994d2bfd6d734859fe0744c371fc2a
+Top:    585146712a36e98a184428ca96aff406207d63cd
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -120,10 +120,10 @@ index b9389022512..8ff178bc5e5 100644
      using namespace lldb_private;
      if ($input == Py_None)
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 4d9e2c2cd7d..2da8fd3e0cf 100644
+index 1fb7f9cbd16..695adbf280d 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
-@@ -105,8 +105,6 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
+@@ -107,8 +107,6 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
    return std::error_code(ENOTSUP, std::system_category());
  }
  
@@ -132,7 +132,7 @@ index 4d9e2c2cd7d..2da8fd3e0cf 100644
  int File::GetDescriptor() const { return kInvalidDescriptor; }
  
  FILE *File::GetStream() { return nullptr; }
-@@ -315,18 +313,6 @@ Status NativeFile::Close() {
+@@ -317,18 +315,6 @@ Status NativeFile::Close() {
    return error;
  }
  
