@@ -1,5 +1,5 @@
-Bottom: 73bf61448afaa10f1ca833dbf3cc19a480ba7296
-Top:    8b0c32a34161482cb5841490232e5cf1ccb1f80d
+Bottom: b295ef33e377600baf43ba058d0ed41fcebf03e6
+Top:    202f3a78c08aa1a67cfe87da0e82ea1eba2fe22d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:20:44 -0700
 
@@ -21,10 +21,10 @@ Differential Revision: https://reviews.llvm.org/D68546
 
 ---
 diff --git a/lldb/include/lldb/API/SBDebugger.h b/lldb/include/lldb/API/SBDebugger.h
-index 1f36999c3c4..9e695079733 100644
+index 1c564fc1fae..580f6281fbb 100644
 --- a/lldb/include/lldb/API/SBDebugger.h
 +++ b/lldb/include/lldb/API/SBDebugger.h
-@@ -111,7 +111,14 @@ public:
+@@ -117,7 +117,14 @@ public:
    lldb::SBListener GetListener();
  
    void HandleProcessEvent(const lldb::SBProcess &process,
@@ -100,10 +100,10 @@ index eed197a63ef..a860a8a2a48 100644
      error = lldb.SBError()
      obj.RemoteAttachToProcessWithID(123, error)
 diff --git a/lldb/scripts/interface/SBDebugger.i b/lldb/scripts/interface/SBDebugger.i
-index c4eb11ea356..b6a7a2e4304 100644
+index 208b036e8af..695b32be064 100644
 --- a/lldb/scripts/interface/SBDebugger.i
 +++ b/lldb/scripts/interface/SBDebugger.i
-@@ -213,8 +213,14 @@ public:
+@@ -228,8 +228,14 @@ public:
      void
      HandleProcessEvent (const lldb::SBProcess &process,
                          const lldb::SBEvent &event,
@@ -137,10 +137,10 @@ index cbe67ad3b7d..453f98ffe20 100644
      void
      AppendEventStateReport (const lldb::SBEvent &event, lldb::SBCommandReturnObject &result);
 diff --git a/lldb/source/API/SBDebugger.cpp b/lldb/source/API/SBDebugger.cpp
-index 4d27b43e675..b71bbf15b83 100644
+index 1da6ed26b24..82dc6048900 100644
 --- a/lldb/source/API/SBDebugger.cpp
 +++ b/lldb/source/API/SBDebugger.cpp
-@@ -479,8 +479,7 @@ void SBDebugger::HandleCommand(const char *command) {
+@@ -494,8 +494,7 @@ void SBDebugger::HandleCommand(const char *command) {
          while (lldb_listener_sp->GetEventForBroadcaster(
              process_sp.get(), event_sp, std::chrono::seconds(0))) {
            SBEvent event(event_sp);
@@ -150,7 +150,7 @@ index 4d27b43e675..b71bbf15b83 100644
          }
        }
      }
-@@ -497,6 +496,17 @@ SBListener SBDebugger::GetListener() {
+@@ -512,6 +511,17 @@ SBListener SBDebugger::GetListener() {
    return LLDB_RECORD_RESULT(sb_listener);
  }
  
@@ -168,7 +168,7 @@ index 4d27b43e675..b71bbf15b83 100644
  void SBDebugger::HandleProcessEvent(const SBProcess &process,
                                      const SBEvent &event, FILE *out,
                                      FILE *err) {
-@@ -505,6 +515,20 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+@@ -520,6 +530,20 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
        (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *), process,
        event, out, err);
  
@@ -189,7 +189,7 @@ index 4d27b43e675..b71bbf15b83 100644
    if (!process.IsValid())
      return;
  
-@@ -522,16 +546,16 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+@@ -537,16 +561,16 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
        (Process::eBroadcastBitSTDOUT | Process::eBroadcastBitStateChanged)) {
      // Drain stdout when we stop just in case we have any bytes
      while ((len = process.GetSTDOUT(stdio_buffer, sizeof(stdio_buffer))) > 0)
@@ -210,7 +210,7 @@ index 4d27b43e675..b71bbf15b83 100644
    }
  
    if (event_type & Process::eBroadcastBitStateChanged) {
-@@ -542,7 +566,7 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
+@@ -557,7 +581,7 @@ void SBDebugger::HandleProcessEvent(const SBProcess &process,
  
      bool is_stopped = StateIsStoppedState(event_state);
      if (!is_stopped)
@@ -219,7 +219,7 @@ index 4d27b43e675..b71bbf15b83 100644
    }
  }
  
-@@ -1642,6 +1666,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
+@@ -1669,6 +1693,12 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
    LLDB_REGISTER_METHOD(
        void, SBDebugger, HandleProcessEvent,
        (const lldb::SBProcess &, const lldb::SBEvent &, FILE *, FILE *));

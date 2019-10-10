@@ -1,14 +1,14 @@
 Version: 1
-Previous: 904d95477c105026c62c4cd79b85a093971f05f3
-Head: a71511feb5a130ab5a0e9f62fdde0b5f9549dad6
+Previous: aefc01e8d04836d2698d14839cafb0e5e5cd0d59
+Head: 83e6651dd0ec368cf035d1adaf0d34867c9c1e92
 Applied:
+  test-fix-testloadusingpaths: 32a98c63e34703a1596ccea9552c18f14aac4dac
+  dwimy-filterspecs-for-dotest: 938e476344ab68cf1ef44c9551b525b47a365d51
+  lldbpexpect-make-sure-term-is: c9052420b06b098b9bb102f092972ab97c5d3eb6
+  stringliteral-intellisense: 901e740e0807db10fe56ae96d6ea4491bf837a92
+  HandleProcessEvent: 70a68ac0bcc93a873e84de8eb4ea81b231e780b3
+  iohandler-fallback: 83e6651dd0ec368cf035d1adaf0d34867c9c1e92
 Unapplied:
-  test-fix-testloadusingpaths: aa7ce0543f099c56ae40041db9bfb5d66e9f6d34
-  dwimy-filterspecs-for-dotest: bfe685a5c5416a11988625b7a1889c65537334f8
-  lldbpexpect-make-sure-term-is: affdcf4d69dd69e0d9bf85f64e919b8d9b36a0c3
-  stringliteral-intellisense: f55416cd7f46859680be65b11ba506a2a51e1488
-  HandleProcessEvent: c30ebc0f9e7349625e5c4d062fd95cf2c348d66f
-  iohandler-fallback: 414d51f3c447786ce08f54c4bf3d7ffdd070dfdb
   protect-libedit-and-lldb-gui: c09caedeb7b6d4ecea37fb70431d94d57c70d3fb
   update-sbdebugger-setinputfile: aaa020bc28c566a106c9cc720fa3a0b0b54ce042
   GetFile: c780e90420fd15d8d3e81f8681645ef71510e238
