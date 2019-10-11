@@ -1,6 +1,6 @@
 Version: 1
-Previous: db79a54dd17c720b3c4d38263c844cc6d1ff8df4
-Head: 27d5ea5e4175292ff14fc32ee75115af539b9ee1
+Previous: 2580bfb340b22d5677acfe4df2ca101ef632a28f
+Head: 6c564efba9140553b7517259fb21e4ed3354de2b
 Applied:
   test-fix-testloadusingpaths: 32a98c63e34703a1596ccea9552c18f14aac4dac
   dwimy-filterspecs-for-dotest: 938e476344ab68cf1ef44c9551b525b47a365d51
@@ -18,7 +18,6 @@ Applied:
   python-fix: 77004249074bdd43413561641460605c5d51d27b
   OpenOptions: 18e615f99d61fe29d7602a41478ea212f67cb3e1
   fix-getfile: 1f5b0b82f44f871c4494435e3d771ed5aca0edb5
-  fix2: ae11d57abfedd9de20b558b339b633c0d865d0a8
-  refresh-temp: 27d5ea5e4175292ff14fc32ee75115af539b9ee1
+  fix2: 6c564efba9140553b7517259fb21e4ed3354de2b
 Unapplied:
 Hidden:

@@ -1,9 +1,21 @@
 Bottom: a4ba6a71612eb49aeb2ad7c0cb9f1696dfddca5e
-Top:    a4ba6a71612eb49aeb2ad7c0cb9f1696dfddca5e
+Top:    eab5dfd6bb4f8c11e64ae543909ae866a8a642ed
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-10 17:49:23 -0700
 
 fix2
 
 ---
-
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index c38fbf13965..115a052a812 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -324,7 +324,7 @@ Status NativeFile::Close() {
+   }
+   m_descriptor = kInvalidDescriptor;
+   m_stream = kInvalidStream;
+-  m_options = 0;
++  m_options = OpenOptions(0);
+   m_own_stream = false;
+   m_own_descriptor = false;
+   m_is_interactive = eLazyBoolCalculate;
