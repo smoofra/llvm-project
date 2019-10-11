@@ -1151,8 +1151,8 @@ char PythonException::ID = 0;
 
 llvm::Expected<File::OpenOptions>
 GetOptionsForPyObject(const PythonObject &obj) {
-  auto options = File::OpenOptions(0);
 #if PY_MAJOR_VERSION >= 3
+  auto options = File::OpenOptions(0);
   auto readable = As<bool>(obj.CallMethod("readable"));
   if (!readable)
     return readable.takeError();
@@ -1163,11 +1163,11 @@ GetOptionsForPyObject(const PythonObject &obj) {
     options |= File::eOpenOptionRead;
   if (writable.get())
     options |= File::eOpenOptionWrite;
+  return options;
 #else
   PythonString py_mode = obj.GetAttributeValue("mode").AsType<PythonString>();
-  options = File::GetOptionsFromMode(py_mode.GetString());
+  return File::GetOptionsFromMode(py_mode.GetString());
 #endif
-  return options;
 }
 
 // Base class template for python files.   All it knows how to do
