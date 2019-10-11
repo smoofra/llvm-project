@@ -1,5 +1,5 @@
 Bottom: 19b22308a1739e5f6099dbfa3200ac6d62479718
-Top:    b911fa587a92a21952a376e379ca1c1f3ba43e20
+Top:    244c732cc013c5e2a2e9615fa12eae2b5489b70f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -223,3 +223,20 @@ index d773fd8d258..181a2e84083 100644
 +  sys_module_dict.SetItemForKey(PythonString(py_name), new_file.get());
    return true;
  }
+ 
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index e6d1c4d14b0..5c3c6097007 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -585,8 +585,9 @@ TEST_F(PythonDataObjectsTest, TestPythonFile) {
+   auto file = FileSystem::Instance().Open(FileSpec(FileSystem::DEV_NULL),
+                                           File::eOpenOptionRead);
+   ASSERT_THAT_EXPECTED(file, llvm::Succeeded());
+-  PythonFile py_file(*file.get(), "r");
+-  EXPECT_TRUE(PythonFile::Check(py_file.get()));
++  auto py_file = PythonFile::FromFile(*file.get(), "r");
++  ASSERT_THAT_EXPECTED(py_file, llvm::Succeeded());
++  EXPECT_TRUE(PythonFile::Check(py_file.get().get()));
+ }
+ 
+ TEST_F(PythonDataObjectsTest, TestObjectAttributes) {
