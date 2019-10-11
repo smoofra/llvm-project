@@ -1,5 +1,5 @@
-Bottom: ab0a5126611000da71f101ab58e48667a791d3d7
-Top:    e1db7c6a069586966d2549d2b236a6ddf6d37499
+Bottom: c1a03cd1f9038d6e6df9d005a17e30128c354f7f
+Top:    fd4afe88d379147d2ba3f564eb2d1a40ef654055
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 15:11:20 -0700
 
@@ -22,7 +22,7 @@ Differential Revision: https://reviews.llvm.org/D68856
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 20dc1e93f49..8b7d3d52ee6 100644
+index 87349d1e31e..f7d8d0ce5db 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -129,8 +129,6 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -60,7 +60,7 @@ index 20dc1e93f49..8b7d3d52ee6 100644
  
  
      @add_test_categories(['pyapi'])
-@@ -842,3 +838,40 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -854,3 +850,40 @@ class FileHandleTestCase(lldbtest.TestBase):
              files = list(i(sbf))
          with open(self.out_filename, 'r') as f:
              self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))

@@ -1,5 +1,5 @@
-Bottom: 735f8c679be39a99ba49f2f66578b017094a7d2e
-Top:    36b85c924788865dc1a0d2a56ab345f727ea243e
+Bottom: c6e7f354ea89533ac48ee21d054dc33bb4462568
+Top:    cf939c4d12238d5bb4038b2bd47df31254a25675
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -152,7 +152,7 @@ index 0f335bd02f7..9dae24d766f 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 7e7cf72c24f..47e4888757b 100644
+index 60f000b0597..0df99716a7e 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1062,25 +1062,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {

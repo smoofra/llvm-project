@@ -1,7 +1,7 @@
 Bottom: 04d6d0cbff58b88f997f3f173d3a3843f166bf38
-Top:    ab0a5126611000da71f101ab58e48667a791d3d7
+Top:    c1a03cd1f9038d6e6df9d005a17e30128c354f7f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-11 12:26:02 -0700
+Date:   2019-10-11 12:51:29 -0700
 
 SBFile::GetFile: convert SBFile back into python native files.
 
@@ -100,18 +100,30 @@ index 444e7099bce..106482582fc 100644
  protected:
    bool DescriptorIsValid() const {
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 577c6b3e88f..20dc1e93f49 100644
+index 577c6b3e88f..87349d1e31e 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -772,7 +772,6 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -772,7 +772,18 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
 -    @expectedFailureAll() # FIXME implement SBFile::GetFile
++    def test_stdout_file(self):
++        with open(self.out_filename, 'w') as f:
++            status = self.debugger.SetOutputFile(f)
++            self.assertTrue(status.Success())
++            self.handleCmd(r"script sys.stdout.write('foobar\n')")
++        with open(self.out_filename, 'r') as f:
++            # python2 returns None from write, python3 returns 7
++            lines = [x for x in f.read().strip().split() if x != "7"]
++            self.assertEqual(lines, ["foobar"])
++
++
++    @add_test_categories(['pyapi'])
      @skipIf(py_version=['<', (3,)])
      def test_identity(self):
  
-@@ -826,3 +825,20 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -826,3 +837,20 @@ class FileHandleTestCase(lldbtest.TestBase):
  
          with open(self.out_filename, 'r') as f:
              self.assertEqual("foobar", f.read().strip())
@@ -255,7 +267,7 @@ index 2b096abdf0c..0f335bd02f7 100644
 +char File::ID = 0;
 +char NativeFile::ID = 0;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index c3588f6ec33..7e7cf72c24f 100644
+index c3588f6ec33..60f000b0597 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -22,6 +22,7 @@
@@ -360,7 +372,7 @@ index c3588f6ec33..7e7cf72c24f 100644
 +
 +  if (auto *simple = llvm::dyn_cast<SimplePythonFile>(&file))
 +    return Retain<PythonFile>(simple->GetPythonObject());
-+#if PY_VERSION_MAJOR >= 3
++#if PY_MAJOR_VERSION >= 3
 +  if (auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file))
 +    return Retain<PythonFile>(pythonio->GetPythonObject());
 +#endif
