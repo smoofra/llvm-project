@@ -823,6 +823,24 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertEqual("foobar", f.read().strip())
 
     @add_test_categories(['pyapi'])
+    def test_back_and_forth(self):
+        with open(self.out_filename, 'w') as f:
+            # at each step here we're borrowing the file, so we have to keep
+            # them all alive untill the end.
+            sbf = lldb.SBFile.Create(f, borrow=True)
+            def i(sbf):
+                for i in range(10):
+                    f = sbf.GetFile()
+                    yield f
+                    sbf = lldb.SBFile.Create(f, borrow=True)
+                    yield sbf
+                    sbf.Write(str(i).encode('ascii') + b"\n")
+            files = list(i(sbf))
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
+
+
+    @add_test_categories(['pyapi'])
     def test_set_filehandle_none(self):
         self.assertRaises(Exception, self.debugger.SetOutputFile, None)
         self.assertRaises(Exception, self.debugger.SetOutputFile, "ham sandwich")

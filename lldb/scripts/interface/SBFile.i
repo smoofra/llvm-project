@@ -90,7 +90,7 @@ public:
     SBFile, call SBFile.Close().
 
     If there is no underlying python file to unwrap, GetFile will
-    use the file descirptor, if availble to create a new python
+    use the file descriptor, if availble to create a new python
     file object using `open(fd, mode=..., closefd=False)`
     ");
     FileSP GetFile();
