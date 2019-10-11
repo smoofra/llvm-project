@@ -1535,7 +1535,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
 
   if (auto *simple = llvm::dyn_cast<SimplePythonFile>(&file))
     return Retain<PythonFile>(simple->GetPythonObject());
-#if PY_VERSION_MAJOR >= 3
+#if PY_MAJOR_VERSION >= 3
   if (auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file))
     return Retain<PythonFile>(pythonio->GetPythonObject());
 #endif
