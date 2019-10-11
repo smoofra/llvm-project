@@ -1,5 +1,5 @@
 Bottom: e1403947a53b21688d3a14f84337a80f24d7dfad
-Top:    a4a8fbf327b16890f92e68496195ee309814877e
+Top:    5ebe1a5c3b8214c41e3a100bc87f4ef1c4033331
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-10 18:10:46 -0700
 
@@ -36,7 +36,7 @@ index 747e2eaad13..09218262faa 100644
    FileSP m_opaque_sp;
  };
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index b9528b28f4c..096b067baf5 100644
+index b9528b28f4c..8184de07765 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
 @@ -58,6 +58,8 @@ public:
@@ -61,7 +61,7 @@ index b9528b28f4c..096b067baf5 100644
 +  /// eOpenOptionWrite here.
 +  ///
 +  /// \return
-+  ///    OpenOptions flags for this file, or 0 if unknown.
++  ///    OpenOptions flags for this file, or an error.
 +  virtual llvm::Expected<OpenOptions> GetOptions() const;
 +
 +  static char ID;
