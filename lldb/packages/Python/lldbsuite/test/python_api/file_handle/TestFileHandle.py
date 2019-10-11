@@ -190,11 +190,11 @@ class FileHandleTestCase(lldbtest.TestBase):
     @add_test_categories(['pyapi'])
     def test_sbfile_type_errors(self):
         sbf = lldb.SBFile()
-        self.assertRaises(TypeError, sbf.Write, None)
-        self.assertRaises(TypeError, sbf.Read, None)
-        self.assertRaises(TypeError, sbf.Read, b'this bytes is not mutable')
-        self.assertRaises(TypeError, sbf.Write, u"ham sandwich")
-        self.assertRaises(TypeError, sbf.Read, u"ham sandwich")
+        self.assertRaises(Exception, sbf.Write, None)
+        self.assertRaises(Exception, sbf.Read, None)
+        self.assertRaises(Exception, sbf.Read, b'this bytes is not mutable')
+        self.assertRaises(Exception, sbf.Write, u"ham sandwich")
+        self.assertRaises(Exception, sbf.Read, u"ham sandwich")
 
 
     @add_test_categories(['pyapi'])
@@ -824,15 +824,15 @@ class FileHandleTestCase(lldbtest.TestBase):
 
     @add_test_categories(['pyapi'])
     def test_set_filehandle_none(self):
-        self.assertRaises(TypeError, self.debugger.SetOutputFile, None)
-        self.assertRaises(TypeError, self.debugger.SetOutputFile, "ham sandwich")
-        self.assertRaises(TypeError, self.debugger.SetOutputFileHandle, "ham sandwich")
-        self.assertRaises(TypeError, self.debugger.SetInputFile, None)
-        self.assertRaises(TypeError, self.debugger.SetInputFile, "ham sandwich")
-        self.assertRaises(TypeError, self.debugger.SetInputFileHandle, "ham sandwich")
-        self.assertRaises(TypeError, self.debugger.SetErrorFile, None)
-        self.assertRaises(TypeError, self.debugger.SetErrorFile, "ham sandwich")
-        self.assertRaises(TypeError, self.debugger.SetErrorFileHandle, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetOutputFile, None)
+        self.assertRaises(Exception, self.debugger.SetOutputFile, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetOutputFileHandle, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetInputFile, None)
+        self.assertRaises(Exception, self.debugger.SetInputFile, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetInputFileHandle, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetErrorFile, None)
+        self.assertRaises(Exception, self.debugger.SetErrorFile, "ham sandwich")
+        self.assertRaises(Exception, self.debugger.SetErrorFileHandle, "ham sandwich")
 
         with open(self.out_filename, 'w') as f:
             status = self.debugger.SetOutputFile(f)
