@@ -1,5 +1,5 @@
-Bottom: d13599f69e6a1c7e68de4526adbae897e87b1058
-Top:    d859b96dac52cf0eed6201366392a1277e219f9d
+Bottom: 1d16ed32265a04d1133e31b5deec5fabb4dcd736
+Top:    a62a0036ce3a497c518170111ad2ff5efc4fd7e9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 16:15:52 -0700
 
@@ -47,7 +47,7 @@ index fa882906d0e..31fb3802bf6 100644
      void
      RedirectToFileDescriptor (int fd, bool transfer_fh_ownership);
 diff --git a/lldb/source/API/SBStream.cpp b/lldb/source/API/SBStream.cpp
-index 910563824a8..eebccecb552 100644
+index e7c726b90cd..d57634d2947 100644
 --- a/lldb/source/API/SBStream.cpp
 +++ b/lldb/source/API/SBStream.cpp
 @@ -9,6 +9,7 @@

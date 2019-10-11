@@ -1,5 +1,5 @@
-Bottom: d0a51a14c8994d2bfd6d734859fe0744c371fc2a
-Top:    585146712a36e98a184428ca96aff406207d63cd
+Bottom: 8bf70264a6fbe921870ce52c9f537393b71c376e
+Top:    ab0788d1c8b1ae34852c25876a825fc285a47ed2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -8,10 +8,10 @@ delete SWIG typemaps for FILE*
 
 ---
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index 3128a8540b1..b1133bcdd6f 100644
+index a92f28425a8..12922a1b4c5 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
-@@ -126,20 +126,6 @@ public:
+@@ -131,20 +131,6 @@ public:
    ///     ENOTSUP, success, or another error.
    virtual Status GetFileSpec(FileSpec &file_spec) const;
  
@@ -32,7 +32,7 @@ index 3128a8540b1..b1133bcdd6f 100644
    /// Get underlying OS file descriptor for this file, or kInvalidDescriptor.
    /// If the descriptor is valid, then it may be used directly for I/O
    /// However, the File may also perform it's own buffering, so avoid using
-@@ -402,7 +388,6 @@ public:
+@@ -421,7 +407,6 @@ public:
    Status Close() override;
    WaitableHandle GetWaitableHandle() override;
    Status GetFileSpec(FileSpec &file_spec) const override;
@@ -120,10 +120,10 @@ index b9389022512..8ff178bc5e5 100644
      using namespace lldb_private;
      if ($input == Py_None)
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 1fb7f9cbd16..695adbf280d 100644
+index f8715c97ac9..7aa7861d0da 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
-@@ -107,8 +107,6 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
+@@ -116,8 +116,6 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
    return std::error_code(ENOTSUP, std::system_category());
  }
  
@@ -132,7 +132,7 @@ index 1fb7f9cbd16..695adbf280d 100644
  int File::GetDescriptor() const { return kInvalidDescriptor; }
  
  FILE *File::GetStream() { return nullptr; }
-@@ -317,18 +315,6 @@ Status NativeFile::Close() {
+@@ -328,18 +326,6 @@ Status NativeFile::Close() {
    return error;
  }
  
@@ -152,7 +152,7 @@ index 1fb7f9cbd16..695adbf280d 100644
    Status error;
  #ifdef F_GETPATH
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index f9a7468c650..bcd47684b79 100644
+index 24135ae6d6c..c6d0665d751 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1092,21 +1092,6 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
