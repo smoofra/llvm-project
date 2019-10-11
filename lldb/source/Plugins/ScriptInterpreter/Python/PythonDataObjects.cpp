@@ -22,6 +22,7 @@
 #include "lldb/Utility/Stream.h"
 
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/Errno.h"
 
@@ -1012,8 +1013,6 @@ operator()(std::initializer_list<PythonObject> args) {
 
 PythonFile::PythonFile() : PythonObject() {}
 
-PythonFile::PythonFile(File &file, const char *mode) { Reset(file, mode); }
-
 PythonFile::PythonFile(PyRefType type, PyObject *o) { Reset(type, o); }
 
 PythonFile::~PythonFile() {}
@@ -1062,25 +1061,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
   // overflow since it calls back into the virtual implementation.
   PythonObject::Reset(PyRefType::Borrowed, result.get());
 }
-
-void PythonFile::Reset(File &file, const char *mode) {
-  if (!file.IsValid()) {
-    Reset();
-    return;
-  }
-
-  char *cmode = const_cast<char *>(mode);
-#if PY_MAJOR_VERSION >= 3
-  Reset(PyRefType::Owned, PyFile_FromFd(file.GetDescriptor(), nullptr, cmode,
-                                        -1, nullptr, "ignore", nullptr, 0));
-#else
-  // Read through the Python source, doesn't seem to modify these strings
-  Reset(PyRefType::Owned,
-        PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode,
-                        nullptr));
-#endif
-}
-
 
 FileUP PythonFile::GetUnderlyingFile() const {
   if (!IsValid())
@@ -1236,6 +1216,13 @@ public:
     return base_error;
   };
 
+  PyObject *GetPythonObject() const {
+    assert(m_py_obj.IsValid());
+    return m_py_obj.get();
+  }
+
+  static bool classof(const File *file) = delete;
+
 protected:
   PythonFile m_py_obj;
   bool m_borrowed;
@@ -1250,7 +1237,14 @@ public:
   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
                    File::OpenOptions options)
       : OwnedPythonFile(file, borrowed, fd, options, false) {}
+
+  static char ID;
+  bool isA(const void *classID) const override {
+    return classID == &ID || NativeFile::isA(classID);
+  }
+  static bool classof(const File *file) { return file->isA(&ID); }
 };
+char SimplePythonFile::ID = 0;
 } // namespace
 
 #if PY_MAJOR_VERSION >= 3
@@ -1319,7 +1313,18 @@ public:
     return Status();
   }
 
+  Expected<File::OpenOptions> GetOptions() const override {
+    GIL takeGIL;
+    return GetOptionsForPyObject(m_py_obj);
+  }
+
+  static char ID;
+  bool isA(const void *classID) const override {
+    return classID == &ID || File::isA(classID);
+  }
+  static bool classof(const File *file) { return file->isA(&ID); }
 };
+char PythonIOFile::ID = 0;
 } // namespace
 
 namespace {
@@ -1538,6 +1543,42 @@ PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
   return file_sp;
 
 #endif
+}
+
+Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+  if (!file.IsValid())
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "invalid file");
+
+  auto *simple = llvm::dyn_cast<SimplePythonFile>(&file);
+  if (simple)
+    return Retain<PythonFile>(simple->GetPythonObject());
+  auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file);
+  if (pythonio)
+    return Retain<PythonFile>(pythonio->GetPythonObject());
+
+  if (!mode) {
+    auto m = file.GetOpenMode();
+    if (!m)
+      return m.takeError();
+    mode = m.get();
+  }
+
+  PyObject *file_obj;
+#if PY_MAJOR_VERSION >= 3
+  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
+                           "ignore", nullptr, 0);
+#else
+  // Read through the Python source, doesn't seem to modify these strings
+  char *cmode = const_cast<char *>(mode);
+  file_obj =
+      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
+#endif
+
+  if (!file_obj)
+    return exception();
+
+  return Take<PythonFile>(file_obj);
 }
 
 #endif
