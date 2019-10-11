@@ -324,7 +324,7 @@ public:
   /// eOpenOptionWrite here.
   ///
   /// \return
-  ///    OpenOptions flags for this file, or 0 if unknown.
+  ///    OpenOptions flags for this file, or an error.
   virtual llvm::Expected<OpenOptions> GetOptions() const;
 
   static char ID;
