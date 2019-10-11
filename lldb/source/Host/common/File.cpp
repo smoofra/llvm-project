@@ -324,7 +324,7 @@ Status NativeFile::Close() {
   }
   m_descriptor = kInvalidDescriptor;
   m_stream = kInvalidStream;
-  m_options = 0;
+  m_options = OpenOptions(0);
   m_own_stream = false;
   m_own_descriptor = false;
   m_is_interactive = eLazyBoolCalculate;
