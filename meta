@@ -1,6 +1,6 @@
 Version: 1
-Previous: fe01a5fe2b003e543c1344512b9661482fd35aec
-Head: ca7d54b84fd4f208672eb14e36effaca5e29b874
+Previous: dfb6a38edb6957e4ed92274c67bc1b96ceb9f839
+Head: 0b3ba279d9ddbbb61e876df1d59c6c103f3b1490
 Applied:
   test-fix-testloadusingpaths: 32a98c63e34703a1596ccea9552c18f14aac4dac
   dwimy-filterspecs-for-dotest: 938e476344ab68cf1ef44c9551b525b47a365d51
@@ -10,12 +10,12 @@ Applied:
   iohandler-fallback: 03bedc2e3c1d1f36016961eb011ed86b0b007139
   OpenOptions: 72ec2badc75dc12a40f3ed4519c7b333cd83554b
   GetFile: ca7d54b84fd4f208672eb14e36effaca5e29b874
+  TestRunCommandInterpreterAPI: 7cec765f9499b59f76f552e60aeb82249cb96c42
+  convert-legacy: cc53e0edccbcadb70cb7e81bf74da1b1e22bc935
+  SBInstruction: 3158890354bea21a715cd51873d5d1e72d4615de
+  SBStream: ebf16af89135bf0c291b142e9da2d945955b1067
+  update-scriptinterpreterpython: d6d712fedc9fb2e0b66a0a634a0766b59d03ec47
+  delete-swig-typemaps-for-file: 0b3ba279d9ddbbb61e876df1d59c6c103f3b1490
 Unapplied:
-  TestRunCommandInterpreterAPI: 119f172353d4886c0669ee698d577889d3227dc8
-  convert-legacy: 45ad2c32ac97482231df6cd3aa1a9e3ec5444adf
-  SBInstruction: 781cffa70ded76480447efd750ad8e6b8d9e0d38
-  SBStream: 9461bfec5f373e412c3e829c2c337c6c67e1c441
-  update-scriptinterpreterpython: c8d734dee4c6ef7dfac2f8a89517b87745ddc8c5
-  delete-swig-typemaps-for-file: a538d6e3e5eedfe9e0e90bc0c4b11563e908cf4a
   python-fix: 9f6f44361798f5dfc5bcf68c9902a5d942e008e0
 Hidden:
