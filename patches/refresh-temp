@@ -1,0 +1,302 @@
+Bottom: 37e2ef79d46fb578a12315b8c4b4f706072a965e
+Top:    a4a8fbf327b16890f92e68496195ee309814877e
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-10 18:10:36 -0700
+
+Refresh of fix-getfile
+
+---
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index a92f28425a8..096b067baf5 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -58,7 +58,8 @@ public:
+   static mode_t ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options);
+   static llvm::Expected<OpenOptions> GetOptionsFromMode(llvm::StringRef mode);
+   static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
+-  static llvm::Expected<OpenOptions> GetStreamOpenModeFromOptions(uint32_t options);
++  static llvm::Expected<const char *>
++  GetStreamOpenModeFromOptions(OpenOptions options);
+ 
+   File()
+       : IOObject(eFDTypeFile), m_is_interactive(eLazyBoolCalculate),
+@@ -314,12 +315,6 @@ public:
+   ///     format string \a format.
+   virtual size_t PrintfVarArg(const char *format, va_list args);
+ 
+-  /// If this file is a wrapper for a python file object, return it.
+-  ///
+-  /// \return
+-  ///    The PyObject* that this File wraps, or NULL.
+-  virtual void *GetPythonObject() const;
+-
+   /// Return the OpenOptions for this file.
+   ///
+   /// Some options like eOpenOptionDontFollowSymlinks only make
+@@ -330,10 +325,19 @@ public:
+   ///
+   /// \return
+   ///    OpenOptions flags for this file, or 0 if unknown.
+-  virtual uint32_t GetOptions() const;
++  virtual llvm::Expected<OpenOptions> GetOptions() const;
++
++  static char ID;
+ 
+-  const char *GetOpenMode() const {
+-    return GetStreamOpenModeFromOptions(GetOptions());
++  virtual bool isA(const void *classID) const { return classID == &ID; }
++
++  static bool classof(const File *file) { return file->isA(&ID); }
++
++  llvm::Expected<const char *> GetOpenMode() const {
++    auto opts = GetOptions();
++    if (!opts)
++      return opts.takeError();
++    return GetStreamOpenModeFromOptions(opts.get());
+   }
+ 
+   /// Get the permissions for a this file.
+@@ -432,7 +436,13 @@ public:
+   Status Flush() override;
+   Status Sync() override;
+   size_t PrintfVarArg(const char *format, va_list args) override;
+-  uint32_t GetOptions() const override;
++  llvm::Expected<OpenOptions> GetOptions() const override;
++
++  static char ID;
++  virtual bool isA(const void *classID) const override {
++    return classID == &ID || File::isA(classID);
++  }
++  static bool classof(const File *file) { return file->isA(&ID); }
+ 
+ protected:
+   bool DescriptorIsValid() const {
+diff --git a/lldb/scripts/interface/SBFile.i b/lldb/scripts/interface/SBFile.i
+index ea3389e5924..9635bf5a218 100644
+--- a/lldb/scripts/interface/SBFile.i
++++ b/lldb/scripts/interface/SBFile.i
+@@ -78,7 +78,21 @@ public:
+ 
+     SBError Close();
+ 
+-    %feature("docstring", "convert this SBFile into a python io.IOBase file object");
++    %feature("docstring", "
++    Convert this SBFile into a python io.IOBase file object.
++
++    If the SBFile is itself a wrapper around a python file object,
++    this will return that original object.
++
++    The file returned from here should be considered borrowed,
++    in the sense that you may read and write to it, and flush it,
++    etc, but you should not close it.   If you want to close the
++    SBFile, call SBFile.Close().
++
++    If there is no underlying python file to unwrap, GetFile will
++    use the file descirptor, if availble to create a new python
++    file object using `open(fd, mode=..., closefd=False)`
++    ");
+     FileSP GetFile();
+ };
+ 
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index f8715c97ac9..15522123e26 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -39,7 +39,11 @@ using namespace lldb;
+ using namespace lldb_private;
+ using llvm::Expected;
+ 
+-Expected<const char *> File::GetStreamOpenModeFromOptions(uint32_t options) {
++char File::ID = 0;
++char NativeFile::ID = 0;
++
++Expected<const char *>
++File::GetStreamOpenModeFromOptions(File::OpenOptions options) {
+   if (options & File::eOpenOptionAppend) {
+     if (options & File::eOpenOptionRead) {
+       if (options & File::eOpenOptionCanCreateNewOnly)
+@@ -226,9 +230,11 @@ size_t File::PrintfVarArg(const char *format, va_list args) {
+   return result;
+ }
+ 
+-void *File::GetPythonObject() const { return nullptr; }
+-
+-uint32_t File::GetOptions() const { return 0; }
++Expected<File::OpenOptions> File::GetOptions() const {
++  return llvm::createStringError(
++      llvm::inconvertibleErrorCode(),
++      "GetOptions() not implemented for this File class");
++}
+ 
+ uint32_t File::GetPermissions(Status &error) const {
+   int fd = GetDescriptor();
+@@ -245,7 +251,7 @@ uint32_t File::GetPermissions(Status &error) const {
+   return file_stats.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+ }
+ 
+-uint32_t NativeFile::GetOptions() const { return m_options; }
++Expected<File::OpenOptions> NativeFile::GetOptions() const { return m_options; }
+ 
+ int NativeFile::GetDescriptor() const {
+   if (DescriptorIsValid())
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 24135ae6d6c..8f0a717dc8c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -22,6 +22,7 @@
+ #include "lldb/Utility/Stream.h"
+ 
+ #include "llvm/ADT/StringSwitch.h"
++#include "llvm/Support/Casting.h"
+ #include "llvm/Support/ConvertUTF.h"
+ #include "llvm/Support/Errno.h"
+ 
+@@ -1061,52 +1062,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+   PythonObject::Reset(PyRefType::Borrowed, result.get());
+ }
+ 
+-Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+-  if (!file.IsValid())
+-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+-                                   "invalid file");
+-
+-  PyObject *file_obj = (PyObject *)file.GetPythonObject();
+-  if (file_obj)
+-    return Retain<PythonFile>(file_obj);
+-
+-  if (!mode)
+-    mode = file.GetOpenMode();
+-  if (!mode)
+-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+-                                   "can't determine open mode for file");
+-
+-#if PY_MAJOR_VERSION >= 3
+-  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
+-                           "ignore", nullptr, 0);
+-#else
+-  // Read through the Python source, doesn't seem to modify these strings
+-  char *cmode = const_cast<char *>(mode);
+-  file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
+-#endif
+-
+-  if (!file_obj)
+-    return exception();
+-
+-  return Take<PythonFile>(file_obj);
+-}
+-
+-FileUP PythonFile::GetUnderlyingFile() const {
+-  if (!IsValid())
+-    return nullptr;
+-
+-  // We don't own the file descriptor returned by this function, make sure the
+-  // File object knows about that.
+-  PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
+-  auto options = File::GetOptionsFromMode(py_mode.GetString());
+-  auto file = std::unique_ptr<File>(
+-      new NativeFile(PyObject_AsFileDescriptor(m_py_obj), options, false));
+-  if (!file->IsValid())
+-    return nullptr;
+-  return file;
+-}
+-
+ namespace {
+ class GIL {
+ public:
+@@ -1244,7 +1199,12 @@ public:
+     return base_error;
+   };
+ 
+-  void *GetPythonObject() const override { return m_py_obj.get(); }
++  PyObject *GetPythonObject() const {
++    assert(m_py_obj.IsValid());
++    return m_py_obj.get();
++  }
++
++  static bool classof(const File *file) = delete;
+ 
+ protected:
+   PythonFile m_py_obj;
+@@ -1260,7 +1220,14 @@ public:
+   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
+                    File::OpenOptions options)
+       : OwnedPythonFile(file, borrowed, fd, options, false) {}
++
++  static char ID;
++  bool isA(const void *classID) const override {
++    return classID == &ID || NativeFile::isA(classID);
++  }
++  static bool classof(const File *file) { return file->isA(&ID); }
+ };
++char SimplePythonFile::ID = 0;
+ } // namespace
+ 
+ #if PY_MAJOR_VERSION >= 3
+@@ -1329,16 +1296,18 @@ public:
+     return Status();
+   }
+ 
+-  uint32_t GetOptions() const override {
++  Expected<File::OpenOptions> GetOptions() const override {
+     GIL takeGIL;
+-    auto options = GetOptionsForPyObject(m_py_obj);
+-    if (!options) {
+-      llvm::consumeError(options.takeError());
+-      return 0;
+-    }
+-    return options.get();
++    return GetOptionsForPyObject(m_py_obj);
+   }
++
++  static char ID;
++  bool isA(const void *classID) const override {
++    return classID == &ID || File::isA(classID);
++  }
++  static bool classof(const File *file) { return file->isA(&ID); }
+ };
++char PythonIOFile::ID = 0;
+ } // namespace
+ 
+ namespace {
+@@ -1559,4 +1528,40 @@ PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
+ #endif
+ }
+ 
++Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
++  if (!file.IsValid())
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "invalid file");
++
++  auto *simple = llvm::dyn_cast<SimplePythonFile>(&file);
++  if (simple)
++    return Retain<PythonFile>(simple->GetPythonObject());
++  auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file);
++  if (pythonio)
++    return Retain<PythonFile>(pythonio->GetPythonObject());
++
++  if (!mode) {
++    auto m = file.GetOpenMode();
++    if (!m)
++      return m.takeError();
++    mode = m.get();
++  }
++
++  PyObject *file_obj;
++#if PY_MAJOR_VERSION >= 3
++  file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
++                           "ignore", nullptr, 0);
++#else
++  // Read through the Python source, doesn't seem to modify these strings
++  char *cmode = const_cast<char *>(mode);
++  file_obj =
++      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
++#endif
++
++  if (!file_obj)
++    return exception();
++
++  return Take<PythonFile>(file_obj);
++}
++
+ #endif
