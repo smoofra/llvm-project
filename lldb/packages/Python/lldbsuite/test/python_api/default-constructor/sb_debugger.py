@@ -21,7 +21,7 @@ def fuzz_obj(obj):
     listener = obj.GetListener()
     try:
         obj.HandleProcessEvent(lldb.SBProcess(), lldb.SBEvent(), None, None)
-    except TypeError:
+    except Exception:
         pass
     obj.CreateTargetWithFileAndTargetTriple("a.out", "A-B-C")
     obj.CreateTargetWithFileAndArch("b.out", "arm")
