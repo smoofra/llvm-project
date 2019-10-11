@@ -1,9 +1,21 @@
 Bottom: 9faf8898918405f556338badaba95e6506168927
-Top:    9faf8898918405f556338badaba95e6506168927
+Top:    36b85c924788865dc1a0d2a56ab345f727ea243e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-11 12:25:29 -0700
 
 getfile-fix
 
 ---
-
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index c51a5700348..4683ee53050 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -824,7 +824,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+     def test_back_and_forth(self):
+         with open(self.out_filename, 'w') as f:
+             # at each step here we're borrowing the file, so we have to keep
+-            # them all alive untill the end.
++            # them all alive until the end.
+             sbf = lldb.SBFile.Create(f, borrow=True)
+             def i(sbf):
+                 for i in range(10):
