@@ -1,5 +1,5 @@
 Bottom: f663caeaef74ae2c2d1b1cc5740bec53fb9b3e48
-Top:    c22901dd3c7a3c6ff0d3955fa88a056b0d8b955a
+Top:    c4c5f3f7819d6ac76cd6e8cedef76fc945c55712
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:20:44 -0700
 
@@ -84,7 +84,7 @@ index 16b61091420..7dc500ceffe 100644
      obj.CreateTargetWithFileAndArch("b.out", "arm")
      obj.CreateTarget("c.out")
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
-index eed197a63ef..a860a8a2a48 100644
+index eed197a63ef..93e43d4433f 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_process.py
 @@ -12,7 +12,10 @@ def fuzz_obj(obj):
@@ -94,7 +94,7 @@ index eed197a63ef..a860a8a2a48 100644
 -    obj.ReportEventState(event, None)
 +    try:
 +        obj.ReportEventState(event, None)
-+    except TypeError:
++    except Exception:
 +        pass
      obj.AppendEventStateReport(event, lldb.SBCommandReturnObject())
      error = lldb.SBError()
@@ -233,7 +233,7 @@ index 1da6ed26b24..82dc6048900 100644
    LLDB_REGISTER_STATIC_METHOD(bool, SBDebugger, SetDefaultArchitecture,
                                (const char *));
 diff --git a/lldb/source/API/SBProcess.cpp b/lldb/source/API/SBProcess.cpp
-index 59e9608b76f..e7b79947e14 100644
+index 59e9608b76f..45aaa0bd2d8 100644
 --- a/lldb/source/API/SBProcess.cpp
 +++ b/lldb/source/API/SBProcess.cpp
 @@ -29,11 +29,11 @@
@@ -249,7 +249,7 @@ index 59e9608b76f..e7b79947e14 100644
  #include "lldb/API/SBFileSpec.h"
  #include "lldb/API/SBMemoryRegionInfo.h"
  #include "lldb/API/SBMemoryRegionInfoList.h"
-@@ -331,23 +331,37 @@ lldb::SBTrace SBProcess::StartTrace(SBTraceOptions &options,
+@@ -331,23 +331,34 @@ lldb::SBTrace SBProcess::StartTrace(SBTraceOptions &options,
    return LLDB_RECORD_RESULT(trace_instance);
  }
  
@@ -266,10 +266,10 @@ index 59e9608b76f..e7b79947e14 100644
 +  FileSP outfile = std::make_shared<NativeFile>(out, false);
 +  return ReportEventState(event, outfile);
 +}
++
++void SBProcess::ReportEventState(const SBEvent &event, FileSP out) const {
  
 -  if (out == nullptr)
-+void SBProcess::ReportEventState(const SBEvent &event, FileSP out) const {
-+
 +  LLDB_RECORD_METHOD_CONST(void, SBProcess, ReportEventState,
 +                           (const SBEvent &, FileSP), event, out);
 +
@@ -278,20 +278,20 @@ index 59e9608b76f..e7b79947e14 100644
  
    ProcessSP process_sp(GetSP());
    if (process_sp) {
++    StreamFile stream(out);
      const StateType event_state = SBProcess::GetStateFromEvent(event);
-     char message[1024];
+-    char message[1024];
 -    int message_len = ::snprintf(
-+    size_t message_len = ::snprintf(
-         message, sizeof(message), "Process %" PRIu64 " %s\n",
+-        message, sizeof(message), "Process %" PRIu64 " %s\n",
++    stream.Printf("Process %" PRIu64 " %s\n",
          process_sp->GetID(), SBDebugger::StateAsCString(event_state));
 -
-     if (message_len > 0)
+-    if (message_len > 0)
 -      ::fwrite(message, 1, message_len, out);
-+      out->Write((void *)message, message_len);
    }
  }
  
-@@ -1310,6 +1324,10 @@ void RegisterMethods<SBProcess>(Registry &R) {
+@@ -1310,6 +1321,10 @@ void RegisterMethods<SBProcess>(Registry &R) {
                         (lldb::SBTraceOptions &, lldb::SBError &));
    LLDB_REGISTER_METHOD_CONST(void, SBProcess, ReportEventState,
                               (const lldb::SBEvent &, FILE *));
