@@ -1,5 +1,5 @@
-Bottom: d06821224081df2c3fb913a479b7bc84dfb30b76
-Top:    92321d2178a863e2eae7da5ca6861ba5e22749f3
+Bottom: 17549c46830744aeefee3c5fdf9b069d07213481
+Top:    088ff62e54859615f086a7897b4117d598ab0b1a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-10 18:10:46 -0700
 
@@ -36,10 +36,10 @@ index 747e2eaad13..09218262faa 100644
    FileSP m_opaque_sp;
  };
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index a4a24dbd3bb..2b62922691d 100644
+index 444e7099bce..87325a05cda 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
-@@ -59,6 +59,8 @@ public:
+@@ -62,6 +62,8 @@ public:
    static mode_t ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options);
    static llvm::Expected<OpenOptions> GetOptionsFromMode(llvm::StringRef mode);
    static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
@@ -48,7 +48,7 @@ index a4a24dbd3bb..2b62922691d 100644
  
    File()
        : IOObject(eFDTypeFile), m_is_interactive(eLazyBoolCalculate),
-@@ -314,6 +316,31 @@ public:
+@@ -317,6 +319,31 @@ public:
    ///     format string \a format.
    virtual size_t PrintfVarArg(const char *format, va_list args);
  
@@ -80,7 +80,7 @@ index a4a24dbd3bb..2b62922691d 100644
    /// Get the permissions for a this file.
    ///
    /// \return
-@@ -410,6 +437,13 @@ public:
+@@ -399,6 +426,13 @@ public:
    Status Flush() override;
    Status Sync() override;
    size_t PrintfVarArg(const char *format, va_list args) override;
@@ -229,7 +229,7 @@ index 2b096abdf0c..0f335bd02f7 100644
 +char File::ID = 0;
 +char NativeFile::ID = 0;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index ed8221ea2e5..838a8292ebb 100644
+index d07ab8c13f4..823b58e7d02 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -22,6 +22,7 @@
@@ -275,7 +275,7 @@ index ed8221ea2e5..838a8292ebb 100644
  FileUP PythonFile::GetUnderlyingFile() const {
    if (!IsValid())
      return nullptr;
-@@ -1236,6 +1216,13 @@ public:
+@@ -1238,6 +1218,13 @@ public:
      return base_error;
    };
  
@@ -289,7 +289,7 @@ index ed8221ea2e5..838a8292ebb 100644
  protected:
    PythonFile m_py_obj;
    bool m_borrowed;
-@@ -1250,7 +1237,14 @@ public:
+@@ -1252,7 +1239,14 @@ public:
    SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
                     File::OpenOptions options)
        : OwnedPythonFile(file, borrowed, fd, options, false) {}
@@ -304,7 +304,7 @@ index ed8221ea2e5..838a8292ebb 100644
  } // namespace
  
  #if PY_MAJOR_VERSION >= 3
-@@ -1319,7 +1313,18 @@ public:
+@@ -1321,7 +1315,18 @@ public:
      return Status();
    }
  
@@ -323,7 +323,7 @@ index ed8221ea2e5..838a8292ebb 100644
  } // namespace
  
  namespace {
-@@ -1540,4 +1545,40 @@ PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
+@@ -1542,4 +1547,40 @@ PythonFile::ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed) {
  #endif
  }
  
