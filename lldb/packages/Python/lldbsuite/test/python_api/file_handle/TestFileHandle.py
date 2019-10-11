@@ -766,6 +766,18 @@ class FileHandleTestCase(lldbtest.TestBase):
 
 
     @add_test_categories(['pyapi'])
+    def test_stdout_file(self):
+        with open(self.out_filename, 'w') as f:
+            status = self.debugger.SetOutputFile(f)
+            self.assertTrue(status.Success())
+            self.handleCmd(r"script sys.stdout.write('foobar\n')")
+        with open(self.out_filename, 'r') as f:
+            # python2 returns None from write, python3 returns 7
+            lines = [x for x in f.read().strip().split() if x != "7"]
+            self.assertEqual(lines, ["foobar"])
+
+
+    @add_test_categories(['pyapi'])
     @skipIf(py_version=['<', (3,)])
     def test_identity(self):
 
