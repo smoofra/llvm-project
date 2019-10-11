@@ -1,0 +1,21 @@
+Bottom: a4a8fbf327b16890f92e68496195ee309814877e
+Top:    5ebe1a5c3b8214c41e3a100bc87f4ef1c4033331
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-10 18:12:09 -0700
+
+Refresh of GetFile
+
+---
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index 096b067baf5..8184de07765 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -324,7 +324,7 @@ public:
+   /// eOpenOptionWrite here.
+   ///
+   /// \return
+-  ///    OpenOptions flags for this file, or 0 if unknown.
++  ///    OpenOptions flags for this file, or an error.
+   virtual llvm::Expected<OpenOptions> GetOptions() const;
+ 
+   static char ID;
