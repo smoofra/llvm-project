@@ -39,7 +39,6 @@ using namespace lldb;
 using namespace lldb_private;
 using llvm::Expected;
 
-
 static Expected<const char *> GetStreamOpenModeFromOptions(uint32_t options) {
   if (options & File::eOpenOptionAppend) {
     if (options & File::eOpenOptionRead) {
@@ -759,4 +758,3 @@ mode_t File::ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options) {
 
   return mode;
 }
-
