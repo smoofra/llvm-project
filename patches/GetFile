@@ -1,7 +1,7 @@
 Bottom: 04d6d0cbff58b88f997f3f173d3a3843f166bf38
-Top:    673e09f7a873feaf545428a80f1a71e8d5e1f8b7
+Top:    ab0a5126611000da71f101ab58e48667a791d3d7
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-11 12:23:51 -0700
+Date:   2019-10-11 12:26:02 -0700
 
 SBFile::GetFile: convert SBFile back into python native files.
 
@@ -100,7 +100,7 @@ index 444e7099bce..106482582fc 100644
  protected:
    bool DescriptorIsValid() const {
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 577c6b3e88f..0cc93f01e5d 100644
+index 577c6b3e88f..20dc1e93f49 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -772,7 +772,6 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -120,7 +120,7 @@ index 577c6b3e88f..0cc93f01e5d 100644
 +    def test_back_and_forth(self):
 +        with open(self.out_filename, 'w') as f:
 +            # at each step here we're borrowing the file, so we have to keep
-+            # them all alive untill the end.
++            # them all alive until the end.
 +            sbf = lldb.SBFile.Create(f, borrow=True)
 +            def i(sbf):
 +                for i in range(10):
