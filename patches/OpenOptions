@@ -1,7 +1,7 @@
 Bottom: 2745289dba0c25d61bb00fd6dd6184175ca0cba9
-Top:    963c563e97e6862ed6d12e11c9d91c72f1e07b04
+Top:    23810862b0e7be14c344eb007a3c58c185fd60bc
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-10 17:39:00 -0700
+Date:   2019-10-10 17:50:42 -0700
 
 uint32_t options -> File::OpenOptions options
 
@@ -10,9 +10,6 @@ as a uint32_t so it actually uses File::OpenOptions.
 
 It also converts some OpenOptions related functions that fail
 by returning 0 or NULL into llvm::Expected
-
-
-
 
 ---
 diff --git a/lldb/include/lldb/Core/StreamFile.h b/lldb/include/lldb/Core/StreamFile.h
@@ -277,7 +274,7 @@ index d12541c9af5..2ddb39659d6 100644
    auto file = FileSystem::Instance().Open(FileSpec(path), options, permissions);
    if (file)
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 695adbf280d..3c8e0c6347f 100644
+index 695adbf280d..f8b46c0186a 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
 @@ -37,8 +37,11 @@
@@ -390,6 +387,15 @@ index 695adbf280d..3c8e0c6347f 100644
  
          // If we got a stream, then we own the stream and should no longer own
          // the descriptor because fclose() will close it for us
+@@ -307,7 +322,7 @@ Status NativeFile::Close() {
+   }
+   m_descriptor = kInvalidDescriptor;
+   m_stream = kInvalidStream;
+-  m_options = 0;
++  m_options = OpenOptions(0);
+   m_own_stream = false;
+   m_own_descriptor = false;
+   m_is_interactive = eLazyBoolCalculate;
 @@ -716,7 +731,7 @@ size_t NativeFile::PrintfVarArg(const char *format, va_list args) {
    }
  }
