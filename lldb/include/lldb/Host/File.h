@@ -36,9 +36,10 @@ public:
   // NB this enum is used in the lldb platform gdb-remote packet
   // vFile:open: and existing values cannot be modified.
   //
-  // FIXME:  I don't think that is actually true.
-  // These values do not match the values documented by GDB
-  // https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
+  // FIXME
+  // These values do not match the values used by GDB
+  // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
+  // * rdar://problem/46788934
   enum OpenOptions {
     eOpenOptionRead = (1u << 0),  // Open file for reading
     eOpenOptionWrite = (1u << 1), // Open file for writing
@@ -404,11 +405,11 @@ class NativeFile : public File {
 public:
   NativeFile()
       : m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
-        m_stream(kInvalidStream), m_options(0), m_own_stream(false) {}
+        m_stream(kInvalidStream), m_options(), m_own_stream(false) {}
 
   NativeFile(FILE *fh, bool transfer_ownership)
       : m_descriptor(kInvalidDescriptor), m_own_descriptor(false), m_stream(fh),
-        m_options(0), m_own_stream(transfer_ownership) {}
+        m_options(), m_own_stream(transfer_ownership) {}
 
   NativeFile(int fd, OpenOptions options, bool transfer_ownership)
       : m_descriptor(fd), m_own_descriptor(transfer_ownership),
