@@ -11,8 +11,7 @@ bindings.
 
 I also re-enable `Test_Disassemble_VST1_64`, because now we can use
 the file bindings as an additional test of the disassembler, and we
-can use the disassembler test as a test of the file bindings.   The
-bugs referred to in the
+can use the disassembler test as a test of the file bindings.
 
 The bugs referred to in the comments appear to have been fixed.   The
 radar is closed now and the bugzilla bug does not reproduce with the
