@@ -301,12 +301,6 @@ public:
   ///     format string \a format.
   virtual size_t PrintfVarArg(const char *format, va_list args);
 
-  /// If this file is a wrapper for a python file object, return it.
-  ///
-  /// \return
-  ///    The PyObject* that this File wraps, or NULL.
-  virtual void *GetPythonObject() const;
-
   /// Return the OpenOptions for this file.
   ///
   /// Some options like eOpenOptionDontFollowSymlinks only make
@@ -318,6 +312,12 @@ public:
   /// \return
   ///    OpenOptions flags for this file, or 0 if unknown.
   virtual llvm::Expected<OpenOptions> GetOptions() const;
+
+  static char ID;
+
+  virtual bool isA(const void *classID) const { return classID == &ID; }
+
+  static bool classof(const File *file) { return file->isA(&ID); }
 
   llvm::Expected<const char *> GetOpenMode() const {
     auto opts = GetOptions();
@@ -423,6 +423,11 @@ public:
   size_t PrintfVarArg(const char *format, va_list args) override;
   llvm::Expected<OpenOptions> GetOptions() const override;
 
+  static char ID;
+  virtual bool isA(const void *classID) const override {
+    return classID == &ID || File::isA(classID);
+  }
+  static bool classof(const File *file) { return file->isA(&ID); }
 
 protected:
   bool DescriptorIsValid() const {
