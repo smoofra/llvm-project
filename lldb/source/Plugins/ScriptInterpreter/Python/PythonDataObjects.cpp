@@ -1552,12 +1552,12 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
     return llvm::createStringError(llvm::inconvertibleErrorCode(),
                                    "invalid file");
 
-  auto *simple = llvm::dyn_cast<SimplePythonFile>(&file);
-  if (simple)
+  if (auto *simple = llvm::dyn_cast<SimplePythonFile>(&file))
     return Retain<PythonFile>(simple->GetPythonObject());
-  auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file);
-  if (pythonio)
+#if PY_VERSION_MAJOR >= 3
+  if (auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file))
     return Retain<PythonFile>(pythonio->GetPythonObject());
+#endif
 
   if (!mode) {
     auto m = file.GetOpenMode();
