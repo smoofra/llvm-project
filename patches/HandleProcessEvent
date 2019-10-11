@@ -1,5 +1,5 @@
 Bottom: f663caeaef74ae2c2d1b1cc5740bec53fb9b3e48
-Top:    c4c5f3f7819d6ac76cd6e8cedef76fc945c55712
+Top:    7ea1190c757b879b46b07e30fa9e359e172aae59
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:20:44 -0700
 
@@ -68,7 +68,7 @@ index 863cb3ced67..8ab8bfa3a93 100644
                                lldb::SBCommandReturnObject &result);
  
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
-index 16b61091420..7dc500ceffe 100644
+index 16b61091420..e6267c8475e 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_debugger.py
 @@ -19,7 +19,10 @@ def fuzz_obj(obj):
@@ -78,7 +78,7 @@ index 16b61091420..7dc500ceffe 100644
 -    obj.HandleProcessEvent(lldb.SBProcess(), lldb.SBEvent(), None, None)
 +    try:
 +        obj.HandleProcessEvent(lldb.SBProcess(), lldb.SBEvent(), None, None)
-+    except TypeError:
++    except Exception:
 +        pass
      obj.CreateTargetWithFileAndTargetTriple("a.out", "A-B-C")
      obj.CreateTargetWithFileAndArch("b.out", "arm")
