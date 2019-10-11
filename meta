@@ -1,6 +1,6 @@
 Version: 1
-Previous: 511252fb8d9fcaace2ef77ed10414e18f42c57a8
-Head: f63c5e948e67063339dd3547c84eaf2282cc734b
+Previous: b97e287964d76b61ac25ca7faef62a792531c770
+Head: 2ffc5f4e813b048f42454a80d4009afc4397ed70
 Applied:
   test-fix-testloadusingpaths: 32a98c63e34703a1596ccea9552c18f14aac4dac
   dwimy-filterspecs-for-dotest: 938e476344ab68cf1ef44c9551b525b47a365d51
@@ -9,8 +9,8 @@ Applied:
   HandleProcessEvent: 70a68ac0bcc93a873e84de8eb4ea81b231e780b3
   iohandler-fallback: 03bedc2e3c1d1f36016961eb011ed86b0b007139
   OpenOptions: f63c5e948e67063339dd3547c84eaf2282cc734b
+  GetFile: 2ffc5f4e813b048f42454a80d4009afc4397ed70
 Unapplied:
-  GetFile: 7d309c3e19abca486473a0c9baf1427c730f40ef
   TestRunCommandInterpreterAPI: d62f6033bd246227ff9fa26acb0ab5800e20bb5e
   convert-legacy: 563514b6040d2d435de6733cd4a4e575a417d840
   SBInstruction: e2b85f050235cd6fe69b957c197a204b0bcfdaf4
