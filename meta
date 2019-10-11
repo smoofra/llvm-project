@@ -1,6 +1,6 @@
 Version: 1
-Previous: 10f84aead42acb267e2a27577efaaa591527a838
-Head: f3247515880a6098537817a8dda98a70bef4b486
+Previous: c1eb1e7661a70626de56dd91e160f62516b7a566
+Head: 5a11050e77b97a227ee00f8292f7af1060637fec
 Applied:
   test-fix-testloadusingpaths: 32a98c63e34703a1596ccea9552c18f14aac4dac
   dwimy-filterspecs-for-dotest: 938e476344ab68cf1ef44c9551b525b47a365d51
@@ -8,6 +8,8 @@ Applied:
   stringliteral-intellisense: 901e740e0807db10fe56ae96d6ea4491bf837a92
   HandleProcessEvent: 70a68ac0bcc93a873e84de8eb4ea81b231e780b3
   iohandler-fallback: 03bedc2e3c1d1f36016961eb011ed86b0b007139
+  OpenOptions: 5a11050e77b97a227ee00f8292f7af1060637fec
+Unapplied:
   GetFile: 7d309c3e19abca486473a0c9baf1427c730f40ef
   TestRunCommandInterpreterAPI: d62f6033bd246227ff9fa26acb0ab5800e20bb5e
   convert-legacy: 563514b6040d2d435de6733cd4a4e575a417d840
@@ -16,7 +18,5 @@ Applied:
   update-scriptinterpreterpython: 2f13641c3cf4be29cf07694b2a522ab3c22a0092
   delete-swig-typemaps-for-file: 17006e942591bbb8c28809d4fc310fbfa913e417
   python-fix: 77004249074bdd43413561641460605c5d51d27b
-  OpenOptions: f3247515880a6098537817a8dda98a70bef4b486
-Unapplied:
   fix-getfile: 20c63433079d6b424605be816c64ea53704bddba
 Hidden:
