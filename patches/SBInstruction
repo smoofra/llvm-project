@@ -1,5 +1,5 @@
 Bottom: 196d880a4bf2d62384a8fb4edb6ab818c5242f31
-Top:    a880ced2da4d3738bdf0b76d4f8ad144557016b8
+Top:    f4de70681a1f60a6eade68e9c27c794f529b77a5
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:19:16 -0700
 
@@ -78,7 +78,7 @@ index 88fbc065c55..9e7ebf927f4 100644
      obj.DumpEmulationForAllInstructions("armv7")
      obj.Clear()
 diff --git a/lldb/scripts/interface/SBInstruction.i b/lldb/scripts/interface/SBInstruction.i
-index 82b31fd9869..a46d845ff6a 100644
+index 82b31fd9869..4586978733f 100644
 --- a/lldb/scripts/interface/SBInstruction.i
 +++ b/lldb/scripts/interface/SBInstruction.i
 @@ -57,7 +57,10 @@ public:
@@ -89,7 +89,7 @@ index 82b31fd9869..a46d845ff6a 100644
 +    Print (lldb::SBFile out);
 +
 +    void
-+    Print (lldb::FileSP &BORROWED);
++    Print (lldb::FileSP BORROWED);
  
      bool
      GetDescription (lldb::SBStream &description);
