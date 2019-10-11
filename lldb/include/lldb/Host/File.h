@@ -13,6 +13,7 @@
 #include "lldb/Utility/IOObject.h"
 #include "lldb/Utility/Status.h"
 #include "lldb/lldb-private.h"
+#include "llvm/ADT/BitmaskEnum.h"
 
 #include <mutex>
 #include <stdarg.h>
@@ -20,6 +21,8 @@
 #include <sys/types.h>
 
 namespace lldb_private {
+
+LLVM_ENABLE_BITMASK_ENUMS_IN_NAMESPACE();
 
 /// \class File File.h "lldb/Host/File.h"
 /// An abstract base class for files.
@@ -40,7 +43,7 @@ public:
   // These values do not match the values used by GDB
   // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
   // * rdar://problem/46788934
-  enum OpenOptions {
+  enum OpenOptions : uint32_t {
     eOpenOptionRead = (1u << 0),  // Open file for reading
     eOpenOptionWrite = (1u << 1), // Open file for writing
     eOpenOptionAppend =
@@ -52,8 +55,8 @@ public:
         (1u << 6), // Can create file only if it doesn't already exist
     eOpenOptionDontFollowSymlinks = (1u << 7),
     eOpenOptionCloseOnExec =
-        (1u << 8),               // Close the file when executing a new process
-    eOpenOptionMax = 0xffffffffu // avoid undefined behavior
+        (1u << 8), // Close the file when executing a new process
+    LLVM_MARK_AS_BITMASK_ENUM(/* largest_value= */ eOpenOptionCloseOnExec)
   };
 
   static mode_t ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options);
@@ -359,20 +362,6 @@ protected:
 private:
   DISALLOW_COPY_AND_ASSIGN(File);
 };
-
-inline File::OpenOptions operator|(File::OpenOptions a, File::OpenOptions b) {
-  return (File::OpenOptions)((uint32_t)a | (uint32_t)b);
-}
-
-inline File::OpenOptions operator&(File::OpenOptions a, File::OpenOptions b) {
-  return (File::OpenOptions)((uint32_t)a & (uint32_t)b);
-}
-
-inline File::OpenOptions &operator|=(File::OpenOptions &a,
-                                     File::OpenOptions b) {
-  a = a | b;
-  return a;
-}
 
 class NativeFile : public File {
 public:

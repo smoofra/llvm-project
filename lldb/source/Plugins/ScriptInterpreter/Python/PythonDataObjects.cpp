@@ -1090,8 +1090,10 @@ FileUP PythonFile::GetUnderlyingFile() const {
   // File object knows about that.
   PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
   auto options = File::GetOptionsFromMode(py_mode.GetString());
-  if (!options)
+  if (!options) {
+    llvm::consumeError(options.takeError());
     return nullptr;
+  }
   auto file = std::unique_ptr<File>(new NativeFile(
       PyObject_AsFileDescriptor(m_py_obj), options.get(), false));
   if (!file->IsValid())
