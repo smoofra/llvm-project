@@ -11,7 +11,7 @@ def fuzz_obj(obj):
     obj.AppendInstruction(lldb.SBInstruction())
     try:
         obj.Print(None)
-    except TypeError:
+    except Exception:
         pass
     obj.GetDescription(lldb.SBStream())
     obj.DumpEmulationForAllInstructions("armv7")

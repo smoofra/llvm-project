@@ -11,7 +11,7 @@ def fuzz_obj(obj):
     obj.DoesBranch()
     try:
         obj.Print(None)
-    except TypeError:
+    except Exception:
         pass
     obj.GetDescription(lldb.SBStream())
     obj.EmulateWithFrame(lldb.SBFrame(), 0)
