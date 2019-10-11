@@ -1,9 +1,21 @@
 Bottom: 963c563e97e6862ed6d12e11c9d91c72f1e07b04
-Top:    963c563e97e6862ed6d12e11c9d91c72f1e07b04
+Top:    ee06322589071cba01ebb81d303cb8d7bc281b94
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-10 17:46:22 -0700
 
 fix-getfile
 
 ---
-
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index 93b001f7d21..76f3d45dd69 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -317,7 +317,7 @@ public:
+   ///
+   /// \return
+   ///    OpenOptions flags for this file, or 0 if unknown.
+-  virtual uint32_t GetOptions() const;
++  virtual llvm::Expected<OpenOptions> GetOptions() const;
+ 
+   llvm::Expected<const char *> GetOpenMode() const {
+     auto opts = GetOptions();
