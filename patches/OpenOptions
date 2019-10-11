@@ -1,0 +1,14 @@
+Bottom: 2745289dba0c25d61bb00fd6dd6184175ca0cba9
+Top:    2745289dba0c25d61bb00fd6dd6184175ca0cba9
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-10 17:39:00 -0700
+
+uint32_t options -> File::OpenOptions options
+
+This patch re-types everywhere that passes a File::OpenOptions 
+as a uint32_t so it actually uses File::OpenOptions.
+
+
+
+---
+
