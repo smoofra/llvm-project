@@ -1,7 +1,7 @@
 Bottom: 172610d312af1b6d09887af0b4d081294db3c4ec
-Top:    17549c46830744aeefee3c5fdf9b069d07213481
+Top:    04d6d0cbff58b88f997f3f173d3a3843f166bf38
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-10 18:42:18 -0700
+Date:   2019-10-11 12:21:16 -0700
 
 uint32_t options -> File::OpenOptions options
 
@@ -21,7 +21,6 @@ Subscribers: lldb-commits
 Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68853
-
 
 ---
 diff --git a/lldb/include/lldb/Core/StreamFile.h b/lldb/include/lldb/Core/StreamFile.h
@@ -515,7 +514,7 @@ index c4169403982..c7349db7d97 100644
      err = 0;
      save_errno = error.GetError();
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 5346e3f5914..d07ab8c13f4 100644
+index 5346e3f5914..c3588f6ec33 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1090,8 +1090,12 @@ FileUP PythonFile::GetUnderlyingFile() const {
@@ -533,7 +532,7 @@ index 5346e3f5914..d07ab8c13f4 100644
    if (!file->IsValid())
      return nullptr;
    return file;
-@@ -1165,8 +1169,9 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1165,9 +1169,10 @@ std::error_code PythonException::convertToErrorCode() const {
  
  char PythonException::ID = 0;
  
@@ -541,10 +540,25 @@ index 5346e3f5914..d07ab8c13f4 100644
 -  uint32_t options = 0;
 +llvm::Expected<File::OpenOptions>
 +GetOptionsForPyObject(const PythonObject &obj) {
-+  auto options = File::OpenOptions(0);
  #if PY_MAJOR_VERSION >= 3
++  auto options = File::OpenOptions(0);
    auto readable = As<bool>(obj.CallMethod("readable"));
    if (!readable)
+     return readable.takeError();
+@@ -1178,11 +1183,11 @@ llvm::Expected<uint32_t> GetOptionsForPyObject(const PythonObject &obj) {
+     options |= File::eOpenOptionRead;
+   if (writable.get())
+     options |= File::eOpenOptionWrite;
++  return options;
+ #else
+   PythonString py_mode = obj.GetAttributeValue("mode").AsType<PythonString>();
+-  options = File::GetOptionsFromMode(py_mode.GetString());
++  return File::GetOptionsFromMode(py_mode.GetString());
+ #endif
+-  return options;
+ }
+ 
+ // Base class template for python files.   All it knows how to do
 @@ -1245,7 +1250,7 @@ namespace {
  class SimplePythonFile : public OwnedPythonFile<NativeFile> {
  public:
