@@ -331,12 +331,6 @@ public:
   ///    OpenOptions flags for this file, or an error.
   virtual llvm::Expected<OpenOptions> GetOptions() const;
 
-  static char ID;
-
-  virtual bool isA(const void *classID) const { return classID == &ID; }
-
-  static bool classof(const File *file) { return file->isA(&ID); }
-
   llvm::Expected<const char *> GetOpenMode() const {
     auto opts = GetOptions();
     if (!opts)
@@ -378,6 +372,10 @@ public:
   operator bool() const { return IsValid(); };
 
   bool operator!() const { return !IsValid(); };
+
+  static char ID;
+  virtual bool isA(const void *classID) const { return classID == &ID; }
+  static bool classof(const File *file) { return file->isA(&ID); }
 
 protected:
   LazyBool m_is_interactive;
