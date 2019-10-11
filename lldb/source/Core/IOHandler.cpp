@@ -70,6 +70,10 @@
 
 using namespace lldb;
 using namespace lldb_private;
+using llvm::None;
+using llvm::Optional;
+using llvm::StringRef;
+
 
 IOHandler::IOHandler(Debugger &debugger, IOHandler::Type type)
     : IOHandler(debugger, type,
@@ -305,10 +309,6 @@ void IOHandlerEditline::Deactivate() {
   IOHandler::Deactivate();
   m_delegate.IOHandlerDeactivated(*this);
 }
-
-using llvm::None;
-using llvm::Optional;
-using llvm::StringRef;
 
 // Split out a line from the buffer, if there is a full one to get.
 static Optional<std::string> SplitLine(std::string &line_buffer) {
