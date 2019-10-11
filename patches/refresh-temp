@@ -1,0 +1,243 @@
+Bottom: 19c5d6cbe7fabad141031b0b2a2e2ed9162752da
+Top:    ee1440a433328325623d77ad4b9e40644a9217b1
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-11 10:35:39 -0700
+
+Refresh of delete-swig-typemaps-for-file
+
+---
+diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
+index 87325a05cda..bfbb3fe5fd7 100644
+--- a/lldb/include/lldb/Host/File.h
++++ b/lldb/include/lldb/Host/File.h
+@@ -136,20 +136,6 @@ public:
+   ///     ENOTSUP, success, or another error.
+   virtual Status GetFileSpec(FileSpec &file_spec) const;
+ 
+-  /// DEPRECATED! Extract the underlying FILE* and reset this File without closing it.
+-  ///
+-  /// This is only here to support legacy SB interfaces that need to convert scripting
+-  /// language objects into FILE* streams.   That conversion is inherently sketchy and
+-  /// doing so may cause the stream to be leaked.
+-  ///
+-  /// After calling this the File will be reset to its original state.  It will be
+-  /// invalid and it will not hold on to any resources.
+-  ///
+-  /// \return
+-  ///     The underlying FILE* stream from this File, if one exists and can be extracted,
+-  ///     nullptr otherwise.
+-  virtual FILE *TakeStreamAndClear();
+-
+   /// Get underlying OS file descriptor for this file, or kInvalidDescriptor.
+   /// If the descriptor is valid, then it may be used directly for I/O
+   /// However, the File may also perform it's own buffering, so avoid using
+@@ -415,7 +401,6 @@ public:
+   Status Close() override;
+   WaitableHandle GetWaitableHandle() override;
+   Status GetFileSpec(FileSpec &file_spec) const override;
+-  FILE *TakeStreamAndClear() override;
+   int GetDescriptor() const override;
+   FILE *GetStream() override;
+   off_t SeekFromStart(off_t offset, Status *error_ptr = nullptr) override;
+diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
+index b9389022512..8ff178bc5e5 100644
+--- a/lldb/scripts/Python/python-typemaps.swig
++++ b/lldb/scripts/Python/python-typemaps.swig
+@@ -451,74 +451,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+   }
+ }
+ 
+-// FIXME both of these paths wind up calling fdopen() with no provision for ever calling
+-// fclose() on the result.  SB interfaces that use FILE* should be deprecated for scripting
+-// use and this typemap should eventually be removed.
+-%typemap(in) FILE * {
+-   using namespace lldb_private;
+-   if ($input == Py_None)
+-      $1 = nullptr;
+-   else if (!lldb_private::PythonFile::Check($input)) {
+-      int fd = PyObject_AsFileDescriptor($input);
+-      if (fd < 0 || PyErr_Occurred())
+-        return nullptr;
+-      PythonObject py_input(PyRefType::Borrowed, $input);
+-      PythonString py_mode = py_input.GetAttributeValue("mode").AsType<PythonString>();
+-      if (!py_mode.IsValid() || PyErr_Occurred())
+-        return nullptr;
+-        FILE *f;
+-        if ((f = fdopen(fd, py_mode.GetString().str().c_str())))
+-          $1 = f;
+-        else {
+-          PyErr_SetString(PyExc_TypeError, strerror(errno));
+-          return nullptr;
+-        }
+-   }
+-   else
+-   {
+-      PythonFile py_file(PyRefType::Borrowed, $input);
+-      lldb::FileUP file = py_file.GetUnderlyingFile();
+-      if (!file)
+-         return nullptr;
+-      $1 = file->TakeStreamAndClear();
+-    }
+-}
+-
+-%typemap(out) FILE * {
+-   // TODO: This is gross. We should find a way to fetch the mode flags from the
+-   // lldb_private::File object.
+-   char mode[4] = {0};
+-%#ifdef __APPLE__
+-   int i = 0;
+-   if ($1)
+-   {
+-       short flags = $1->_flags;
+-
+-       if (flags & __SRD)
+-          mode[i++] = 'r';
+-       else if (flags & __SWR)
+-          mode[i++] = 'w';
+-       else // if (flags & __SRW)
+-          mode[i++] = 'a';
+-    }
+-%#else
+-   // There's no portable way to get the mode here. We just return a mode which
+-   // permits both reads and writes and count on the operating system to return
+-   // an error when an invalid operation is attempted.
+-   mode[0] = 'r';
+-   mode[1] = '+';
+-%#endif
+-   using namespace lldb_private;
+-   NativeFile file($1, false);
+-   PythonFile py_file(file, mode);
+-   $result = py_file.release();
+-   if (!$result)
+-   {
+-       $result = Py_None;
+-       Py_INCREF(Py_None);
+-   }
+-}
+-
+ %typemap(in) (const char* string, int len) {
+     using namespace lldb_private;
+     if ($input == Py_None)
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index 0f335bd02f7..9dae24d766f 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -117,8 +117,6 @@ Status File::GetFileSpec(FileSpec &file_spec) const {
+   return std::error_code(ENOTSUP, std::system_category());
+ }
+ 
+-FILE *File::TakeStreamAndClear() { return nullptr; }
+-
+ int File::GetDescriptor() const { return kInvalidDescriptor; }
+ 
+ FILE *File::GetStream() { return nullptr; }
+@@ -331,18 +329,6 @@ Status NativeFile::Close() {
+   return error;
+ }
+ 
+-FILE *NativeFile::TakeStreamAndClear() {
+-  FILE *stream = GetStream();
+-  m_stream = NULL;
+-  m_descriptor = kInvalidDescriptor;
+-  m_options = OpenOptions();
+-  m_own_stream = false;
+-  m_own_descriptor = false;
+-  m_is_interactive = m_supports_colors = m_is_real_terminal =
+-      eLazyBoolCalculate;
+-  return stream;
+-}
+-
+ Status NativeFile::GetFileSpec(FileSpec &file_spec) const {
+   Status error;
+ #ifdef F_GETPATH
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 823b58e7d02..8f0a717dc8c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1062,25 +1062,6 @@ void PythonFile::Reset(PyRefType type, PyObject *py_obj) {
+   PythonObject::Reset(PyRefType::Borrowed, result.get());
+ }
+ 
+-FileUP PythonFile::GetUnderlyingFile() const {
+-  if (!IsValid())
+-    return nullptr;
+-
+-  // We don't own the file descriptor returned by this function, make sure the
+-  // File object knows about that.
+-  PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
+-  auto options = File::GetOptionsFromMode(py_mode.GetString());
+-  if (!options) {
+-    llvm::consumeError(options.takeError());
+-    return nullptr;
+-  }
+-  auto file = std::unique_ptr<File>(new NativeFile(
+-      PyObject_AsFileDescriptor(m_py_obj), options.get(), false));
+-  if (!file->IsValid())
+-    return nullptr;
+-  return file;
+-}
+-
+ namespace {
+ class GIL {
+ public:
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index b794810c1b7..439c0fbe96c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -671,20 +671,6 @@ public:
+   static llvm::Expected<PythonFile> FromFile(File &file,
+                                              const char *mode = nullptr);
+ 
+-  // FIXME delete this after FILE* typemaps are deleted
+-  // and ScriptInterpreterPython is fixed
+-  PythonFile(File &file, const char *mode = nullptr) {
+-    auto f = FromFile(file, mode);
+-    if (f)
+-      *this = std::move(f.get());
+-    else {
+-      Reset();
+-      llvm::consumeError(f.takeError());
+-    }
+-  }
+-
+-  lldb::FileUP GetUnderlyingFile() const;
+-
+   llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
+   llvm::Expected<lldb::FileSP>
+   ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+index d773fd8d258..181a2e84083 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+@@ -651,10 +651,13 @@ bool ScriptInterpreterPythonImpl::SetStdHandle(FileSP file_sp,
+ 
+   PythonDictionary &sys_module_dict = GetSysModuleDictionary();
+ 
++  auto new_file = PythonFile::FromFile(file, mode);
++  if (!new_file)
++    return false;
++
+   save_file = sys_module_dict.GetItemForKey(PythonString(py_name));
+ 
+-  PythonFile new_file(file, mode);
+-  sys_module_dict.SetItemForKey(PythonString(py_name), new_file);
++  sys_module_dict.SetItemForKey(PythonString(py_name), new_file.get());
+   return true;
+ }
+ 
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index e6d1c4d14b0..5c3c6097007 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -585,8 +585,9 @@ TEST_F(PythonDataObjectsTest, TestPythonFile) {
+   auto file = FileSystem::Instance().Open(FileSpec(FileSystem::DEV_NULL),
+                                           File::eOpenOptionRead);
+   ASSERT_THAT_EXPECTED(file, llvm::Succeeded());
+-  PythonFile py_file(*file.get(), "r");
+-  EXPECT_TRUE(PythonFile::Check(py_file.get()));
++  auto py_file = PythonFile::FromFile(*file.get(), "r");
++  ASSERT_THAT_EXPECTED(py_file, llvm::Succeeded());
++  EXPECT_TRUE(PythonFile::Check(py_file.get().get()));
+ }
+ 
+ TEST_F(PythonDataObjectsTest, TestObjectAttributes) {
