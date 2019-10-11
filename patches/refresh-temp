@@ -1,0 +1,51 @@
+Bottom: 5c22504489aa7e56c1db920040ecb2e074218241
+Top:    b512a355e28456cf3fa75ec75e36ad2112931635
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-11 12:20:54 -0700
+
+Refresh of getfile-fix
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index e9645a10a5d..f430824c02f 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -825,11 +825,17 @@ class FileHandleTestCase(lldbtest.TestBase):
+     @add_test_categories(['pyapi'])
+     def test_back_and_forth(self):
+         with open(self.out_filename, 'w') as f:
+-            sbf = lldb.SBFile.Create(f, borrow=True);
+-            for i in range(10):
+-                f2 = sbf.GetFile()
+-                sbf = lldb.SBFile.Create(f2, borrow=True)
+-                sbf.Write(str(i).encode('ascii') + b"\n")
++            # at each step here we're borrowing the file, so we have to keep
++            # them all alive untill the end.
++            sbf = lldb.SBFile.Create(f, borrow=True)
++            def i(sbf):
++                for i in range(10):
++                    f = sbf.GetFile()
++                    yield f
++                    sbf = lldb.SBFile.Create(f, borrow=True)
++                    yield sbf
++                    sbf.Write(str(i).encode('ascii') + b"\n")
++            files = list(i(sbf))
+         with open(self.out_filename, 'r') as f:
+             self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
+ 
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 34c0fdd1a42..7e7cf72c24f 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1573,8 +1573,10 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+ #else
+   // Read through the Python source, doesn't seem to modify these strings
+   char *cmode = const_cast<char *>(mode);
++  // Borrow the FILE*, the lldb_private::File still owns it
++  auto close = [](FILE *f) -> int { fflush(f); return 0; };
+   file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
++      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, close);
+ #endif
+ 
+   if (!file_obj)
