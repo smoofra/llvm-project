@@ -317,7 +317,7 @@ public:
   ///
   /// \return
   ///    OpenOptions flags for this file, or 0 if unknown.
-  virtual uint32_t GetOptions() const;
+  virtual llvm::Expected<OpenOptions> GetOptions() const;
 
   llvm::Expected<const char *> GetOpenMode() const {
     auto opts = GetOptions();
