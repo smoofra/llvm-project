@@ -670,7 +670,6 @@ public:
 
   static llvm::Expected<PythonFile> FromFile(File &file,
                                              const char *mode = nullptr);
-  }
 
   llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
   llvm::Expected<lldb::FileSP>
