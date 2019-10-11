@@ -1,5 +1,5 @@
 Bottom: 196d880a4bf2d62384a8fb4edb6ab818c5242f31
-Top:    016d5960e53ff4277103710d3a10b5587a4afa1a
+Top:    a880ced2da4d3738bdf0b76d4f8ad144557016b8
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:19:16 -0700
 
@@ -46,7 +46,7 @@ index 4434d50f471..e203d0b8056 100644
  private:
    lldb::DisassemblerSP m_opaque_sp;
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
-index aca1d8a02b3..cae95d1ccb4 100644
+index aca1d8a02b3..fbfb2313688 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instruction.py
 @@ -9,7 +9,10 @@ def fuzz_obj(obj):
@@ -56,13 +56,13 @@ index aca1d8a02b3..cae95d1ccb4 100644
 -    obj.Print(None)
 +    try:
 +        obj.Print(None)
-+    except TypeError:
++    except Exception:
 +        pass
      obj.GetDescription(lldb.SBStream())
      obj.EmulateWithFrame(lldb.SBFrame(), 0)
      obj.DumpEmulation("armv7")
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
-index 88fbc065c55..ced4349d17a 100644
+index 88fbc065c55..9e7ebf927f4 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/default-constructor/sb_instructionlist.py
 @@ -9,7 +9,10 @@ def fuzz_obj(obj):
@@ -72,7 +72,7 @@ index 88fbc065c55..ced4349d17a 100644
 -    obj.Print(None)
 +    try:
 +        obj.Print(None)
-+    except TypeError:
++    except Exception:
 +        pass
      obj.GetDescription(lldb.SBStream())
      obj.DumpEmulationForAllInstructions("armv7")
