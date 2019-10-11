@@ -1,5 +1,5 @@
 Bottom: c22901dd3c7a3c6ff0d3955fa88a056b0d8b955a
-Top:    2c8828a3e3e3b22fcc857f7cb2c2fb36342d8ba6
+Top:    172610d312af1b6d09887af0b4d081294db3c4ec
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-09 11:54:12 -0700
 
@@ -77,17 +77,24 @@ index a977ec95965..577c6b3e88f 100644
          inf = io.BytesIO(b"help help\nhelp b\n")
          outf = io.BytesIO()
 diff --git a/lldb/source/Core/IOHandler.cpp b/lldb/source/Core/IOHandler.cpp
-index d3152981a56..a69f93614e7 100644
+index d3152981a56..46be29f6fbf 100644
 --- a/lldb/source/Core/IOHandler.cpp
 +++ b/lldb/source/Core/IOHandler.cpp
-@@ -306,94 +306,123 @@ void IOHandlerEditline::Deactivate() {
-   m_delegate.IOHandlerDeactivated(*this);
- }
+@@ -70,6 +70,10 @@
  
+ using namespace lldb;
+ using namespace lldb_private;
 +using llvm::None;
 +using llvm::Optional;
 +using llvm::StringRef;
 +
+ 
+ IOHandler::IOHandler(Debugger &debugger, IOHandler::Type type)
+     : IOHandler(debugger, type,
+@@ -306,94 +310,119 @@ void IOHandlerEditline::Deactivate() {
+   m_delegate.IOHandlerDeactivated(*this);
+ }
+ 
 +// Split out a line from the buffer, if there is a full one to get.
 +static Optional<std::string> SplitLine(std::string &line_buffer) {
 +  size_t pos = line_buffer.find('\n');
