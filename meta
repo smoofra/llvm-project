@@ -1,14 +1,14 @@
 Version: 1
-Previous: 3f29192c9f6114246c3bfd566bb35f0fc2e0a6fe
-Head: 60794aba4bfcb76958dbf77065f82f0576878748
+Previous: 9cba360e3c5bd7d304b4f684ba0a3c482fcf7ed1
+Head: 90522faa5853b14919722475aca2f75bcfa8bb74
 Applied:
   python-fix: c7eba846237a9f68f1a06cb1a29219e684853bb6
   lldbpexpect-make-sure-term-is: ff82df969cc0b4d0dd37a0006258a4140dfe359b
   stringliteral-intellisense: e9430941c4c31496548b5fc83418a4ee41a69c1a
   HandleProcessEvent: 5a764b2e7a00642f5c5a3d8a07a78dda26cd1721
   iohandler-fallback: 60794aba4bfcb76958dbf77065f82f0576878748
+  OpenOptions: 90522faa5853b14919722475aca2f75bcfa8bb74
 Unapplied:
-  OpenOptions: 47e5f885fa29a2240a250fe5671a45a511b5a409
   GetFile: 2688407093c87910d8071de51c06bd80d637ac2c
   convert-legacy: bc586e3d20408194302e5cce77d441268c8eb70d
   SBInstruction: f20d224c7e59b4799b098ebc81b932f45ff2d5d7
