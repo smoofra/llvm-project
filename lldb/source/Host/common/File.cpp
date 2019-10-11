@@ -338,7 +338,7 @@ FILE *NativeFile::TakeStreamAndClear() {
   FILE *stream = GetStream();
   m_stream = NULL;
   m_descriptor = kInvalidDescriptor;
-  m_options = 0;
+  m_options = OpenOptions();
   m_own_stream = false;
   m_own_descriptor = false;
   m_is_interactive = m_supports_colors = m_is_real_terminal =
