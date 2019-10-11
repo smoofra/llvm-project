@@ -824,7 +824,7 @@ class FileHandleTestCase(lldbtest.TestBase):
     def test_back_and_forth(self):
         with open(self.out_filename, 'w') as f:
             # at each step here we're borrowing the file, so we have to keep
-            # them all alive untill the end.
+            # them all alive until the end.
             sbf = lldb.SBFile.Create(f, borrow=True)
             def i(sbf):
                 for i in range(10):
