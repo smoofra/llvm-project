@@ -1,5 +1,5 @@
 Bottom: dbe77ca9cb146cc28647c42ad4862b7852b7bbac
-Top:    068d3b239d365c8c8398075273f309242e460635
+Top:    631bd17b7a3f48c9e75ee983fef34978345e9359
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -180,14 +180,13 @@ index 838a8292ebb..8f0a717dc8c 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index b794810c1b7..6cc216893c7 100644
+index b794810c1b7..439c0fbe96c 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -670,21 +670,8 @@ public:
- 
+@@ -671,20 +671,6 @@ public:
    static llvm::Expected<PythonFile> FromFile(File &file,
                                               const char *mode = nullptr);
--
+ 
 -  // FIXME delete this after FILE* typemaps are deleted
 -  // and ScriptInterpreterPython is fixed
 -  PythonFile(File &file, const char *mode = nullptr) {
@@ -198,8 +197,8 @@ index b794810c1b7..6cc216893c7 100644
 -      Reset();
 -      llvm::consumeError(f.takeError());
 -    }
-   }
- 
+-  }
+-
 -  lldb::FileUP GetUnderlyingFile() const;
 -
    llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
