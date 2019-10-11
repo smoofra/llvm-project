@@ -1165,8 +1165,9 @@ std::error_code PythonException::convertToErrorCode() const {
 
 char PythonException::ID = 0;
 
-llvm::Expected<uint32_t> GetOptionsForPyObject(const PythonObject &obj) {
-  uint32_t options = 0;
+llvm::Expected<File::OpenOptions>
+GetOptionsForPyObject(const PythonObject &obj) {
+  auto options = File::OpenOptions(0);
 #if PY_MAJOR_VERSION >= 3
   auto readable = As<bool>(obj.CallMethod("readable"));
   if (!readable)
@@ -1245,7 +1246,7 @@ namespace {
 class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
-                   uint32_t options)
+                   File::OpenOptions options)
       : OwnedPythonFile(file, borrowed, fd, options, false) {}
 };
 } // namespace
