@@ -1,5 +1,5 @@
 Bottom: 117bd98ef5544e20d6b767b28ca9eb743cd2021f
-Top:    5c22504489aa7e56c1db920040ecb2e074218241
+Top:    b512a355e28456cf3fa75ec75e36ad2112931635
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-11 11:49:00 -0700
 
@@ -35,21 +35,27 @@ index 87325a05cda..106482582fc 100644
    LazyBool m_is_interactive;
    LazyBool m_is_real_terminal;
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index a7e8a274766..e9645a10a5d 100644
+index a7e8a274766..f430824c02f 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -822,6 +822,18 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -822,6 +822,24 @@ class FileHandleTestCase(lldbtest.TestBase):
          with open(self.out_filename, 'r') as f:
              self.assertEqual("foobar", f.read().strip())
  
 +    @add_test_categories(['pyapi'])
 +    def test_back_and_forth(self):
 +        with open(self.out_filename, 'w') as f:
-+            sbf = lldb.SBFile.Create(f, borrow=True);
-+            for i in range(10):
-+                f2 = sbf.GetFile()
-+                sbf = lldb.SBFile.Create(f2, borrow=True)
-+                sbf.Write(str(i).encode('ascii') + b"\n")
++            # at each step here we're borrowing the file, so we have to keep
++            # them all alive untill the end.
++            sbf = lldb.SBFile.Create(f, borrow=True)
++            def i(sbf):
++                for i in range(10):
++                    f = sbf.GetFile()
++                    yield f
++                    sbf = lldb.SBFile.Create(f, borrow=True)
++                    yield sbf
++                    sbf.Write(str(i).encode('ascii') + b"\n")
++            files = list(i(sbf))
 +        with open(self.out_filename, 'r') as f:
 +            self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
 +
@@ -71,7 +77,7 @@ index 9635bf5a218..27b83641338 100644
      ");
      FileSP GetFile();
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index c375847d342..34c0fdd1a42 100644
+index c375847d342..7e7cf72c24f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1552,12 +1552,12 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
@@ -91,3 +97,15 @@ index c375847d342..34c0fdd1a42 100644
  
    if (!mode) {
      auto m = file.GetOpenMode();
+@@ -1573,8 +1573,10 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+ #else
+   // Read through the Python source, doesn't seem to modify these strings
+   char *cmode = const_cast<char *>(mode);
++  // Borrow the FILE*, the lldb_private::File still owns it
++  auto close = [](FILE *f) -> int { fflush(f); return 0; };
+   file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
++      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, close);
+ #endif
+ 
+   if (!file_obj)
