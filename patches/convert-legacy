@@ -1,9 +1,0 @@
-Bottom: 8cfbbcf7496713e3c2c600f058bbde075036b3db
-Top:    8cfbbcf7496713e3c2c600f058bbde075036b3db
-Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-05 15:11:20 -0700
-
-convert SBDebugger::***FileHandle() wrappers to native files.
-
----
-
