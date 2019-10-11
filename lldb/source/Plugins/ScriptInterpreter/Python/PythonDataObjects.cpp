@@ -1573,8 +1573,10 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
 #else
   // Read through the Python source, doesn't seem to modify these strings
   char *cmode = const_cast<char *>(mode);
+  // Borrow the FILE*, the lldb_private::File still owns it
+  auto close = [](FILE *f) -> int { fflush(f); return 0; };
   file_obj =
-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, nullptr);
+      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, close);
 #endif
 
   if (!file_obj)
