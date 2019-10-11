@@ -39,6 +39,8 @@ using namespace lldb;
 using namespace lldb_private;
 using llvm::Expected;
 
+char File::ID = 0;
+char NativeFile::ID = 0;
 
 Expected<const char *>
 File::GetStreamOpenModeFromOptions(File::OpenOptions options) {
