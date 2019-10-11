@@ -1160,8 +1160,9 @@ std::error_code PythonException::convertToErrorCode() const {
 
 char PythonException::ID = 0;
 
-llvm::Expected<uint32_t> GetOptionsForPyObject(const PythonObject &obj) {
-  uint32_t options = 0;
+llvm::Expected<File::OpenOptions>
+GetOptionsForPyObject(const PythonObject &obj) {
+  auto options = File::OpenOptions(0);
 #if PY_MAJOR_VERSION >= 3
   auto readable = As<bool>(obj.CallMethod("readable"));
   if (!readable)
@@ -1242,7 +1243,7 @@ namespace {
 class SimplePythonFile : public OwnedPythonFile<NativeFile> {
 public:
   SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
-                   uint32_t options)
+                   File::OpenOptions options)
       : OwnedPythonFile(file, borrowed, fd, options, false) {}
 };
 } // namespace
@@ -1313,14 +1314,11 @@ public:
     return Status();
   }
 
-  uint32_t GetOptions() const override {
+  Expected<File::OpenOptions> GetOptions() const override {
     GIL takeGIL;
-    auto options = GetOptionsForPyObject(m_py_obj);
-    if (!options) {
-      llvm::consumeError(options.takeError());
-      return 0;
-    }
-    return options.get();
+    return GetOptionsForPyObject(m_py_obj);
+  }
+
   }
 };
 } // namespace
