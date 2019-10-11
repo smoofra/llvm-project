@@ -1,5 +1,5 @@
 Bottom: 088ff62e54859615f086a7897b4117d598ab0b1a
-Top:    147931210a05d7f8ced182008872d0575a8b7b30
+Top:    61eb1a878a81d3e015e379ccb91b2bbdab9d7373
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 15:11:20 -0700
 
@@ -22,7 +22,7 @@ Differential Revision: https://reviews.llvm.org/D68856
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 2f0eb5a416f..3abadc0fd49 100644
+index 2f0eb5a416f..a7e8a274766 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 @@ -129,8 +129,6 @@ class FileHandleTestCase(lldbtest.TestBase):
@@ -43,6 +43,23 @@ index 2f0eb5a416f..3abadc0fd49 100644
      def test_legacy_file_err_with_get(self):
          with open(self.out_filename, 'w') as f:
              self.debugger.SetErrorFileHandle(f, False)
+@@ -194,11 +190,11 @@ class FileHandleTestCase(lldbtest.TestBase):
+     @add_test_categories(['pyapi'])
+     def test_sbfile_type_errors(self):
+         sbf = lldb.SBFile()
+-        self.assertRaises(TypeError, sbf.Write, None)
+-        self.assertRaises(TypeError, sbf.Read, None)
+-        self.assertRaises(TypeError, sbf.Read, b'this bytes is not mutable')
+-        self.assertRaises(TypeError, sbf.Write, u"ham sandwich")
+-        self.assertRaises(TypeError, sbf.Read, u"ham sandwich")
++        self.assertRaises(Exception, sbf.Write, None)
++        self.assertRaises(Exception, sbf.Read, None)
++        self.assertRaises(Exception, sbf.Read, b'this bytes is not mutable')
++        self.assertRaises(Exception, sbf.Write, u"ham sandwich")
++        self.assertRaises(Exception, sbf.Read, u"ham sandwich")
+ 
+ 
+     @add_test_categories(['pyapi'])
 @@ -825,3 +821,40 @@ class FileHandleTestCase(lldbtest.TestBase):
  
          with open(self.out_filename, 'r') as f:
@@ -50,15 +67,15 @@ index 2f0eb5a416f..3abadc0fd49 100644
 +
 +    @add_test_categories(['pyapi'])
 +    def test_set_filehandle_none(self):
-+        self.assertRaises(TypeError, self.debugger.SetOutputFile, None)
-+        self.assertRaises(TypeError, self.debugger.SetOutputFile, "ham sandwich")
-+        self.assertRaises(TypeError, self.debugger.SetOutputFileHandle, "ham sandwich")
-+        self.assertRaises(TypeError, self.debugger.SetInputFile, None)
-+        self.assertRaises(TypeError, self.debugger.SetInputFile, "ham sandwich")
-+        self.assertRaises(TypeError, self.debugger.SetInputFileHandle, "ham sandwich")
-+        self.assertRaises(TypeError, self.debugger.SetErrorFile, None)
-+        self.assertRaises(TypeError, self.debugger.SetErrorFile, "ham sandwich")
-+        self.assertRaises(TypeError, self.debugger.SetErrorFileHandle, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetOutputFile, None)
++        self.assertRaises(Exception, self.debugger.SetOutputFile, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetOutputFileHandle, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetInputFile, None)
++        self.assertRaises(Exception, self.debugger.SetInputFile, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetInputFileHandle, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetErrorFile, None)
++        self.assertRaises(Exception, self.debugger.SetErrorFile, "ham sandwich")
++        self.assertRaises(Exception, self.debugger.SetErrorFileHandle, "ham sandwich")
 +
 +        with open(self.out_filename, 'w') as f:
 +            status = self.debugger.SetOutputFile(f)
