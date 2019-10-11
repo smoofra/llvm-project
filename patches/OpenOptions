@@ -1,5 +1,5 @@
-Bottom: 1ff711b9b7eb2e3a2cb7f3d643494348e0117770
-Top:    75d020520d12141b12195df68742f1c6535fae73
+Bottom: 26dd9b1a638340b22fe6d49b18c2841869fb9814
+Top:    bd1ba0aa7131f6c243a56699ddf1f1ee5b71e353
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-11 12:21:16 -0700
 
@@ -454,10 +454,10 @@ index c774daa8ab7..13edcbab9f5 100644
  
    bool CloseFile(lldb::user_id_t fd, Status &error) override;
 diff --git a/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationClient.cpp b/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationClient.cpp
-index 51e31337dd5..8e2a041bfa1 100644
+index f6ef4579245..072d56698ed 100644
 --- a/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationClient.cpp
 +++ b/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationClient.cpp
-@@ -2896,7 +2896,7 @@ static uint64_t ParseHostIOPacketResponse(StringExtractorGDBRemote &response,
+@@ -2895,7 +2895,7 @@ static uint64_t ParseHostIOPacketResponse(StringExtractorGDBRemote &response,
  }
  lldb::user_id_t
  GDBRemoteCommunicationClient::OpenFile(const lldb_private::FileSpec &file_spec,

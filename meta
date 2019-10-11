@@ -1,18 +1,18 @@
 Version: 1
-Previous: 043ae9d602d3f1dabd189629e841571f609ee7d5
-Head: 49036dd3aef9265270dcf4bb645050510b68e183
+Previous: 3cb632b3a94088eee01c2f50b56471b0789d4bff
+Head: fcff841b8ad8050316abffd60266ff53c564fe68
 Applied:
+  python-fix: a8cf4782884559be6d5b3e3159c5fe52ed27a106
+  lldbpexpect-make-sure-term-is: a19b54bae197e541337bcb55dac39d542ef50939
+  stringliteral-intellisense: bfd49108e3b137c41b3bedac5d599df53e0e3cd0
+  HandleProcessEvent: f0cdbd483d8a6079172af2e062620be2229cb7f4
+  iohandler-fallback: ec75dc3d72ca1157a84b84c5972bde437791bb9a
+  OpenOptions: cc983589c970847088af494916f6f0f65d18cf76
+  GetFile: ff70692168b95428807ad85a9079f2377e3b27dd
+  convert-legacy: 6c2df372b17ac731db5ef09d575291cc0d44e055
+  SBInstruction: 60c61d19409db8157c4c5113c0b1938c41776949
+  SBStream: 6e6d761ac4ac47f578936e1d3a333202aa53f645
+  update-scriptinterpreterpython: 27cfc176f9a49c9110a1f7d8972eebdf754e802b
+  delete-swig-typemaps-for-file: fcff841b8ad8050316abffd60266ff53c564fe68
 Unapplied:
-  python-fix: c7eba846237a9f68f1a06cb1a29219e684853bb6
-  lldbpexpect-make-sure-term-is: ff82df969cc0b4d0dd37a0006258a4140dfe359b
-  stringliteral-intellisense: e9430941c4c31496548b5fc83418a4ee41a69c1a
-  HandleProcessEvent: 9fbb2eb48746b9de9d649fab0e45ce0e06a44bfc
-  iohandler-fallback: ff8162598b8dbefdaa4c1fef50811323366baa81
-  OpenOptions: a3c3253062d0fb614c1a8a69319b0fecd78efa0c
-  GetFile: cb75c5e414f4ec4cf363512fd969ee5796785f05
-  convert-legacy: 7547209b704aa4fc2d763e4ff2f35dc20be59bd1
-  SBInstruction: 665da8a2fcf0ad5d1f94f5c7e64fdd4149ebcbe0
-  SBStream: adca3a9709a14a1abfb78450fa4fb17836d0d454
-  update-scriptinterpreterpython: d5439d4675cabf44ffd029862528d22324f5c2a5
-  delete-swig-typemaps-for-file: efddf77aaf85449dd218a66e70cf0e6eafddb2af
 Hidden:
