@@ -78,7 +78,21 @@ public:
 
     SBError Close();
 
-    %feature("docstring", "convert this SBFile into a python io.IOBase file object");
+    %feature("docstring", "
+    Convert this SBFile into a python io.IOBase file object.
+
+    If the SBFile is itself a wrapper around a python file object,
+    this will return that original object.
+
+    The file returned from here should be considered borrowed,
+    in the sense that you may read and write to it, and flush it,
+    etc, but you should not close it.   If you want to close the
+    SBFile, call SBFile.Close().
+
+    If there is no underlying python file to unwrap, GetFile will
+    use the file descirptor, if availble to create a new python
+    file object using `open(fd, mode=..., closefd=False)`
+    ");
     FileSP GetFile();
 };
 

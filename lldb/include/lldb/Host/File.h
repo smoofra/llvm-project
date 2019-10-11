@@ -35,6 +35,10 @@ public:
 
   // NB this enum is used in the lldb platform gdb-remote packet
   // vFile:open: and existing values cannot be modified.
+  //
+  // FIXME:  I don't think that is actually true.
+  // These values do not match the values documented by GDB
+  // https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
   enum OpenOptions {
     eOpenOptionRead = (1u << 0),  // Open file for reading
     eOpenOptionWrite = (1u << 1), // Open file for writing
@@ -47,13 +51,15 @@ public:
         (1u << 6), // Can create file only if it doesn't already exist
     eOpenOptionDontFollowSymlinks = (1u << 7),
     eOpenOptionCloseOnExec =
-        (1u << 8) // Close the file when executing a new process
+        (1u << 8),               // Close the file when executing a new process
+    eOpenOptionMax = 0xffffffffu // avoid undefined behavior
   };
 
-  static mode_t ConvertOpenOptionsForPOSIXOpen(uint32_t open_options);
-  static uint32_t GetOptionsFromMode(llvm::StringRef mode);
+  static mode_t ConvertOpenOptionsForPOSIXOpen(OpenOptions open_options);
+  static llvm::Expected<OpenOptions> GetOptionsFromMode(llvm::StringRef mode);
   static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
-  static const char *GetStreamOpenModeFromOptions(uint32_t options);
+  static llvm::Expected<const char *>
+  GetStreamOpenModeFromOptions(OpenOptions options);
 
   File()
       : IOObject(eFDTypeFile), m_is_interactive(eLazyBoolCalculate),
@@ -295,12 +301,6 @@ public:
   ///     format string \a format.
   virtual size_t PrintfVarArg(const char *format, va_list args);
 
-  /// If this file is a wrapper for a python file object, return it.
-  ///
-  /// \return
-  ///    The PyObject* that this File wraps, or NULL.
-  virtual void *GetPythonObject() const;
-
   /// Return the OpenOptions for this file.
   ///
   /// Some options like eOpenOptionDontFollowSymlinks only make
@@ -311,10 +311,19 @@ public:
   ///
   /// \return
   ///    OpenOptions flags for this file, or 0 if unknown.
-  virtual uint32_t GetOptions() const;
+  virtual llvm::Expected<OpenOptions> GetOptions() const;
 
-  const char *GetOpenMode() const {
-    return GetStreamOpenModeFromOptions(GetOptions());
+  static char ID;
+
+  virtual bool isA(const void *classID) const { return classID == &ID; }
+
+  static bool classof(const File *file) { return file->isA(&ID); }
+
+  llvm::Expected<const char *> GetOpenMode() const {
+    auto opts = GetOptions();
+    if (!opts)
+      return opts.takeError();
+    return GetStreamOpenModeFromOptions(opts.get());
   }
 
   /// Get the permissions for a this file.
@@ -363,17 +372,31 @@ private:
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
+inline File::OpenOptions operator|(File::OpenOptions a, File::OpenOptions b) {
+  return (File::OpenOptions)((uint32_t)a | (uint32_t)b);
+}
+
+inline File::OpenOptions operator&(File::OpenOptions a, File::OpenOptions b) {
+  return (File::OpenOptions)((uint32_t)a & (uint32_t)b);
+}
+
+inline File::OpenOptions &operator|=(File::OpenOptions &a,
+                                     File::OpenOptions b) {
+  a = a | b;
+  return a;
+}
+
 class NativeFile : public File {
 public:
   NativeFile()
       : m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
-        m_stream(kInvalidStream), m_options(0), m_own_stream(false) {}
+        m_stream(kInvalidStream), m_options(), m_own_stream(false) {}
 
   NativeFile(FILE *fh, bool transfer_ownership)
       : m_descriptor(kInvalidDescriptor), m_own_descriptor(false), m_stream(fh),
-        m_options(0), m_own_stream(transfer_ownership) {}
+        m_options(), m_own_stream(transfer_ownership) {}
 
-  NativeFile(int fd, uint32_t options, bool transfer_ownership)
+  NativeFile(int fd, OpenOptions options, bool transfer_ownership)
       : m_descriptor(fd), m_own_descriptor(transfer_ownership),
         m_stream(kInvalidStream), m_options(options), m_own_stream(false) {}
 
@@ -398,7 +421,13 @@ public:
   Status Flush() override;
   Status Sync() override;
   size_t PrintfVarArg(const char *format, va_list args) override;
-  uint32_t GetOptions() const override;
+  llvm::Expected<OpenOptions> GetOptions() const override;
+
+  static char ID;
+  virtual bool isA(const void *classID) const override {
+    return classID == &ID || File::isA(classID);
+  }
+  static bool classof(const File *file) { return file->isA(&ID); }
 
 protected:
   bool DescriptorIsValid() const {
@@ -410,7 +439,7 @@ protected:
   int m_descriptor;
   bool m_own_descriptor;
   FILE *m_stream;
-  uint32_t m_options;
+  OpenOptions m_options;
   bool m_own_stream;
   std::mutex offset_access_mutex;
 
