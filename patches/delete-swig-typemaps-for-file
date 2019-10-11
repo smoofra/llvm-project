@@ -1,5 +1,5 @@
 Bottom: dbe77ca9cb146cc28647c42ad4862b7852b7bbac
-Top:    631bd17b7a3f48c9e75ee983fef34978345e9359
+Top:    c3d02cbd627432c8c8f5fc77cb02d73c4e984214
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -204,3 +204,22 @@ index b794810c1b7..439c0fbe96c 100644
    llvm::Expected<lldb::FileSP> ConvertToFile(bool borrowed = false);
    llvm::Expected<lldb::FileSP>
    ConvertToFileForcingUseOfScriptingIOMethods(bool borrowed = false);
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+index d773fd8d258..181a2e84083 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+@@ -651,10 +651,13 @@ bool ScriptInterpreterPythonImpl::SetStdHandle(FileSP file_sp,
+ 
+   PythonDictionary &sys_module_dict = GetSysModuleDictionary();
+ 
++  auto new_file = PythonFile::FromFile(file, mode);
++  if (!new_file)
++    return false;
++
+   save_file = sys_module_dict.GetItemForKey(PythonString(py_name));
+ 
+-  PythonFile new_file(file, mode);
+-  sys_module_dict.SetItemForKey(PythonString(py_name), new_file);
++  sys_module_dict.SetItemForKey(PythonString(py_name), new_file.get());
+   return true;
+ }
