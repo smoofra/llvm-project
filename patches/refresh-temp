@@ -1,0 +1,21 @@
+Bottom: d7dc2e362b1b50c21e88fadd580de4fcfc627357
+Top:    cf939c4d12238d5bb4038b2bd47df31254a25675
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-11 12:51:16 -0700
+
+Refresh of fix
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 47e4888757b..0df99716a7e 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1535,7 +1535,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+ 
+   if (auto *simple = llvm::dyn_cast<SimplePythonFile>(&file))
+     return Retain<PythonFile>(simple->GetPythonObject());
+-#if PY_VERSION_MAJOR >= 3
++#if PY_MAJOR_VERSION >= 3
+   if (auto *pythonio = llvm::dyn_cast<PythonIOFile>(&file))
+     return Retain<PythonFile>(pythonio->GetPythonObject());
+ #endif
