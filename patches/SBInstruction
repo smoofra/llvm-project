@@ -3,7 +3,20 @@ Top:    f4de70681a1f60a6eade68e9c27c794f529b77a5
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-05 14:19:16 -0700
 
-remove FILE* ussage from SBInstruction
+remove FILE* bindings from SBInstruction.
+
+This patch replaces the FILE* python bindings for SBInstruction and
+SBInstructionList and replaces them with the new, safe SBFile and FileSP
+bindings.
+
+I also re-enable `Test_Disassemble_VST1_64`, because now we can use
+the file bindings as an additional test of the disassembler, and we
+can use the disassembler test as a test of the file bindings.   The
+bugs referred to in the
+
+The bugs referred to in the comments appear to have been fixed.   The
+radar is closed now and the bugzilla bug does not reproduce with the
+instructions given.
 
 ---
 diff --git a/lldb/include/lldb/API/SBInstruction.h b/lldb/include/lldb/API/SBInstruction.h
