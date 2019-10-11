@@ -1,5 +1,5 @@
 Bottom: 2c8828a3e3e3b22fcc857f7cb2c2fb36342d8ba6
-Top:    d06821224081df2c3fb913a479b7bc84dfb30b76
+Top:    33d06759c68463332a92807bec0d2ba6ffb9f946
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-10 18:42:18 -0700
 
@@ -38,28 +38,47 @@ index 77e1557cb91..712b289aa8d 100644
  
    StreamFile(FILE *fh, bool transfer_ownership);
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index b36b523e320..a4a24dbd3bb 100644
+index b36b523e320..444e7099bce 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
-@@ -35,6 +35,11 @@ public:
+@@ -13,6 +13,7 @@
+ #include "lldb/Utility/IOObject.h"
+ #include "lldb/Utility/Status.h"
+ #include "lldb/lldb-private.h"
++#include "llvm/ADT/BitmaskEnum.h"
+ 
+ #include <mutex>
+ #include <stdarg.h>
+@@ -21,6 +22,8 @@
+ 
+ namespace lldb_private {
+ 
++LLVM_ENABLE_BITMASK_ENUMS_IN_NAMESPACE();
++
+ /// \class File File.h "lldb/Host/File.h"
+ /// An abstract base class for files.
+ ///
+@@ -35,7 +38,12 @@ public:
  
    // NB this enum is used in the lldb platform gdb-remote packet
    // vFile:open: and existing values cannot be modified.
+-  enum OpenOptions {
 +  //
 +  // FIXME
 +  // These values do not match the values used by GDB
 +  // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
 +  // * rdar://problem/46788934
-   enum OpenOptions {
++  enum OpenOptions : uint32_t {
      eOpenOptionRead = (1u << 0),  // Open file for reading
      eOpenOptionWrite = (1u << 1), // Open file for writing
-@@ -47,11 +52,12 @@ public:
+     eOpenOptionAppend =
+@@ -47,11 +55,12 @@ public:
          (1u << 6), // Can create file only if it doesn't already exist
      eOpenOptionDontFollowSymlinks = (1u << 7),
      eOpenOptionCloseOnExec =
 -        (1u << 8) // Close the file when executing a new process
-+        (1u << 8),               // Close the file when executing a new process
-+    eOpenOptionMax = 0xffffffffu // avoid undefined behavior
++        (1u << 8), // Close the file when executing a new process
++    LLVM_MARK_AS_BITMASK_ENUM(/* largest_value= */ eOpenOptionCloseOnExec)
    };
  
 -  static mode_t ConvertOpenOptionsForPOSIXOpen(uint32_t open_options);
@@ -69,25 +88,7 @@ index b36b523e320..a4a24dbd3bb 100644
    static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
  
    File()
-@@ -354,17 +360,31 @@ private:
-   DISALLOW_COPY_AND_ASSIGN(File);
- };
- 
-+inline File::OpenOptions operator|(File::OpenOptions a, File::OpenOptions b) {
-+  return (File::OpenOptions)((uint32_t)a | (uint32_t)b);
-+}
-+
-+inline File::OpenOptions operator&(File::OpenOptions a, File::OpenOptions b) {
-+  return (File::OpenOptions)((uint32_t)a & (uint32_t)b);
-+}
-+
-+inline File::OpenOptions &operator|=(File::OpenOptions &a,
-+                                     File::OpenOptions b) {
-+  a = a | b;
-+  return a;
-+}
-+
- class NativeFile : public File {
+@@ -358,13 +367,13 @@ class NativeFile : public File {
  public:
    NativeFile()
        : m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
@@ -104,7 +105,7 @@ index b36b523e320..a4a24dbd3bb 100644
        : m_descriptor(fd), m_own_descriptor(transfer_ownership),
          m_stream(kInvalidStream), m_options(options), m_own_stream(false) {}
  
-@@ -401,7 +421,7 @@ protected:
+@@ -401,7 +410,7 @@ protected:
    int m_descriptor;
    bool m_own_descriptor;
    FILE *m_stream;
@@ -514,23 +515,25 @@ index c4169403982..c7349db7d97 100644
      err = 0;
      save_errno = error.GetError();
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 5346e3f5914..ed8221ea2e5 100644
+index 5346e3f5914..d07ab8c13f4 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -1090,8 +1090,10 @@ FileUP PythonFile::GetUnderlyingFile() const {
+@@ -1090,8 +1090,12 @@ FileUP PythonFile::GetUnderlyingFile() const {
    // File object knows about that.
    PythonString py_mode = GetAttributeValue("mode").AsType<PythonString>();
    auto options = File::GetOptionsFromMode(py_mode.GetString());
 -  auto file = std::unique_ptr<File>(
 -      new NativeFile(PyObject_AsFileDescriptor(m_py_obj), options, false));
-+  if (!options)
++  if (!options) {
++    llvm::consumeError(options.takeError());
 +    return nullptr;
++  }
 +  auto file = std::unique_ptr<File>(new NativeFile(
 +      PyObject_AsFileDescriptor(m_py_obj), options.get(), false));
    if (!file->IsValid())
      return nullptr;
    return file;
-@@ -1165,8 +1167,9 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1165,8 +1169,9 @@ std::error_code PythonException::convertToErrorCode() const {
  
  char PythonException::ID = 0;
  
@@ -542,7 +545,7 @@ index 5346e3f5914..ed8221ea2e5 100644
  #if PY_MAJOR_VERSION >= 3
    auto readable = As<bool>(obj.CallMethod("readable"));
    if (!readable)
-@@ -1245,7 +1248,7 @@ namespace {
+@@ -1245,7 +1250,7 @@ namespace {
  class SimplePythonFile : public OwnedPythonFile<NativeFile> {
  public:
    SimplePythonFile(const PythonFile &file, bool borrowed, int fd,
