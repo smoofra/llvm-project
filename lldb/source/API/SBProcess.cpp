@@ -355,13 +355,10 @@ void SBProcess::ReportEventState(const SBEvent &event, FileSP out) const {
 
   ProcessSP process_sp(GetSP());
   if (process_sp) {
+    StreamFile stream(out);
     const StateType event_state = SBProcess::GetStateFromEvent(event);
-    char message[1024];
-    size_t message_len = ::snprintf(
-        message, sizeof(message), "Process %" PRIu64 " %s\n",
+    stream.Printf("Process %" PRIu64 " %s\n",
         process_sp->GetID(), SBDebugger::StateAsCString(event_state));
-    if (message_len > 0)
-      out->Write((void *)message, message_len);
   }
 }
 

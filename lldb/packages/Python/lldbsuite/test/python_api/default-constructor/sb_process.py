@@ -14,7 +14,7 @@ def fuzz_obj(obj):
     event = lldb.SBEvent()
     try:
         obj.ReportEventState(event, None)
-    except TypeError:
+    except Exception:
         pass
     obj.AppendEventStateReport(event, lldb.SBCommandReturnObject())
     error = lldb.SBError()
