@@ -1,7 +1,7 @@
 Bottom: 0e42ab6587644d24794ab667802d4d0920bcd243
-Top:    e1403947a53b21688d3a14f84337a80f24d7dfad
+Top:    cf4b77651fadd2cc20d3b32f7ba5765de53f59ce
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-10 17:50:42 -0700
+Date:   2019-10-10 18:42:18 -0700
 
 uint32_t options -> File::OpenOptions options
 
@@ -26,21 +26,22 @@ index 77e1557cb91..712b289aa8d 100644
  
    StreamFile(FILE *fh, bool transfer_ownership);
 diff --git a/lldb/include/lldb/Host/File.h b/lldb/include/lldb/Host/File.h
-index b36b523e320..b9528b28f4c 100644
+index b36b523e320..a4a24dbd3bb 100644
 --- a/lldb/include/lldb/Host/File.h
 +++ b/lldb/include/lldb/Host/File.h
-@@ -35,6 +35,10 @@ public:
+@@ -35,6 +35,11 @@ public:
  
    // NB this enum is used in the lldb platform gdb-remote packet
    // vFile:open: and existing values cannot be modified.
 +  //
-+  // FIXME:  I don't think that is actually true.
-+  // These values do not match the values documented by GDB
-+  // https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
++  // FIXME
++  // These values do not match the values used by GDB
++  // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
++  // * rdar://problem/46788934
    enum OpenOptions {
      eOpenOptionRead = (1u << 0),  // Open file for reading
      eOpenOptionWrite = (1u << 1), // Open file for writing
-@@ -47,11 +51,12 @@ public:
+@@ -47,11 +52,12 @@ public:
          (1u << 6), // Can create file only if it doesn't already exist
      eOpenOptionDontFollowSymlinks = (1u << 7),
      eOpenOptionCloseOnExec =
@@ -56,7 +57,7 @@ index b36b523e320..b9528b28f4c 100644
    static bool DescriptorIsValid(int descriptor) { return descriptor >= 0; };
  
    File()
-@@ -354,6 +359,20 @@ private:
+@@ -354,17 +360,31 @@ private:
    DISALLOW_COPY_AND_ASSIGN(File);
  };
  
@@ -77,16 +78,21 @@ index b36b523e320..b9528b28f4c 100644
  class NativeFile : public File {
  public:
    NativeFile()
-@@ -364,7 +383,7 @@ public:
+       : m_descriptor(kInvalidDescriptor), m_own_descriptor(false),
+-        m_stream(kInvalidStream), m_options(0), m_own_stream(false) {}
++        m_stream(kInvalidStream), m_options(), m_own_stream(false) {}
+ 
+   NativeFile(FILE *fh, bool transfer_ownership)
        : m_descriptor(kInvalidDescriptor), m_own_descriptor(false), m_stream(fh),
-         m_options(0), m_own_stream(transfer_ownership) {}
+-        m_options(0), m_own_stream(transfer_ownership) {}
++        m_options(), m_own_stream(transfer_ownership) {}
  
 -  NativeFile(int fd, uint32_t options, bool transfer_ownership)
 +  NativeFile(int fd, OpenOptions options, bool transfer_ownership)
        : m_descriptor(fd), m_own_descriptor(transfer_ownership),
          m_stream(kInvalidStream), m_options(options), m_own_stream(false) {}
  
-@@ -401,7 +420,7 @@ protected:
+@@ -401,7 +421,7 @@ protected:
    int m_descriptor;
    bool m_own_descriptor;
    FILE *m_stream;
@@ -246,7 +252,7 @@ index d12541c9af5..2ddb39659d6 100644
    auto file = FileSystem::Instance().Open(FileSpec(path), options, permissions);
    if (file)
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
-index 6498ec5b57e..745fb9b3b13 100644
+index 6498ec5b57e..b9550d6a254 100644
 --- a/lldb/source/Host/common/File.cpp
 +++ b/lldb/source/Host/common/File.cpp
 @@ -37,8 +37,10 @@
@@ -343,6 +349,15 @@ index 6498ec5b57e..745fb9b3b13 100644
    m_own_stream = false;
    m_own_descriptor = false;
    m_is_interactive = eLazyBoolCalculate;
+@@ -315,7 +327,7 @@ FILE *NativeFile::TakeStreamAndClear() {
+   FILE *stream = GetStream();
+   m_stream = NULL;
+   m_descriptor = kInvalidDescriptor;
+-  m_options = 0;
++  m_options = OpenOptions();
+   m_own_stream = false;
+   m_own_descriptor = false;
+   m_is_interactive = m_supports_colors = m_is_real_terminal =
 @@ -724,7 +736,7 @@ size_t NativeFile::PrintfVarArg(const char *format, va_list args) {
    }
  }
@@ -457,22 +472,23 @@ index 898942bb545..574cd0fd70c 100644
  
    bool CloseFile(lldb::user_id_t fd, Status &error);
 diff --git a/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationServerCommon.cpp b/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationServerCommon.cpp
-index c4169403982..3ef4e89797f 100644
+index c4169403982..c7349db7d97 100644
 --- a/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationServerCommon.cpp
 +++ b/lldb/source/Plugins/Process/gdb-remote/GDBRemoteCommunicationServerCommon.cpp
-@@ -507,7 +507,10 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
+@@ -507,7 +507,11 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
    packet.GetHexByteStringTerminatedBy(path, ',');
    if (!path.empty()) {
      if (packet.GetChar() == ',') {
 -      uint32_t flags = packet.GetHexMaxU32(false, 0);
-+      // FIXME I don't think this actually works.  Our flags values
-+      // do not match the values documented by GDB.
-+      // https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
++      // FIXME
++      // The flag values for OpenOptions do not match the values used by GDB
++      // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
++      // * rdar://problem/46788934
 +      auto flags = File::OpenOptions(packet.GetHexMaxU32(false, 0));
        if (packet.GetChar() == ',') {
          mode_t mode = packet.GetHexMaxU32(false, 0600);
          FileSpec path_spec(path);
-@@ -546,7 +549,7 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Close(
+@@ -546,7 +550,7 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Close(
    int err = -1;
    int save_errno = 0;
    if (fd >= 0) {
