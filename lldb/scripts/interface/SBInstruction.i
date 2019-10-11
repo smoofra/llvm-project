@@ -60,7 +60,7 @@ public:
     Print (lldb::SBFile out);
 
     void
-    Print (lldb::FileSP &BORROWED);
+    Print (lldb::FileSP BORROWED);
 
     bool
     GetDescription (lldb::SBStream &description);
