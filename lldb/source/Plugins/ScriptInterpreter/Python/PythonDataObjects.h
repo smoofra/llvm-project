@@ -372,6 +372,7 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
 template <class T> class TypedPythonObject : public PythonObject {
 public:
   // override to perform implicit type conversions on Reset
+  // This can be eliminated once we drop python 2 support.
   static void Convert(PyRefType &type, PyObject *&py_obj) {}
 
   using PythonObject::Reset;
