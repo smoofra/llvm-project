@@ -1,5 +1,5 @@
 Version: 1
-Previous: 8c2e88b4f6cc8737f55b37e2d8aebab745ba38bb
+Previous: deadd9d18c32bcd26f018d0efc8aefe15aa1e742
 Head: 4c0caa35a6ac9b1d8ae47cc1d7baa21034adce17
 Applied:
   python-fix: a8cf4782884559be6d5b3e3159c5fe52ed27a106
@@ -13,6 +13,7 @@ Applied:
   SBStream: 158524b24152610e375e0510b5fc52af754a0afa
   update-scriptinterpreterpython: 93ad1c97ea9ad5cfe1fe85b4c24228cbd40d4651
   delete-swig-typemaps-for-file: 080c7338593983b54f909059c8ba1e5d8a20cff7
-  eliminate-virtual: 37192d2f8e932030f0e07a58113a44ad06d7a91d
+  eliminate-virtual-methods-from: 4c0caa35a6ac9b1d8ae47cc1d7baa21034adce17
 Unapplied:
+  eliminate-virtual: 37192d2f8e932030f0e07a58113a44ad06d7a91d
 Hidden:
