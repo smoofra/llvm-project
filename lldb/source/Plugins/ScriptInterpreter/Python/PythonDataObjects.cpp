@@ -330,14 +330,18 @@ void PythonString::Convert(PyRefType &type, PyObject *&py_obj) {
   // access to their underlying character buffers which Python 2 doesn't
   // provide.
   if (PyUnicode_Check(py_obj)) {
-    PyObject *s = PyUnicode_AsUTF8String(result.get());
+    PyObject *s = PyUnicode_AsUTF8String(py_obj);
     if (s == nullptr) {
       PyErr_Clear();
       if (type == PyRefType::Owned)
-        Py_DECREF(py_obj) return;
+        Py_DECREF(py_obj);
+      return;
     }
     if (type == PyRefType::Owned)
-      Py_DECREF(py_obj) else type = PyRefType::Owned py_obj = s;
+      Py_DECREF(py_obj);
+    else
+      type = PyRefType::Owned;
+    py_obj = s;
   }
 #endif
 }
@@ -434,13 +438,14 @@ void PythonInteger::Convert(PyRefType &type, PyObject *&py_obj) {
     if (l == nullptr) {
       PyErr_Clear();
       if (type == PyRefType::Owned)
-        Py_DECREF(py_obj) return;
+        Py_DECREF(py_obj);
+      return;
     }
     if (type == PyRefType::Owned)
-      PyDECREF(py_obj);
+      Py_DECREF(py_obj);
     else
       type = PyRefType::Owned;
-    py_obj = ;
+    py_obj = l;
   }
 #endif
 }
