@@ -1,0 +1,52 @@
+Bottom: e9368154deaa5d3f65c284ca6b98b8c6861bc6fa
+Top:    b191aa7dd67b836816c52534c54faad7720da8ab
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-12 14:45:14 -0700
+
+Refresh of eliminate-virtual-methods-from
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 8dcafd490bb..57743af3d01 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -330,14 +330,18 @@ void PythonString::Convert(PyRefType &type, PyObject *&py_obj) {
+   // access to their underlying character buffers which Python 2 doesn't
+   // provide.
+   if (PyUnicode_Check(py_obj)) {
+-    PyObject *s = PyUnicode_AsUTF8String(result.get());
++    PyObject *s = PyUnicode_AsUTF8String(py_obj);
+     if (s == nullptr) {
+       PyErr_Clear();
+       if (type == PyRefType::Owned)
+-        Py_DECREF(py_obj) return;
++        Py_DECREF(py_obj);
++      return;
+     }
+     if (type == PyRefType::Owned)
+-      Py_DECREF(py_obj) else type = PyRefType::Owned py_obj = s;
++      Py_DECREF(py_obj);
++    else
++      type = PyRefType::Owned;
++    py_obj = s;
+   }
+ #endif
+ }
+@@ -434,13 +438,14 @@ void PythonInteger::Convert(PyRefType &type, PyObject *&py_obj) {
+     if (l == nullptr) {
+       PyErr_Clear();
+       if (type == PyRefType::Owned)
+-        Py_DECREF(py_obj) return;
++        Py_DECREF(py_obj);
++      return;
+     }
+     if (type == PyRefType::Owned)
+-      PyDECREF(py_obj);
++      Py_DECREF(py_obj);
+     else
+       type = PyRefType::Owned;
+-    py_obj = ;
++    py_obj = l;
+   }
+ #endif
+ }
