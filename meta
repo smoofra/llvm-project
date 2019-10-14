@@ -1,15 +1,15 @@
 Version: 1
-Previous: 9077a93d94d5adbd41cdfc925140c15aa5b996af
-Head: 591766c9f1c8e1e9f90b3c7e11659c182ad32975
+Previous: 5b48b2db8bb8908e5e81fc90351e7bc8abaf8a1f
+Head: 0ea04f2195fc58fc1839754ce09e4c155c360771
 Applied:
   python-fix: 8c71ae54d2bdfa0600034d024e0ee34cf25cd1f0
   lldbpexpect-make-sure-term-is: a8d1693e2ce3283f3dc5d5e378d29e25e9c8fa0f
   stringliteral-intellisense: 6dc1e6661b010401bb3967f8cb1b2873ab6992a1
   convert-legacy: e006488a8bda5fbe922cf721016e7e78220a5be3
+  eliminate-virtual: 0ea04f2195fc58fc1839754ce09e4c155c360771
+Unapplied:
   GetFile: a0ffc4e2cb8f37aef23d3c954f873bb31b5ad5cc
   SBStream: d937a5425296b80d533fef0125f0e789b9217354
   update-scriptinterpreterpython: 565de53b5f35c7102337b1d7cefb427625bc5b34
   delete-swig-typemaps-for-file: 3a4c57124980a5c1d8074245701bc632bf346f0c
-  eliminate-virtual: 591766c9f1c8e1e9f90b3c7e11659c182ad32975
-Unapplied:
 Hidden:
