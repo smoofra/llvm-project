@@ -1,0 +1,21 @@
+Bottom: 9563bc711722f974e490d37137cf54eab08b9e39
+Top:    c3891dc28e9e1b2b6162dfa61feef2926dc054d3
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 15:33:27 -0700
+
+Refresh of eliminate-virtual
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index fda3a97ecb4..43ffd8d339b 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -630,6 +630,8 @@ class PythonFile : public TypedPythonObject<PythonFile> {
+ public:
+   using TypedPythonObject::TypedPythonObject;
+ 
++  PythonFile() : TypedPythonObject() {} // MSVC requires this for some reason
++
+   static bool Check(PyObject *py_obj);
+ 
+   static llvm::Expected<PythonFile> FromFile(File &file,
