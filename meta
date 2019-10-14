@@ -1,6 +1,6 @@
 Version: 1
-Previous: 2926c2f47ba8d6bd9f5f4f0a4854d562271bb8cc
-Head: f7e189fcd55dcf15bcde09ca70060f13663a9fd5
+Previous: b663cc589c44e04bc5349cb9c34de09cf2f0cee0
+Head: 0d8ae8d4d32343f634f02bc01f444afc7a5f985c
 Applied:
   python-fix: 2ac34e16b3175084b8d4bf5eb22b1c2e6dbf81a3
   lldbpexpect-make-sure-term-is: fabaedbb28d981d975a4f0603bce4751eae2cf91
@@ -14,6 +14,6 @@ Applied:
   update-scriptinterpreterpython: 64f347d62a9f1acc3b986dbd9850b701d4871944
   delete-swig-typemaps-for-file: 2dc57687346eb6b881728fdba9041bd7626e3cb5
   testfix: f7e189fcd55dcf15bcde09ca70060f13663a9fd5
+  eliminate-virtual: 0d8ae8d4d32343f634f02bc01f444afc7a5f985c
 Unapplied:
-  eliminate-virtual: ef6112b44005ad64dfc63fb278d4837c47102352
 Hidden:
