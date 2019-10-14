@@ -1,5 +1,5 @@
 Bottom: a73681dfc77ff77790d7ca7f44f5c96a1b37e0f3
-Top:    8646774ef03672e72266573e1728f99b922b33e4
+Top:    2fc65ed2c26a853418ee264c28748075a14b3454
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-12 00:24:39 -0700
 
@@ -520,7 +520,7 @@ index 0df99716a7e..57743af3d01 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 439c0fbe96c..321bb84d87d 100644
+index 439c0fbe96c..4138716e8d2 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -170,20 +170,15 @@ public:
@@ -658,7 +658,7 @@ index 439c0fbe96c..321bb84d87d 100644
  
    llvm::StringRef GetString() const; // safe, empty string on error
  
-@@ -455,20 +451,14 @@ public:
+@@ -455,20 +451,16 @@ public:
    StructuredData::StringSP CreateStructuredString() const;
  };
  
@@ -668,22 +668,24 @@ index 439c0fbe96c..321bb84d87d 100644
 -  PythonInteger();
 -  explicit PythonInteger(int64_t value);
 -  PythonInteger(PyRefType type, PyObject *o);
+-
+-  ~PythonInteger() override;
 +  using TypedPythonObject::TypedPythonObject;
  
--  ~PythonInteger() override;
-+  explicit PythonInteger(int64_t value);
+-  static bool Check(PyObject *py_obj);
++  PythonInteger() : TypedPythonObject() {} // MSVC requires this for some reason
  
-   static bool Check(PyObject *py_obj);
--
 -  // Bring in the no-argument base class version
 -  using PythonObject::Reset;
--
++  explicit PythonInteger(int64_t value);
+ 
 -  void Reset(PyRefType type, PyObject *py_obj) override;
++  static bool Check(PyObject *py_obj);
 +  static void Convert(PyRefType &type, PyObject *&py_obj);
  
    int64_t GetInteger() const;
  
-@@ -477,21 +467,14 @@ public:
+@@ -477,21 +469,14 @@ public:
    StructuredData::IntegerSP CreateStructuredInteger() const;
  };
  
@@ -708,7 +710,7 @@ index 439c0fbe96c..321bb84d87d 100644
    bool GetValue() const;
  
    void SetValue(bool value);
-@@ -499,22 +482,15 @@ public:
+@@ -499,22 +484,15 @@ public:
    StructuredData::BooleanSP CreateStructuredBoolean() const;
  };
  
@@ -734,7 +736,7 @@ index 439c0fbe96c..321bb84d87d 100644
    uint32_t GetSize() const;
  
    PythonObject GetItemAtIndex(uint32_t index) const;
-@@ -526,24 +502,17 @@ public:
+@@ -526,24 +504,17 @@ public:
    StructuredData::ArraySP CreateStructuredArray() const;
  };
  
@@ -762,7 +764,7 @@ index 439c0fbe96c..321bb84d87d 100644
    uint32_t GetSize() const;
  
    PythonObject GetItemAtIndex(uint32_t index) const;
-@@ -553,21 +522,14 @@ public:
+@@ -553,21 +524,14 @@ public:
    StructuredData::ArraySP CreateStructuredArray() const;
  };
  
@@ -787,7 +789,7 @@ index 439c0fbe96c..321bb84d87d 100644
    uint32_t GetSize() const;
  
    PythonList GetKeys() const;
-@@ -578,12 +540,9 @@ public:
+@@ -578,12 +542,9 @@ public:
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
  
@@ -802,7 +804,7 @@ index 439c0fbe96c..321bb84d87d 100644
  
    static bool Check(PyObject *py_obj);
  
-@@ -608,16 +567,13 @@ public:
+@@ -608,16 +569,13 @@ public:
  
    llvm::Expected<PythonObject> Get(const char *name);
  
@@ -822,7 +824,7 @@ index 439c0fbe96c..321bb84d87d 100644
    struct ArgInfo {
      size_t count;
      bool is_bound_method : 1;
-@@ -625,18 +581,8 @@ public:
+@@ -625,18 +583,8 @@ public:
      bool has_kwargs : 1;
    };
  
@@ -841,7 +843,7 @@ index 439c0fbe96c..321bb84d87d 100644
    ArgInfo GetNumArguments() const;
  
    // If the callable is a Py_Class, then find the number of arguments
-@@ -655,19 +601,12 @@ public:
+@@ -655,19 +603,12 @@ public:
    }
  };
  
