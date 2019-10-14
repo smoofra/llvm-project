@@ -1,0 +1,42 @@
+Bottom: 56b5f95537f04636712eed7df5269d0c2536cf8f
+Top:    a73681dfc77ff77790d7ca7f44f5c96a1b37e0f3
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 11:28:39 -0700
+
+Fix test breakage caused by r374424
+
+Summary:
+The build directory name is based on the test method name, so having
+two test methods with the same name in the same test file is a
+problem, even if they're in different test classes.
+
+On linux and darwin this conflict can go unnoticed, but windows
+has different filesystem semantics and it will fail when one
+process tries to delete files still held open by another.
+
+The problem is fixed just by changing the name of one of the test
+methods.
+
+Reviewers: JDevlieghere, jasonmolenda, labath, stella.stamenova
+
+Subscribers: lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D68951
+
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+index ede40134fe4..a32805bf859 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+@@ -30,7 +30,7 @@ class CommandRunInterpreterLegacyAPICase(TestBase):
+         self.dbg.SetErrorFileHandle (self.devnull, False)
+ 
+     @add_test_categories(['pyapi'])
+-    def test_run_session_with_error_and_quit(self):
++    def test_run_session_with_error_and_quit_legacy(self):
+         """Run non-existing and quit command returns appropriate values"""
+ 
+         n_errors, quit_requested, has_crashed = self.dbg.RunCommandInterpreter(
