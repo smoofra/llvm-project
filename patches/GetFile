@@ -1,5 +1,5 @@
-Bottom: ac8c5d14c7bbc9eb714bf5cff31f09ce9073deed
-Top:    46dd29deebfa1d68ca558c8f2ba41c5b5be9578e
+Bottom: 7742d25e9c513d588fdd6a0a9eb9c480e5769e19
+Top:    662635548ba8082608d5ac0d5e81c7b624844316
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-11 12:51:29 -0700
 
@@ -23,10 +23,10 @@ Differential Revision: https://reviews.llvm.org/D68737
 
 ---
 diff --git a/lldb/include/lldb/API/SBFile.h b/lldb/include/lldb/API/SBFile.h
-index 747e2eaad13..09218262faa 100644
+index 0dbf91439b4..7d6c1480992 100644
 --- a/lldb/include/lldb/API/SBFile.h
 +++ b/lldb/include/lldb/API/SBFile.h
-@@ -34,6 +34,8 @@ public:
+@@ -36,6 +36,8 @@ public:
    operator bool() const;
    bool operator!() const;
  
