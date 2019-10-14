@@ -1,0 +1,21 @@
+Bottom: 8646774ef03672e72266573e1728f99b922b33e4
+Top:    2fc65ed2c26a853418ee264c28748075a14b3454
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 11:56:22 -0700
+
+Refresh of eliminate-virtual
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 321bb84d87d..4138716e8d2 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -455,6 +455,8 @@ class PythonInteger : public TypedPythonObject<PythonInteger> {
+ public:
+   using TypedPythonObject::TypedPythonObject;
+ 
++  PythonInteger() : TypedPythonObject() {} // MSVC requires this for some reason
++
+   explicit PythonInteger(int64_t value);
+ 
+   static bool Check(PyObject *py_obj);
