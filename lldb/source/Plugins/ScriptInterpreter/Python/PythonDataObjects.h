@@ -507,6 +507,8 @@ class PythonList : public TypedPythonObject<PythonList> {
 public:
   using TypedPythonObject::TypedPythonObject;
 
+  PythonDictionary() : TypedPythonObject() {} // MSVC requires this for some reason
+
   explicit PythonList(PyInitialValue value);
   explicit PythonList(int list_size);
 
