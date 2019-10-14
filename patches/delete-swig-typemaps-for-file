@@ -1,5 +1,5 @@
-Bottom: 9a118c6f90ceb6350dbb2d9304744ab318760d4c
-Top:    66a5b7d8bae5936352af9dd532ef54be8c3a3a20
+Bottom: 4f6be75aacc1a1e5fd88a825bd4fdbb71d27f9e9
+Top:    d8a4588f4d20000d7728373f9018f4f6846d1d79
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 17:50:44 -0700
 
@@ -182,10 +182,10 @@ index f3d6e468df7..57743af3d01 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index fda3a97ecb4..fd63c53a451 100644
+index 43ffd8d339b..255fa06c057 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -635,20 +635,6 @@ public:
+@@ -637,20 +637,6 @@ public:
    static llvm::Expected<PythonFile> FromFile(File &file,
                                               const char *mode = nullptr);
  
