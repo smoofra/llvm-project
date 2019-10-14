@@ -1,9 +1,0 @@
-Bottom: 4f6be75aacc1a1e5fd88a825bd4fdbb71d27f9e9
-Top:    4f6be75aacc1a1e5fd88a825bd4fdbb71d27f9e9
-Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-03 21:37:08 -0700
-
-update ScriptInterpreterPython to use File, not FILE*
-
----
-
