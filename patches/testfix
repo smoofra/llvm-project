@@ -3,7 +3,15 @@ Top:    a73681dfc77ff77790d7ca7f44f5c96a1b37e0f3
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-14 11:28:39 -0700
 
-testfix
+Fix test breakage caused by r374424
+
+The build directory name is based on the test method name, so having
+two test methods with the same name in the same test file is a
+problem, even if they're in different test classes.
+
+The problem is fixed just by changing the name of one of the test
+methods.
+
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
