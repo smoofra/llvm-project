@@ -1,5 +1,5 @@
 Bottom: a73681dfc77ff77790d7ca7f44f5c96a1b37e0f3
-Top:    476553bc1bb8f081e0227040bc8d65ad39afa5d0
+Top:    9388f3c123b2256273500bebbb9028968387e1ed
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-12 00:24:39 -0700
 
@@ -520,7 +520,7 @@ index 0df99716a7e..57743af3d01 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 439c0fbe96c..3ee8bc607d7 100644
+index 439c0fbe96c..fd63c53a451 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -25,6 +25,25 @@
@@ -746,7 +746,7 @@ index 439c0fbe96c..3ee8bc607d7 100644
 -  PythonList() {}
 +  using TypedPythonObject::TypedPythonObject;
 +
-+  PythonDictionary() : TypedPythonObject() {} // MSVC requires this for some reason
++  PythonList() : TypedPythonObject() {} // MSVC requires this for some reason
 +
    explicit PythonList(PyInitialValue value);
    explicit PythonList(int list_size);
