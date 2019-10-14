@@ -630,6 +630,8 @@ class PythonFile : public TypedPythonObject<PythonFile> {
 public:
   using TypedPythonObject::TypedPythonObject;
 
+  PythonFile() : TypedPythonObject() {} // MSVC requires this for some reason
+
   static bool Check(PyObject *py_obj);
 
   static llvm::Expected<PythonFile> FromFile(File &file,
