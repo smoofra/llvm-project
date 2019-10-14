@@ -1,5 +1,5 @@
 Bottom: a73681dfc77ff77790d7ca7f44f5c96a1b37e0f3
-Top:    c3df7d1bab9d778696f8b44b7a3ebdfdc826d5d1
+Top:    8646774ef03672e72266573e1728f99b922b33e4
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-12 00:24:39 -0700
 
@@ -520,7 +520,7 @@ index 0df99716a7e..57743af3d01 100644
  class GIL {
  public:
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 439c0fbe96c..1fb3f05fcf9 100644
+index 439c0fbe96c..321bb84d87d 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -170,20 +170,15 @@ public:
@@ -556,19 +556,25 @@ index 439c0fbe96c..1fb3f05fcf9 100644
      if (py_obj == m_py_obj)
        return;
  
-@@ -376,22 +369,39 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
+@@ -376,21 +369,37 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
  
  } // namespace python
  
 -class PythonBytes : public PythonObject {
 +template <class T> class TypedPythonObject : public PythonObject {
  public:
+-  PythonBytes();
+-  explicit PythonBytes(llvm::ArrayRef<uint8_t> bytes);
+-  PythonBytes(const uint8_t *bytes, size_t length);
+-  PythonBytes(PyRefType type, PyObject *o);
 +  // override to perform implicit type conversions on Reset
 +  // This can be eliminated once we drop python 2 support.
 +  static void Convert(PyRefType &type, PyObject *&py_obj) {}
-+
+ 
+-  ~PythonBytes() override;
 +  using PythonObject::Reset;
-+
+ 
+-  static bool Check(PyObject *py_obj);
 +  void Reset(PyRefType type, PyObject *py_obj) {
 +    Reset();
 +    if (!py_obj)
@@ -579,41 +585,34 @@ index 439c0fbe96c..1fb3f05fcf9 100644
 +    else if (type == PyRefType::Owned)
 +      Py_DECREF(py_obj);
 +  }
-+
+ 
+-  // Bring in the no-argument base class version
+-  using PythonObject::Reset;
 +  TypedPythonObject(PyRefType type, PyObject *py_obj) { Reset(type, py_obj); }
-+
+ 
+-  void Reset(PyRefType type, PyObject *py_obj) override;
 +  TypedPythonObject() {}
 +};
 +
 +class PythonBytes : public TypedPythonObject<PythonBytes> {
 +public:
 +  using TypedPythonObject::TypedPythonObject;
-   PythonBytes();
-   explicit PythonBytes(llvm::ArrayRef<uint8_t> bytes);
-   PythonBytes(const uint8_t *bytes, size_t length);
--  PythonBytes(PyRefType type, PyObject *o);
--
--  ~PythonBytes() override;
++  explicit PythonBytes(llvm::ArrayRef<uint8_t> bytes);
++  PythonBytes(const uint8_t *bytes, size_t length);
++
++  static bool Check(PyObject *py_obj);
  
-   static bool Check(PyObject *py_obj);
- 
--  // Bring in the no-argument base class version
--  using PythonObject::Reset;
--
--  void Reset(PyRefType type, PyObject *py_obj) override;
--
    llvm::ArrayRef<uint8_t> GetBytes() const;
  
-   size_t GetSize() const;
-@@ -401,23 +411,16 @@ public:
+@@ -401,23 +410,15 @@ public:
    StructuredData::StringSP CreateStructuredString() const;
  };
  
 -class PythonByteArray : public PythonObject {
 +class PythonByteArray : public TypedPythonObject<PythonByteArray> {
  public:
+-  PythonByteArray();
 +  using TypedPythonObject::TypedPythonObject;
-   PythonByteArray();
    explicit PythonByteArray(llvm::ArrayRef<uint8_t> bytes);
    PythonByteArray(const uint8_t *bytes, size_t length);
 -  PythonByteArray(PyRefType type, PyObject *o);
@@ -631,7 +630,7 @@ index 439c0fbe96c..1fb3f05fcf9 100644
    llvm::ArrayRef<uint8_t> GetBytes() const;
  
    size_t GetSize() const;
-@@ -427,22 +430,15 @@ public:
+@@ -427,22 +428,17 @@ public:
    StructuredData::StringSP CreateStructuredString() const;
  };
  
@@ -642,10 +641,12 @@ index 439c0fbe96c..1fb3f05fcf9 100644
    static llvm::Expected<PythonString> FromUTF8(llvm::StringRef string);
  
 -  PythonString();
-   explicit PythonString(llvm::StringRef string); // safe, null on error
+-  explicit PythonString(llvm::StringRef string); // safe, null on error
 -  PythonString(PyRefType type, PyObject *o);
--
++  PythonString() : TypedPythonObject() {} // MSVC requires this for some reason
+ 
 -  ~PythonString() override;
++  explicit PythonString(llvm::StringRef string); // safe, null on error
  
    static bool Check(PyObject *py_obj);
 -
