@@ -901,6 +901,13 @@ class FileHandleTestCase(lldbtest.TestBase):
         with open(self.out_filename, 'r') as f:
             self.assertEqual(f.read().strip(), "zork")
 
+        with open(self.out_filename, 'w') as f:
+            stream = lldb.SBStream()
+            stream.RedirectToFileHandle(f, True)
+            stream.Print("Yendor")
+        with open(self.out_filename, 'r') as f:
+            self.assertEqual(f.read().strip(), "Yendor")
+
         stream = lldb.SBStream()
         f = open(self.out_filename,  'w')
         stream.RedirectToFile(lldb.SBFile.Create(f, borrow=False))
