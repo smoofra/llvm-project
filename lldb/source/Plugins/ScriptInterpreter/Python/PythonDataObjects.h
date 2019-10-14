@@ -396,7 +396,6 @@ public:
 class PythonBytes : public TypedPythonObject<PythonBytes> {
 public:
   using TypedPythonObject::TypedPythonObject;
-  PythonBytes();
   explicit PythonBytes(llvm::ArrayRef<uint8_t> bytes);
   PythonBytes(const uint8_t *bytes, size_t length);
 
@@ -414,7 +413,6 @@ public:
 class PythonByteArray : public TypedPythonObject<PythonByteArray> {
 public:
   using TypedPythonObject::TypedPythonObject;
-  PythonByteArray();
   explicit PythonByteArray(llvm::ArrayRef<uint8_t> bytes);
   PythonByteArray(const uint8_t *bytes, size_t length);
   PythonByteArray(const PythonBytes &object);
@@ -434,6 +432,8 @@ class PythonString : public TypedPythonObject<PythonString> {
 public:
   using TypedPythonObject::TypedPythonObject;
   static llvm::Expected<PythonString> FromUTF8(llvm::StringRef string);
+
+  PythonString() : TypedPythonObject() {} // MSVC requires this for some reason
 
   explicit PythonString(llvm::StringRef string); // safe, null on error
 
