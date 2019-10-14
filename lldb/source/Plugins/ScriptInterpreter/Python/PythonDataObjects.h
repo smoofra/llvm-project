@@ -25,6 +25,25 @@
 // Expected<> is considered deprecated and should not be
 // used in new code.  If you need to use it, fix it first.
 //
+//
+// TODOs for this file
+//
+// * Make all methods safe for exceptions.
+//
+// * Eliminate method signatures that must translate exceptions into
+//   empty objects or NULLs.   Almost everything here should return
+//   Expected<>.   It should be acceptable for certain operations that
+//   can never fail to assert instead, such as the creation of
+//   PythonString from a string literal.
+//
+// * Elimintate Reset(), and make all non-default constructors private.
+//   Python objects should be created with Retain<> or Take<>, and they
+//   should be assigned with operator=
+//
+// * Eliminate default constructors, make python objects always
+//   nonnull, and use optionals where necessary.
+//
+
 
 #ifndef LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
 #define LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_PYTHONDATAOBJECTS_H
@@ -527,6 +546,8 @@ public:
 class PythonDictionary : public TypedPythonObject<PythonDictionary> {
 public:
   using TypedPythonObject::TypedPythonObject;
+
+  PythonDictionary() : TypedPythonObject() {} // MSVC requires this for some reason
 
   explicit PythonDictionary(PyInitialValue value);
 
