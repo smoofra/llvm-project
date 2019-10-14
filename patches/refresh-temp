@@ -1,0 +1,21 @@
+Bottom: cb6807c784d47e5bbd5e39c38f4481ddf98c3f08
+Top:    c3df7d1bab9d778696f8b44b7a3ebdfdc826d5d1
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 11:28:45 -0700
+
+Refresh of testfix
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+index ede40134fe4..a32805bf859 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/interpreter/TestRunCommandInterpreterAPI.py
+@@ -30,7 +30,7 @@ class CommandRunInterpreterLegacyAPICase(TestBase):
+         self.dbg.SetErrorFileHandle (self.devnull, False)
+ 
+     @add_test_categories(['pyapi'])
+-    def test_run_session_with_error_and_quit(self):
++    def test_run_session_with_error_and_quit_legacy(self):
+         """Run non-existing and quit command returns appropriate values"""
+ 
+         n_errors, quit_requested, has_crashed = self.dbg.RunCommandInterpreter(
