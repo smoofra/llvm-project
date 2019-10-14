@@ -1,0 +1,36 @@
+Bottom: 20438721e64cbca0348912bff2d93794bd3aa1d8
+Top:    e18ea3610ebc1976db34a9e89f057691ed4deafc
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 16:13:20 -0700
+
+Refresh of SBStream
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 751b581ef38..94b16f7f88c 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -889,3 +889,23 @@ class FileHandleTestCase(lldbtest.TestBase):
+             sbf = self.debugger.GetInputFile()
+             if sys.version_info.major >= 3:
+                 self.assertEqual(sbf.GetFile().fileno(), 0)
++
++
++    @add_test_categories(['pyapi'])
++    def test_sbstream(self):
++
++        with open(self.out_filename, 'w') as f:
++            stream = lldb.SBStream()
++            stream.RedirectToFile(f)
++            stream.Print("zork")
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), "zork")
++
++        stream = lldb.SBStream()
++        f = open(self.out_filename,  'w')
++        stream.RedirectToFile(lldb.SBFile.Create(f, borrow=False))
++        stream.Print("Frobozz")
++        stream = None
++        self.assertTrue(f.closed)
++        with open(self.out_filename, 'r') as f:
++            self.assertEqual(f.read().strip(), "Frobozz")
