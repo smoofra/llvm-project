@@ -1,5 +1,5 @@
 Version: 1
-Previous: b098a60e50882849b37cc2f2563c0efca82d7493
+Previous: e2e1b6b022c1a821ca34082dfb7828aaa4e4150e
 Head: dfde97ad8acff3896e7ab596a6e1a432878adf8c
 Applied:
   python-fix: 2e7d09e6872a2a257afdd26f188ae6bdb520db40
@@ -10,6 +10,6 @@ Applied:
   eliminate-virtual: cd84d4ef4e1a48910fedac503df7ace9b5b561bb
   SBStream: b0fcdaa33350f714ea792a2eac5471b0c1df87e4
   ScriptInterpreterPython: 51734d7850ac0fc8bf954481f456dbb91bc04f91
-  delete-swig-typemaps-for-file-0: dfde97ad8acff3896e7ab596a6e1a432878adf8c
+  delete-swig-typemaps-for-file: dfde97ad8acff3896e7ab596a6e1a432878adf8c
 Unapplied:
 Hidden:
