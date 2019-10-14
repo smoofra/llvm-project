@@ -1,0 +1,20 @@
+Bottom: 82510143409a55e865536a973923dec88511b81b
+Top:    476553bc1bb8f081e0227040bc8d65ad39afa5d0
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-14 12:28:58 -0700
+
+Refresh of eliminate-virtual
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index cd0df108cc2..3ee8bc607d7 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -507,6 +507,8 @@ class PythonList : public TypedPythonObject<PythonList> {
+ public:
+   using TypedPythonObject::TypedPythonObject;
+ 
++  PythonDictionary() : TypedPythonObject() {} // MSVC requires this for some reason
++
+   explicit PythonList(PyInitialValue value);
+   explicit PythonList(int list_size);
