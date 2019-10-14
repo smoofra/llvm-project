@@ -1,5 +1,5 @@
 Bottom: 662635548ba8082608d5ac0d5e81c7b624844316
-Top:    9563bc711722f974e490d37137cf54eab08b9e39
+Top:    c3891dc28e9e1b2b6162dfa61feef2926dc054d3
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-12 00:24:39 -0700
 
@@ -520,7 +520,7 @@ index 60f000b0597..f3d6e468df7 100644
    if (!IsValid())
      return nullptr;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index b794810c1b7..fda3a97ecb4 100644
+index b794810c1b7..43ffd8d339b 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -25,6 +25,25 @@
@@ -615,8 +615,7 @@ index b794810c1b7..fda3a97ecb4 100644
 -  // Bring in the no-argument base class version
 -  using PythonObject::Reset;
 +  TypedPythonObject(PyRefType type, PyObject *py_obj) { Reset(type, py_obj); }
- 
--  void Reset(PyRefType type, PyObject *py_obj) override;
++
 +  TypedPythonObject() {}
 +};
 +
@@ -625,7 +624,8 @@ index b794810c1b7..fda3a97ecb4 100644
 +  using TypedPythonObject::TypedPythonObject;
 +  explicit PythonBytes(llvm::ArrayRef<uint8_t> bytes);
 +  PythonBytes(const uint8_t *bytes, size_t length);
-+
+ 
+-  void Reset(PyRefType type, PyObject *py_obj) override;
 +  static bool Check(PyObject *py_obj);
  
    llvm::ArrayRef<uint8_t> GetBytes() const;
@@ -802,13 +802,13 @@ index b794810c1b7..fda3a97ecb4 100644
 -  PythonDictionary() {}
 -  explicit PythonDictionary(PyInitialValue value);
 -  PythonDictionary(PyRefType type, PyObject *o);
--
--  ~PythonDictionary() override;
 +  using TypedPythonObject::TypedPythonObject;
  
--  static bool Check(PyObject *py_obj);
+-  ~PythonDictionary() override;
 +  PythonDictionary() : TypedPythonObject() {} // MSVC requires this for some reason
  
+-  static bool Check(PyObject *py_obj);
+-
 -  // Bring in the no-argument base class version
 -  using PythonObject::Reset;
 +  explicit PythonDictionary(PyInitialValue value);
@@ -872,7 +872,7 @@ index b794810c1b7..fda3a97ecb4 100644
    ArgInfo GetNumArguments() const;
  
    // If the callable is a Py_Class, then find the number of arguments
-@@ -655,19 +626,12 @@ public:
+@@ -655,19 +626,14 @@ public:
    }
  };
  
@@ -881,9 +881,10 @@ index b794810c1b7..fda3a97ecb4 100644
  public:
 -  PythonFile();
 -  PythonFile(PyRefType type, PyObject *o);
--
--  ~PythonFile() override;
 +  using TypedPythonObject::TypedPythonObject;
+ 
+-  ~PythonFile() override;
++  PythonFile() : TypedPythonObject() {} // MSVC requires this for some reason
  
    static bool Check(PyObject *py_obj);
  
