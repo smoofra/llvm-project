@@ -455,6 +455,8 @@ class PythonInteger : public TypedPythonObject<PythonInteger> {
 public:
   using TypedPythonObject::TypedPythonObject;
 
+  PythonInteger() : TypedPythonObject() {} // MSVC requires this for some reason
+
   explicit PythonInteger(int64_t value);
 
   static bool Check(PyObject *py_obj);
