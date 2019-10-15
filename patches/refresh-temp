@@ -1,0 +1,172 @@
+Bottom: cf24655a2795fa86d381c13e7f96cede6ef8aeb3
+Top:    0d40ecd98b0349c5ea813c2414c2f9d7d3ffee17
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 16:44:07 -0700
+
+Refresh of fix-argument-inspection-for
+
+---
+diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
+index 7d507b31c5c..b79c4331da7 100644
+--- a/lldb/scripts/Python/python-wrapper.swig
++++ b/lldb/scripts/Python/python-wrapper.swig
+@@ -696,15 +696,19 @@ LLDBSwigPythonCallCommand
+ 
+     // pass the pointer-to cmd_retobj_sb or watch the underlying object disappear from under you
+     // see comment above for SBCommandReturnObjectReleaser for further details
+-    auto argc = pfunc.GetNumArguments();
++    auto argc = pfunc.GetArgInfo();
++    if (!argc) {
++        llvm::consumeError(argc.takeError());
++        return false;
++    }
+     PythonObject debugger_arg(PyRefType::Owned, SBTypeToSWIGWrapper(debugger_sb));
+     PythonObject exe_ctx_arg(PyRefType::Owned, SBTypeToSWIGWrapper(exe_ctx_sb));
+     PythonObject cmd_retobj_arg(PyRefType::Owned, SBTypeToSWIGWrapper(&cmd_retobj_sb));
+ 
+-    if (argc.count == 5 || argc.is_bound_method || argc.has_varargs)
+-        pfunc(debugger_arg, PythonString(args), exe_ctx_arg, cmd_retobj_arg, dict);
+-    else
++    if (argc.get().max_positional_args < 5)
+         pfunc(debugger_arg, PythonString(args), cmd_retobj_arg, dict);
++    else
++        pfunc(debugger_arg, PythonString(args), exe_ctx_arg, cmd_retobj_arg, dict);
+ 
+     return true;
+ }
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 2011d13f1a0..aa5bf87e59d 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -880,20 +880,22 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+       As<bool>(pyarginfo.get().GetAttribute("is_bound_method"));
+   if (!is_method)
+     return is_method.takeError();
+-  result.is_bound_method = is_method.get();
++
++  result.max_positional_args = result.has_varargs ? INT_MAX : result.count;
+ 
+   // FIXME emulate old broken behavior
+-  if (result.is_bound_method)
++  if (is_method.get())
+     result.count++;
+ 
+ #else
+ 
++  bool is_bound_method = false;
+   PyObject *py_func_obj = m_py_obj;
+   if (PyMethod_Check(py_func_obj)) {
+     py_func_obj = PyMethod_GET_FUNCTION(py_func_obj);
+     PythonObject im_self = GetAttributeValue("im_self");
+     if (im_self.IsValid() && !im_self.IsNone())
+-      result.is_bound_method = true;
++      is_bound_method = true;
+   } else {
+     // see if this is a callable object with an __call__ method
+     if (!PyFunction_Check(py_func_obj)) {
+@@ -904,7 +906,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+           py_func_obj = PyMethod_GET_FUNCTION(__callable__.get());
+           PythonObject im_self = GetAttributeValue("im_self");
+           if (im_self.IsValid() && !im_self.IsNone())
+-            result.is_bound_method = true;
++            is_bound_method = true;
+         }
+       }
+     }
+@@ -920,6 +922,9 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+   result.count = code->co_argcount;
+   result.has_varargs = !!(code->co_flags & CO_VARARGS);
+ 
++  result.max_positional_args = result.has_varargs ? INT_MAX : result.count - (int)is_bound_method;
++
++
+ #endif
+ 
+   return result;
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 0da54f36a83..d63fc88a752 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -628,6 +628,10 @@ public:
+   using TypedPythonObject::TypedPythonObject;
+ 
+   struct ArgInfo {
++    /* the largest number of positional arguments this callable
++     * can accept, or INT_MAX if it's a varargs function and can
++     * accept an arbitrary number */
++    int max_positional_args;
+     /* the number of positional arguments, including optional ones,
+      * and excluding varargs.  If this is a bound method, then the
+      * count will still include a +1 for self.
+@@ -638,8 +642,6 @@ public:
+     int count;
+     /* does the callable have positional varargs? */
+     bool has_varargs : 1; // FIXME delete this
+-    /* is the callable a bound method written in python? */
+-    bool is_bound_method : 1; // FIXME delete this
+   };
+ 
+   static bool Check(PyObject *py_obj);
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index 6e1d7ab178e..2590a709515 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 1);
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+-    EXPECT_EQ(arginfo.get().is_bound_method, false);
+   }
+ 
+   {
+@@ -655,8 +655,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, 2);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+-    EXPECT_EQ(arginfo.get().is_bound_method, false);
+   }
+ 
+   {
+@@ -667,8 +667,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, INT_MAX);
+     EXPECT_EQ(arginfo.get().has_varargs, true);
+-    EXPECT_EQ(arginfo.get().is_bound_method, false);
+   }
+ 
+   {
+@@ -687,16 +687,16 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = bar_bound.get().GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
++    EXPECT_EQ(arginfo.get().max_positional_args, 1); // FIXME, wrong
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+-    EXPECT_EQ(arginfo.get().is_bound_method, true);
+ 
+     auto bar_unbound = As<PythonCallable>(globals.GetItem("bar_unbound"));
+     ASSERT_THAT_EXPECTED(bar_unbound, llvm::Succeeded());
+     arginfo = bar_unbound.get().GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, 2);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+-    EXPECT_EQ(arginfo.get().is_bound_method, false);
+   }
+ 
+ #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
+@@ -710,8 +710,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = hex.get().GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 1);
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+-    EXPECT_EQ(arginfo.get().is_bound_method, false);
+   }
+ 
+ #endif
