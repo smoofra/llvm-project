@@ -16,11 +16,24 @@ class CmdPythonTestCase(TestBase):
     NO_DEBUG_INFO_TESTCASE = True
 
     def test(self):
-        self.build()
+        #self.build()
         self.pycmd_tests()
 
     def pycmd_tests(self):
         self.runCmd("command source py_import")
+
+        self.expect("foobar", substrs=["All good"])
+        self.expect("foobar4", substrs=["All good"])
+        self.expect("vfoobar", substrs=["All good"])
+        self.expect("v5foobar", substrs=["All good"])
+        self.expect("sfoobar", substrs=["All good"])
+        self.expect("cfoobar", substrs=["All good"])
+        self.expect("ifoobar", substrs=["All good"])
+        self.expect("sfoobar4", substrs=["All good"])
+        self.expect("cfoobar4", substrs=["All good"])
+        self.expect("ifoobar4", substrs=["All good"])
+
+        return
 
         # Verify command that specifies eCommandRequiresTarget returns failure
         # without a target.
