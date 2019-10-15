@@ -778,7 +778,10 @@ class FileHandleTestCase(lldbtest.TestBase):
             self.assertTrue(status.Success())
             self.handleCmd(r"script sys.stdout.write('foobar\n')")
         with open(self.out_filename, 'r') as f:
-            # python2 returns None from write, python3 returns 7
+            # In python2 sys.stdout.write() returns None, which
+            # the REPL will ignore, but in python3 it will
+            # return the number of bytes written, which the REPL
+            # will print out.
             lines = [x for x in f.read().strip().split() if x != "7"]
             self.assertEqual(lines, ["foobar"])
 
