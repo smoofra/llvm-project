@@ -1,0 +1,23 @@
+Bottom: 1ccd37c62004f3d7568938aa674de5242fcdeebb
+Top:    1ccd37c62004f3d7568938aa674de5242fcdeebb
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 08:36:36 -0700
+
+clean up the implementation of PythonCallable::GetNumArguments
+
+The current implementation of PythonCallable::GetNumArguments 
+is not exception safe, has weird semantics, and is just plain 
+incorrect for some kinds of functions.
+
+Python 3.3 introduces inspect.signature, which lets us easily 
+query for function signatures in a sane and documented way.
+
+This patch leaves the old implementation in place for < 3.3, 
+but uses inspect.signature for modern pythons.   It also leaves
+the old weird semantics in place, but with FIXMEs grousing about 
+it.   We should update the callers and fix the semantics in a
+subsequent patch.    It also adds some tests.
+
+
+---
+

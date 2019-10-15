@@ -1,6 +1,6 @@
 Version: 1
-Previous: 33771b34e4cc110c53364581aab82d3525335c37
-Head: f9dbc4066ce696bda18e372cafe73660ba4ed794
+Previous: 35d2a2ff66ae35d3ed4dd2410fe6d770a237b5ef
+Head: 42ba082f32ac50ce5b0894cfddfa4a499531963b
 Applied:
   python-fix: 2e7d09e6872a2a257afdd26f188ae6bdb520db40
   lldbpexpect-make-sure-term-is: bef8b1f0ce14b90b4b43ca7bddbebbc9c4e4df65
@@ -11,5 +11,6 @@ Applied:
   SBStream: 0270b7070d4ff3f9281ac5e4212847e4f067f20a
   ScriptInterpreterPython: 6426ecb30688c3b748fcca204f0ea4bd34005c0b
   delete-swig-typemaps-for-file: f9dbc4066ce696bda18e372cafe73660ba4ed794
+  clean-up-the-implementation-of: 42ba082f32ac50ce5b0894cfddfa4a499531963b
 Unapplied:
 Hidden:
