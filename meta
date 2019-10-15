@@ -1,6 +1,6 @@
 Version: 1
-Previous: 50aafae0e08512654029d436f7cf5b0138621112
-Head: 91e23ea6f5af153add7e4cb215af41554240ccec
+Previous: 6acecfa2c3e282dd0fb891f2e2a0f3752e171c8c
+Head: 2a8a2d4ee253e21d8051f58a33b7ff9fd7ed2f57
 Applied:
   python-fix: 4489b1b1ed22eb5e3707a400c20e321fbd1358c6
   lldbpexpect-make-sure-term-is: 09346abeb71f8e3af60121b904ca8e9c1dc35eba
@@ -10,7 +10,6 @@ Applied:
   inspect-tests: fff62237cea5953a39a59aecdf130bdc565f0aa2
   inspect: 3205efbbab70ec7a04da7e23a408430bb39a8b0d
   test: ed6a0fb41e6f506f4a71507b538ac75141e59ce3
-  fix-argument-inspection-for: c8bdc6a3485fb559a5fef697e663634083367670
-  refresh-temp: 91e23ea6f5af153add7e4cb215af41554240ccec
+  fix-argument-inspection-for: 2a8a2d4ee253e21d8051f58a33b7ff9fd7ed2f57
 Unapplied:
 Hidden:
