@@ -1,5 +1,5 @@
 Bottom: 1ccd37c62004f3d7568938aa674de5242fcdeebb
-Top:    cc9d98ab4d4db208232055463a8a9f8fc3e0d538
+Top:    59623211c49af3da876fbd7b924c6a330300e9d6
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 08:36:36 -0700
 
@@ -21,7 +21,7 @@ subsequent patch.    It also adds some tests.
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 8c0618cd91a..879632cec7e 100644
+index 8c0618cd91a..2011d13f1a0 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -47,6 +47,20 @@ Expected<long long> python::As<long long>(Expected<PythonObject> &&obj) {
@@ -45,7 +45,7 @@ index 8c0618cd91a..879632cec7e 100644
  void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
    s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
  }
-@@ -657,16 +671,58 @@ PythonList PythonDictionary::GetKeys() const {
+@@ -657,16 +671,62 @@ PythonList PythonDictionary::GetKeys() const {
  }
  
  PythonObject PythonDictionary::GetItemForKey(const PythonObject &key) const {
@@ -65,9 +65,11 @@ index 8c0618cd91a..879632cec7e 100644
 +PythonDictionary::GetItem(const PythonObject &key) const {
 +  if (!IsValid())
 +    return nullDeref();
-+  PyObject *o = PyDict_GetItem(m_py_obj, key.get());
-+  if (!o)
++  PyObject *o = PyDict_GetItemWithError(m_py_obj, key.get());
++  if (PyErr_Occurred())
 +    return exception();
++  if (!o)
++    return keyError();
 +  return Retain<PythonObject>(o);
 +}
 +
@@ -75,8 +77,10 @@ index 8c0618cd91a..879632cec7e 100644
 +  if (!IsValid())
 +    return nullDeref();
 +  PyObject *o = PyDict_GetItemString(m_py_obj, key);
-+  if (!o)
++  if (PyErr_Occurred())
 +    return exception();
++  if (!o)
++    return keyError();
 +  return Retain<PythonObject>(o);
 +}
 +
@@ -110,7 +114,7 @@ index 8c0618cd91a..879632cec7e 100644
  }
  
  StructuredData::DictionarySP
-@@ -736,23 +792,97 @@ bool PythonCallable::Check(PyObject *py_obj) {
+@@ -736,23 +796,97 @@ bool PythonCallable::Check(PyObject *py_obj) {
  }
  
  PythonCallable::ArgInfo PythonCallable::GetNumInitArguments() const {
@@ -221,7 +225,7 @@ index 8c0618cd91a..879632cec7e 100644
  
    PyObject *py_func_obj = m_py_obj;
    if (PyMethod_Check(py_func_obj)) {
-@@ -785,10 +915,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
+@@ -785,10 +919,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
  
    result.count = code->co_argcount;
    result.has_varargs = !!(code->co_flags & CO_VARARGS);
@@ -245,10 +249,21 @@ index 8c0618cd91a..879632cec7e 100644
    return PythonObject(PyRefType::Owned, PyObject_CallObject(m_py_obj, nullptr));
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 255fa06c057..637d91d1c01 100644
+index 255fa06c057..0da54f36a83 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -328,6 +328,21 @@ public:
+@@ -309,6 +309,10 @@ protected:
+   static llvm::Error exception(const char *s = nullptr) {
+     return llvm::make_error<PythonException>(s);
+   }
++  static llvm::Error keyError() {
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "key not in dict");
++  }
+ 
+ public:
+   template <typename... T>
+@@ -328,6 +332,21 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
@@ -270,7 +285,7 @@ index 255fa06c057..637d91d1c01 100644
    llvm::Expected<PythonObject> GetAttribute(const char *name) const {
      if (!m_py_obj)
        return nullDeref();
-@@ -386,6 +401,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
+@@ -386,6 +405,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
  template <>
  llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
  
@@ -280,7 +295,7 @@ index 255fa06c057..637d91d1c01 100644
  } // namespace python
  
  template <class T> class TypedPythonObject : public PythonObject {
-@@ -559,8 +577,14 @@ public:
+@@ -559,8 +581,14 @@ public:
  
    PythonList GetKeys() const;
  
@@ -297,7 +312,7 @@ index 255fa06c057..637d91d1c01 100644
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -600,19 +624,31 @@ public:
+@@ -600,19 +628,31 @@ public:
    using TypedPythonObject::TypedPythonObject;
  
    struct ArgInfo {
