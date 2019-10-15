@@ -1,0 +1,53 @@
+Bottom: cc9d98ab4d4db208232055463a8a9f8fc3e0d538
+Top:    59623211c49af3da876fbd7b924c6a330300e9d6
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 08:49:31 -0700
+
+Refresh of clean-up-the-implementation-of
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 879632cec7e..2011d13f1a0 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -683,9 +683,11 @@ Expected<PythonObject>
+ PythonDictionary::GetItem(const PythonObject &key) const {
+   if (!IsValid())
+     return nullDeref();
+-  PyObject *o = PyDict_GetItem(m_py_obj, key.get());
+-  if (!o)
++  PyObject *o = PyDict_GetItemWithError(m_py_obj, key.get());
++  if (PyErr_Occurred())
+     return exception();
++  if (!o)
++    return keyError();
+   return Retain<PythonObject>(o);
+ }
+ 
+@@ -693,8 +695,10 @@ Expected<PythonObject> PythonDictionary::GetItem(const char *key) const {
+   if (!IsValid())
+     return nullDeref();
+   PyObject *o = PyDict_GetItemString(m_py_obj, key);
+-  if (!o)
++  if (PyErr_Occurred())
+     return exception();
++  if (!o)
++    return keyError();
+   return Retain<PythonObject>(o);
+ }
+ 
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 637d91d1c01..0da54f36a83 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -309,6 +309,10 @@ protected:
+   static llvm::Error exception(const char *s = nullptr) {
+     return llvm::make_error<PythonException>(s);
+   }
++  static llvm::Error keyError() {
++    return llvm::createStringError(llvm::inconvertibleErrorCode(),
++                                   "key not in dict");
++  }
+ 
+ public:
+   template <typename... T>
