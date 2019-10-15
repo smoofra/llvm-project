@@ -309,6 +309,10 @@ protected:
   static llvm::Error exception(const char *s = nullptr) {
     return llvm::make_error<PythonException>(s);
   }
+  static llvm::Error keyError() {
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "key not in dict");
+  }
 
 public:
   template <typename... T>
@@ -322,6 +326,21 @@ public:
 #else
     PyObject *obj =
         PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
+#endif
+    if (!obj)
+      return exception();
+    return python::Take<PythonObject>(obj);
+  }
+
+  template <typename... T>
+  llvm::Expected<PythonObject> Call(const T &... t) const {
+    const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
+#if PY_MAJOR_VERSION < 3
+    PyObject *obj = PyObject_CallFunction(m_py_obj, const_cast<char *>(format),
+                                          PythonFormat<T>::get(t)...);
+#else
+    PyObject *obj =
+        PyObject_CallFunction(m_py_obj, format, PythonFormat<T>::get(t)...);
 #endif
     if (!obj)
       return exception();
@@ -385,6 +404,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
 
 template <>
 llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
+
+template <>
+llvm::Expected<std::string> As<std::string>(llvm::Expected<PythonObject> &&obj);
 
 } // namespace python
 
@@ -559,8 +581,14 @@ public:
 
   PythonList GetKeys() const;
 
-  PythonObject GetItemForKey(const PythonObject &key) const;
-  void SetItemForKey(const PythonObject &key, const PythonObject &value);
+  PythonObject GetItemForKey(const PythonObject &key) const; // DEPRECATED
+  void SetItemForKey(const PythonObject &key,
+                     const PythonObject &value); // DEPRECATED
+
+  llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
+  llvm::Expected<PythonObject> GetItem(const char *key) const;
+  llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
+  llvm::Error SetItem(const char *key, const PythonObject &value) const;
 
   StructuredData::DictionarySP CreateStructuredDictionary() const;
 };
@@ -600,19 +628,31 @@ public:
   using TypedPythonObject::TypedPythonObject;
 
   struct ArgInfo {
-    size_t count;
-    bool is_bound_method : 1;
-    bool has_varargs : 1;
-    bool has_kwargs : 1;
+    /* the number of positional arguments, including optional ones,
+     * and excluding varargs.  If this is a bound method, then the
+     * count will still include a +1 for self.
+     *
+     * FIXME. That's crazy.  This should be replaced with
+     * an accurate min and max for positional args.
+     */
+    int count;
+    /* does the callable have positional varargs? */
+    bool has_varargs : 1; // FIXME delete this
+    /* is the callable a bound method written in python? */
+    bool is_bound_method : 1; // FIXME delete this
   };
 
   static bool Check(PyObject *py_obj);
 
-  ArgInfo GetNumArguments() const;
+  llvm::Expected<ArgInfo> GetArgInfo() const;
+
+  llvm::Expected<ArgInfo> GetInitArgInfo() const;
+
+  ArgInfo GetNumArguments() const; // DEPRECATED
 
   // If the callable is a Py_Class, then find the number of arguments
   // of the __init__ method.
-  ArgInfo GetNumInitArguments() const;
+  ArgInfo GetNumInitArguments() const; // DEPRECATED
 
   PythonObject operator()();
 
