@@ -1,0 +1,42 @@
+Bottom: f4aa4caa961a7e7ea0ea50e1cd1c0fc6cd291feb
+Top:    a9507643c40f8d4e5dd703fcee1c231a92c2b1db
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 05:32:19 -0700
+
+Refresh of GetFile
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index e229afc6faf..1bd002e6bb7 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -778,7 +778,10 @@ class FileHandleTestCase(lldbtest.TestBase):
+             self.assertTrue(status.Success())
+             self.handleCmd(r"script sys.stdout.write('foobar\n')")
+         with open(self.out_filename, 'r') as f:
+-            # python2 returns None from write, python3 returns 7
++            # In python2 sys.stdout.write() returns None, which
++            # the REPL will ignore, but in python3 it will
++            # return the number of bytes written, which the REPL
++            # will print out.
+             lines = [x for x in f.read().strip().split() if x != "7"]
+             self.assertEqual(lines, ["foobar"])
+ 
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 60f000b0597..4d77e552246 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1573,10 +1573,10 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+ #else
+   // Read through the Python source, doesn't seem to modify these strings
+   char *cmode = const_cast<char *>(mode);
+-  // Borrow the FILE*, the lldb_private::File still owns it
+-  auto close = [](FILE *f) -> int { fflush(f); return 0; };
++  // We pass ::flush instead of ::fclose here so we borrow the FILE* --
++  // the lldb_private::File still owns it.
+   file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, close);
++      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, ::fflush);
+ #endif
+ 
+   if (!file_obj)
