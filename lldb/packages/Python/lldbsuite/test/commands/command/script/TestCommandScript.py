@@ -4,7 +4,7 @@ Test lldb Python commands.
 
 from __future__ import print_function
 
-
+import sys
 import lldb
 from lldbsuite.test.decorators import *
 from lldbsuite.test.lldbtest import *
@@ -21,6 +21,26 @@ class CmdPythonTestCase(TestBase):
 
     def pycmd_tests(self):
         self.runCmd("command source py_import")
+
+        if sys.version_info[:2] >= (3, 3) or sys.version_info.major < 3:
+            # Test a bunch of different kinds of python callables with
+            # both 4 and 5 positional arguments.
+            #
+            # This uses inspect.signature to get the right answer, which
+            # was introduced in python 3.3
+            #
+            # The old method without inspect.signature seems to actually be
+            # correct for python 2
+            self.expect("foobar", substrs=["All good"])
+            self.expect("foobar4", substrs=["All good"])
+            self.expect("vfoobar", substrs=["All good"])
+            self.expect("v5foobar", substrs=["All good"])
+            self.expect("sfoobar", substrs=["All good"])
+            self.expect("cfoobar", substrs=["All good"])
+            self.expect("ifoobar", substrs=["All good"])
+            self.expect("sfoobar4", substrs=["All good"])
+            self.expect("cfoobar4", substrs=["All good"])
+            self.expect("ifoobar4", substrs=["All good"])
 
         # Verify command that specifies eCommandRequiresTarget returns failure
         # without a target.
