@@ -16,12 +16,14 @@ class CmdPythonTestCase(TestBase):
     NO_DEBUG_INFO_TESTCASE = True
 
     def test(self):
-        #self.build()
+        self.build()
         self.pycmd_tests()
 
     def pycmd_tests(self):
         self.runCmd("command source py_import")
 
+        # test a bunch of different kinds of python callables with
+        # both 4 and 5 positional arguments
         self.expect("foobar", substrs=["All good"])
         self.expect("foobar4", substrs=["All good"])
         self.expect("vfoobar", substrs=["All good"])
@@ -32,8 +34,6 @@ class CmdPythonTestCase(TestBase):
         self.expect("sfoobar4", substrs=["All good"])
         self.expect("cfoobar4", substrs=["All good"])
         self.expect("ifoobar4", substrs=["All good"])
-
-        return
 
         # Verify command that specifies eCommandRequiresTarget returns failure
         # without a target.
