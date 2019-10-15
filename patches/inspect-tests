@@ -1,9 +1,125 @@
 Bottom: b806ede0d21dd1132f8c3f40f6373ad556dae968
-Top:    b806ede0d21dd1132f8c3f40f6373ad556dae968
+Top:    a685b78c1d5018d7bf1464a9cfb74271c806dad8
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 16:19:33 -0700
 
 inspect-tests
 
 ---
-
+diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
+index 6531cd67279..88669374f77 100644
+--- a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
++++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
+@@ -16,12 +16,25 @@ class CmdPythonTestCase(TestBase):
+     NO_DEBUG_INFO_TESTCASE = True
+ 
+     def test(self):
+-        self.build()
++        #self.build()
+         self.pycmd_tests()
+ 
+     def pycmd_tests(self):
+         self.runCmd("command source py_import")
+ 
++        self.expect("foobar", substrs=["All good"])
++        self.expect("foobar4", substrs=["All good"])
++        self.expect("vfoobar", substrs=["All good"])
++        self.expect("v5foobar", substrs=["All good"])
++        self.expect("sfoobar", substrs=["All good"])
++        self.expect("cfoobar", substrs=["All good"])
++        self.expect("ifoobar", substrs=["All good"])
++        self.expect("sfoobar4", substrs=["All good"])
++        self.expect("cfoobar4", substrs=["All good"])
++        self.expect("ifoobar4", substrs=["All good"])
++
++        return
++
+         # Verify command that specifies eCommandRequiresTarget returns failure
+         # without a target.
+         self.expect('targetname',
+diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py
+new file mode 100644
+index 00000000000..56bc97414d1
+--- /dev/null
++++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py
+@@ -0,0 +1,56 @@
++
++from __future__ import print_function
++
++import lldb
++
++# bunch of different kinds of python callables that should
++# all work as commands.
++
++def check(debugger, command, context, result, internal_dict):
++    if (not isinstance(debugger, lldb.SBDebugger) or
++        not isinstance(command, str) or
++        not isinstance(result, lldb.SBCommandReturnObject) or
++        not isinstance(internal_dict, dict) or
++        (not context is None and
++        not isinstance(context, lldb.SBExecutionContext))):
++      raise Exception()
++    result.AppendMessage("All good.")
++
++def vfoobar(*args):
++    check(*args)
++
++def v5foobar(debugger, command, context, result, internal_dict, *args):
++    check(debugger, command, context, result, internal_dict)
++
++def foobar(debugger, command, context, result, internal_dict):
++    check(debugger, command, context, result, internal_dict)
++
++def foobar4(debugger, command, result, internal_dict):
++    check(debugger, command, None, result, internal_dict)
++
++class FooBar:
++    @staticmethod
++    def sfoobar(debugger, command, context, result, internal_dict):
++      check(debugger, command, context, result, internal_dict)
++
++    @classmethod
++    def cfoobar(cls, debugger, command, context, result, internal_dict):
++      check(debugger, command, context, result, internal_dict)
++
++    def ifoobar(self, debugger, command, context, result, internal_dict):
++      check(debugger, command, context, result, internal_dict)
++
++    @staticmethod
++    def sfoobar4(debugger, command, result, internal_dict):
++      check(debugger, command, None, result, internal_dict)
++
++    @classmethod
++    def cfoobar4(cls, debugger, command, result, internal_dict):
++      check(debugger, command, None, result, internal_dict)
++
++    def ifoobar4(self, debugger, command, result, internal_dict):
++      check(debugger, command, None, result, internal_dict)
++
++
++FooBarObj = FooBar()
++
+diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
+index 6c1f7b8185f..dd95d355255 100644
+--- a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
++++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
+@@ -11,3 +11,19 @@ command script add tell_async --function welcome.check_for_synchro --synchronici
+ command script add tell_curr --function welcome.check_for_synchro --synchronicity curr
+ command script add takes_exe_ctx --function welcome.takes_exe_ctx
+ command script import decorated.py
++
++
++command script import callables.py
++
++command script add -f callables.foobar foobar
++command script add -f callables.foobar4 foobar4
++command script add -f callables.vfoobar vfoobar
++command script add -f callables.v5foobar v5foobar
++
++command script add -f callables.FooBar.sfoobar sfoobar
++command script add -f callables.FooBar.cfoobar cfoobar
++command script add -f callables.FooBarObj.ifoobar ifoobar
++
++command script add -f callables.FooBar.sfoobar4 sfoobar4
++command script add -f callables.FooBar.cfoobar4 cfoobar4
++command script add -f callables.FooBarrObj.ifoobar4 ifoobar4
