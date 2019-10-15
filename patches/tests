@@ -1,7 +1,7 @@
 Bottom: b806ede0d21dd1132f8c3f40f6373ad556dae968
-Top:    a685b78c1d5018d7bf1464a9cfb74271c806dad8
+Top:    9cfa4fa85c18cd844d467064f8617d4f0a3d6f38
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-15 16:19:33 -0700
+Date:   2019-10-15 16:44:31 -0700
 
 inspect-tests
 
@@ -100,7 +100,7 @@ index 00000000000..56bc97414d1
 +FooBarObj = FooBar()
 +
 diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
-index 6c1f7b8185f..dd95d355255 100644
+index 6c1f7b8185f..1026fd58f65 100644
 --- a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
 +++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
 @@ -11,3 +11,19 @@ command script add tell_async --function welcome.check_for_synchro --synchronici
@@ -122,4 +122,4 @@ index 6c1f7b8185f..dd95d355255 100644
 +
 +command script add -f callables.FooBar.sfoobar4 sfoobar4
 +command script add -f callables.FooBar.cfoobar4 cfoobar4
-+command script add -f callables.FooBarrObj.ifoobar4 ifoobar4
++command script add -f callables.FooBarObj.ifoobar4 ifoobar4
