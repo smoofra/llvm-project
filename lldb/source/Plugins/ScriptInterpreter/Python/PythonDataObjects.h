@@ -309,6 +309,10 @@ protected:
   static llvm::Error exception(const char *s = nullptr) {
     return llvm::make_error<PythonException>(s);
   }
+  static llvm::Error keyError() {
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "key not in dict");
+  }
 
 public:
   template <typename... T>

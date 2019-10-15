@@ -683,9 +683,11 @@ Expected<PythonObject>
 PythonDictionary::GetItem(const PythonObject &key) const {
   if (!IsValid())
     return nullDeref();
-  PyObject *o = PyDict_GetItem(m_py_obj, key.get());
-  if (!o)
+  PyObject *o = PyDict_GetItemWithError(m_py_obj, key.get());
+  if (PyErr_Occurred())
     return exception();
+  if (!o)
+    return keyError();
   return Retain<PythonObject>(o);
 }
 
@@ -693,8 +695,10 @@ Expected<PythonObject> PythonDictionary::GetItem(const char *key) const {
   if (!IsValid())
     return nullDeref();
   PyObject *o = PyDict_GetItemString(m_py_obj, key);
-  if (!o)
+  if (PyErr_Occurred())
     return exception();
+  if (!o)
+    return keyError();
   return Retain<PythonObject>(o);
 }
 
