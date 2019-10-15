@@ -1,13 +1,13 @@
 Version: 1
-Previous: 04355c1263516abd386f22f5fb95afa12419a6c3
-Head: c1157d1e77c30f9431e09e599afbb788d5894910
+Previous: d5dbe73f9329672e74182c89aa49ec53f4ac7412
+Head: 5a615dafb10b3aed29744e89600d6d6a0f92d59f
 Applied:
+  python-fix: 4489b1b1ed22eb5e3707a400c20e321fbd1358c6
+  lldbpexpect-make-sure-term-is: 09346abeb71f8e3af60121b904ca8e9c1dc35eba
+  stringliteral-intellisense: 5653a1a70fc221694bb223de65074b864d2a1227
+  SBStream: 5ae4b1ee68b33367672975fb184d58e085e25ab4
+  ScriptInterpreterPython: 6850c5de34af425ecb7014f976bdf3ebfe39d99f
+  delete-swig-typemaps-for-file: a89e216aa8fb20df23b0ead3f84d50c3ce908abb
+  inspect: 5a615dafb10b3aed29744e89600d6d6a0f92d59f
 Unapplied:
-  python-fix: 664fd8d7bd5dcc4594080155407c7d520b2c8ee0
-  lldbpexpect-make-sure-term-is: 9794c7dba09ab3016ac10d4c8b507e22f86a5eb7
-  stringliteral-intellisense: ff0591539b7db11a7b0f1c1010abb4e1016a8939
-  SBStream: 37299ab8fd99d839137e4b13b7637b0426b38b3a
-  ScriptInterpreterPython: e6e4aea93ea0b7f4005ec3628a80c7f4ef1cc9f4
-  delete-swig-typemaps-for-file: a2703f0795a48176eca179278cd74d5235f204bc
-  inspect: 675a15fb1895a381c83289c881a9b0985f221c2d
 Hidden:
