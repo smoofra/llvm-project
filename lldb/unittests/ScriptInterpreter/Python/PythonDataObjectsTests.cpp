@@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
     EXPECT_EQ(arginfo.get().has_varargs, false);
-    EXPECT_EQ(arginfo.get().is_bound_method, false);
   }
 
   {
@@ -655,8 +655,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2);
     EXPECT_EQ(arginfo.get().has_varargs, false);
-    EXPECT_EQ(arginfo.get().is_bound_method, false);
   }
 
   {
@@ -667,8 +667,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, INT_MAX);
     EXPECT_EQ(arginfo.get().has_varargs, true);
-    EXPECT_EQ(arginfo.get().is_bound_method, false);
   }
 
   {
@@ -687,16 +687,16 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = bar_bound.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
+    EXPECT_EQ(arginfo.get().max_positional_args, 1); // FIXME, wrong
     EXPECT_EQ(arginfo.get().has_varargs, false);
-    EXPECT_EQ(arginfo.get().is_bound_method, true);
 
     auto bar_unbound = As<PythonCallable>(globals.GetItem("bar_unbound"));
     ASSERT_THAT_EXPECTED(bar_unbound, llvm::Succeeded());
     arginfo = bar_unbound.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2);
     EXPECT_EQ(arginfo.get().has_varargs, false);
-    EXPECT_EQ(arginfo.get().is_bound_method, false);
   }
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
@@ -710,8 +710,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = hex.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
     EXPECT_EQ(arginfo.get().has_varargs, false);
-    EXPECT_EQ(arginfo.get().is_bound_method, false);
   }
 
 #endif
