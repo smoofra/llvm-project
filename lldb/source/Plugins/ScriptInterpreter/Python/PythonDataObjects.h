@@ -628,6 +628,10 @@ public:
   using TypedPythonObject::TypedPythonObject;
 
   struct ArgInfo {
+    /* the largest number of positional arguments this callable
+     * can accept, or INT_MAX if it's a varargs function and can
+     * accept an arbitrary number */
+    int max_positional_args;
     /* the number of positional arguments, including optional ones,
      * and excluding varargs.  If this is a bound method, then the
      * count will still include a +1 for self.
@@ -638,8 +642,6 @@ public:
     int count;
     /* does the callable have positional varargs? */
     bool has_varargs : 1; // FIXME delete this
-    /* is the callable a bound method written in python? */
-    bool is_bound_method : 1; // FIXME delete this
   };
 
   static bool Check(PyObject *py_obj);
