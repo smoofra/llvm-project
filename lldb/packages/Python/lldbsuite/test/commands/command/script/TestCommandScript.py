@@ -22,6 +22,19 @@ class CmdPythonTestCase(TestBase):
     def pycmd_tests(self):
         self.runCmd("command source py_import")
 
+        # test a bunch of different kinds of python callables with
+        # both 4 and 5 positional arguments
+        self.expect("foobar", substrs=["All good"])
+        self.expect("foobar4", substrs=["All good"])
+        self.expect("vfoobar", substrs=["All good"])
+        self.expect("v5foobar", substrs=["All good"])
+        self.expect("sfoobar", substrs=["All good"])
+        self.expect("cfoobar", substrs=["All good"])
+        self.expect("ifoobar", substrs=["All good"])
+        self.expect("sfoobar4", substrs=["All good"])
+        self.expect("cfoobar4", substrs=["All good"])
+        self.expect("ifoobar4", substrs=["All good"])
+
         # Verify command that specifies eCommandRequiresTarget returns failure
         # without a target.
         self.expect('targetname',
