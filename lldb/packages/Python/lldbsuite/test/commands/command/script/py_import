@@ -26,4 +26,4 @@ command script add -f callables.FooBarObj.ifoobar ifoobar
 
 command script add -f callables.FooBar.sfoobar4 sfoobar4
 command script add -f callables.FooBar.cfoobar4 cfoobar4
-command script add -f callables.FooBarrObj.ifoobar4 ifoobar4
+command script add -f callables.FooBarObj.ifoobar4 ifoobar4
