@@ -1,0 +1,9 @@
+Bottom: cf24655a2795fa86d381c13e7f96cede6ef8aeb3
+Top:    cf24655a2795fa86d381c13e7f96cede6ef8aeb3
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 16:43:42 -0700
+
+fix argument inspection for script commands
+
+---
+
