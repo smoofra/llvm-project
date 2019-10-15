@@ -974,7 +974,6 @@ void Debugger::AdoptTopIOHandlerFilesIfInvalid(FileSP &in, StreamFileSP &out,
   IOHandlerSP top_reader_sp(m_input_reader_stack.Top());
   // If no STDIN has been set, then set it appropriately
   if (!in || !in->IsValid()) {
-    in.reset();
     if (top_reader_sp)
       in = top_reader_sp->GetInputFileSP();
     else
@@ -985,7 +984,6 @@ void Debugger::AdoptTopIOHandlerFilesIfInvalid(FileSP &in, StreamFileSP &out,
   }
   // If no STDOUT has been set, then set it appropriately
   if (!out || !out->GetFile().IsValid()) {
-    out.reset();
     if (top_reader_sp)
       out = top_reader_sp->GetOutputStreamFileSP();
     else
@@ -996,7 +994,6 @@ void Debugger::AdoptTopIOHandlerFilesIfInvalid(FileSP &in, StreamFileSP &out,
   }
   // If no STDERR has been set, then set it appropriately
   if (!err || !err->GetFile().IsValid()) {
-    err.reset();
     if (top_reader_sp)
       err = top_reader_sp->GetErrorStreamFileSP();
     else
