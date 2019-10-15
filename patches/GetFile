@@ -1,5 +1,5 @@
 Bottom: 02405754e4b0b21e97cdb0464a89b9a922a0a5a3
-Top:    f4aa4caa961a7e7ea0ea50e1cd1c0fc6cd291feb
+Top:    a9507643c40f8d4e5dd703fcee1c231a92c2b1db
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-11 12:51:29 -0700
 
@@ -100,10 +100,10 @@ index 444e7099bce..106482582fc 100644
  protected:
    bool DescriptorIsValid() const {
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 577c6b3e88f..e229afc6faf 100644
+index 577c6b3e88f..1bd002e6bb7 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -772,7 +772,18 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -772,7 +772,21 @@ class FileHandleTestCase(lldbtest.TestBase):
  
  
      @add_test_categories(['pyapi'])
@@ -114,7 +114,10 @@ index 577c6b3e88f..e229afc6faf 100644
 +            self.assertTrue(status.Success())
 +            self.handleCmd(r"script sys.stdout.write('foobar\n')")
 +        with open(self.out_filename, 'r') as f:
-+            # python2 returns None from write, python3 returns 7
++            # In python2 sys.stdout.write() returns None, which
++            # the REPL will ignore, but in python3 it will
++            # return the number of bytes written, which the REPL
++            # will print out.
 +            lines = [x for x in f.read().strip().split() if x != "7"]
 +            self.assertEqual(lines, ["foobar"])
 +
@@ -123,7 +126,7 @@ index 577c6b3e88f..e229afc6faf 100644
      @skipIf(py_version=['<', (3,)])
      def test_identity(self):
  
-@@ -826,3 +837,22 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -826,3 +840,22 @@ class FileHandleTestCase(lldbtest.TestBase):
  
          with open(self.out_filename, 'r') as f:
              self.assertEqual("foobar", f.read().strip())
@@ -269,7 +272,7 @@ index 2b096abdf0c..0f335bd02f7 100644
 +char File::ID = 0;
 +char NativeFile::ID = 0;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index c3588f6ec33..60f000b0597 100644
+index c3588f6ec33..4d77e552246 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -22,6 +22,7 @@
@@ -393,10 +396,10 @@ index c3588f6ec33..60f000b0597 100644
 +#else
 +  // Read through the Python source, doesn't seem to modify these strings
 +  char *cmode = const_cast<char *>(mode);
-+  // Borrow the FILE*, the lldb_private::File still owns it
-+  auto close = [](FILE *f) -> int { fflush(f); return 0; };
++  // We pass ::flush instead of ::fclose here so we borrow the FILE* --
++  // the lldb_private::File still owns it.
 +  file_obj =
-+      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, close);
++      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, ::fflush);
 +#endif
 +
 +  if (!file_obj)
