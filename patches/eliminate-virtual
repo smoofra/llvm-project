@@ -1,5 +1,5 @@
-Bottom: 662635548ba8082608d5ac0d5e81c7b624844316
-Top:    c3891dc28e9e1b2b6162dfa61feef2926dc054d3
+Bottom: c3201d7f7bf8bae38051df174299d2faf516605f
+Top:    45da0e729fe910381d57d008c479334da063160f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-12 00:24:39 -0700
 
@@ -23,7 +23,7 @@ Differential Revision: https://reviews.llvm.org/D68918
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 60f000b0597..f3d6e468df7 100644
+index 4d77e552246..e2112b15008 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -213,43 +213,19 @@ StructuredData::ObjectSP PythonObject::CreateStructuredObject() const {

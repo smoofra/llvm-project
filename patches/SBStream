@@ -1,5 +1,5 @@
-Bottom: c3891dc28e9e1b2b6162dfa61feef2926dc054d3
-Top:    00ecb33c93e6fbbc084cf1873f2ad7d1e670cdff
+Bottom: 45da0e729fe910381d57d008c479334da063160f
+Top:    7a0b72ed7dc967da0529163f10d748cb4ed0c85a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-19 16:15:52 -0700
 
@@ -37,10 +37,10 @@ index 8afbf457562..b78c498e5f3 100644
  
    void RedirectToFileDescriptor(int fd, bool transfer_fh_ownership);
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 751b581ef38..5438cdba890 100644
+index c9c55b458b4..6b17b07218c 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -889,3 +889,30 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -892,3 +892,30 @@ class FileHandleTestCase(lldbtest.TestBase):
              sbf = self.debugger.GetInputFile()
              if sys.version_info.major >= 3:
                  self.assertEqual(sbf.GetFile().fileno(), 0)
