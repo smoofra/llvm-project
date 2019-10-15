@@ -1,7 +1,7 @@
 Bottom: 2f080735673a6696b802bf24908cd556471fa1e6
-Top:    0b35b22bbbd77aebce3e818801ba936237a2a08e
+Top:    af5187f447613229124b9c59879663f9274b0a12
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-03 21:37:08 -0700
+Date:   2019-10-15 12:04:26 -0700
 
 update ScriptInterpreterPython to use File, not FILE*
 
@@ -32,7 +32,6 @@ Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68962
 
-
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 index 6b17b07218c..5a75187262a 100644
@@ -58,16 +57,15 @@ index 6b17b07218c..5a75187262a 100644
          debugger = self.debugger
          f = io.StringIO()
 diff --git a/lldb/source/Core/Debugger.cpp b/lldb/source/Core/Debugger.cpp
-index 6a3604c098d..dbc8e3be834 100644
+index 6a3604c098d..18397d00dca 100644
 --- a/lldb/source/Core/Debugger.cpp
 +++ b/lldb/source/Core/Debugger.cpp
-@@ -973,34 +973,34 @@ void Debugger::AdoptTopIOHandlerFilesIfInvalid(FileSP &in, StreamFileSP &out,
+@@ -973,34 +973,31 @@ void Debugger::AdoptTopIOHandlerFilesIfInvalid(FileSP &in, StreamFileSP &out,
    std::lock_guard<std::recursive_mutex> guard(m_input_reader_stack.GetMutex());
    IOHandlerSP top_reader_sp(m_input_reader_stack.Top());
    // If no STDIN has been set, then set it appropriately
 -  if (!in) {
 +  if (!in || !in->IsValid()) {
-+    in.reset();
      if (top_reader_sp)
        in = top_reader_sp->GetInputFileSP();
      else
@@ -80,7 +78,6 @@ index 6a3604c098d..dbc8e3be834 100644
    // If no STDOUT has been set, then set it appropriately
 -  if (!out) {
 +  if (!out || !out->GetFile().IsValid()) {
-+    out.reset();
      if (top_reader_sp)
        out = top_reader_sp->GetOutputStreamFileSP();
      else
@@ -93,7 +90,6 @@ index 6a3604c098d..dbc8e3be834 100644
    // If no STDERR has been set, then set it appropriately
 -  if (!err) {
 +  if (!err || !err->GetFile().IsValid()) {
-+    err.reset();
      if (top_reader_sp)
        err = top_reader_sp->GetErrorStreamFileSP();
      else
