@@ -834,7 +834,7 @@ def get_arg_info(f):
         elif kind == Parameter.VAR_POSITIONAL:
             varargs = True
         elif kind in (Parameter.KEYWORD_ONLY,
-                      Parameter.KEYWORD_ONLY):
+                      Parameter.VAR_KEYWORD):
             pass
         else:
             raise Exception(f'unknown parameter kind: {kind}')

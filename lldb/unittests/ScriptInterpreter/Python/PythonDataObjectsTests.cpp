@@ -660,6 +660,18 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
   }
 
   {
+    PyObject *o = PyRun_String("lambda x,y=0, **kw: x", Py_eval_input,
+                               globals.get(), globals.get());
+    ASSERT_FALSE(o == NULL);
+    auto lambda = Take<PythonCallable>(o);
+    auto arginfo = lambda.GetArgInfo();
+    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+    EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
+    EXPECT_EQ(arginfo.get().has_varargs, false);
+  }
+
+  {
     PyObject *o = PyRun_String("lambda x,y,*a: x", Py_eval_input, globals.get(),
                                globals.get());
     ASSERT_FALSE(o == NULL);
@@ -669,6 +681,19 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     EXPECT_EQ(arginfo.get().count, 2);
     EXPECT_EQ(arginfo.get().has_varargs, true);
     EXPECT_EQ(arginfo.get().is_bound_method, false);
+  }
+
+  {
+    PyObject *o = PyRun_String("lambda x,y,*a,**kw: x", Py_eval_input,
+                               globals.get(), globals.get());
+    ASSERT_FALSE(o == NULL);
+    auto lambda = Take<PythonCallable>(o);
+    auto arginfo = lambda.GetArgInfo();
+    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+    EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args,
+              PythonCallable::ArgInfo::UNBOUNDED);
+    EXPECT_EQ(arginfo.get().has_varargs, true);
   }
 
   {
