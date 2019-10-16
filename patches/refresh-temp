@@ -1,0 +1,59 @@
+Bottom: a4d386fc22076f54793e3a7f911b42942d729481
+Top:    ee3eb95074ddf5e284104775524da98213fe495b
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-15 17:35:27 -0700
+
+Refresh of inspect-cmd
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
+index 852e54cbd60..448ce402cc6 100644
+--- a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
++++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
+@@ -4,7 +4,7 @@ Test lldb Python commands.
+ 
+ from __future__ import print_function
+ 
+-
++import sys
+ import lldb
+ from lldbsuite.test.decorators import *
+ from lldbsuite.test.lldbtest import *
+@@ -22,18 +22,25 @@ class CmdPythonTestCase(TestBase):
+     def pycmd_tests(self):
+         self.runCmd("command source py_import")
+ 
+-        # test a bunch of different kinds of python callables with
+-        # both 4 and 5 positional arguments
+-        self.expect("foobar", substrs=["All good"])
+-        self.expect("foobar4", substrs=["All good"])
+-        self.expect("vfoobar", substrs=["All good"])
+-        self.expect("v5foobar", substrs=["All good"])
+-        self.expect("sfoobar", substrs=["All good"])
+-        self.expect("cfoobar", substrs=["All good"])
+-        self.expect("ifoobar", substrs=["All good"])
+-        self.expect("sfoobar4", substrs=["All good"])
+-        self.expect("cfoobar4", substrs=["All good"])
+-        self.expect("ifoobar4", substrs=["All good"])
++        if sys.version_info[:2] >= (3, 3) or sys.version_info.major < 3:
++            # Test a bunch of different kinds of python callables with
++            # both 4 and 5 positional arguments.
++            #
++            # This uses inspect.signature to get the right answer, which
++            # was introduced in python 3.3
++            #
++            # The old method without inspect.signature seems to actually be
++            # correct for python 2
++            self.expect("foobar", substrs=["All good"])
++            self.expect("foobar4", substrs=["All good"])
++            self.expect("vfoobar", substrs=["All good"])
++            self.expect("v5foobar", substrs=["All good"])
++            self.expect("sfoobar", substrs=["All good"])
++            self.expect("cfoobar", substrs=["All good"])
++            self.expect("ifoobar", substrs=["All good"])
++            self.expect("sfoobar4", substrs=["All good"])
++            self.expect("cfoobar4", substrs=["All good"])
++            self.expect("ifoobar4", substrs=["All good"])
+ 
+         # Verify command that specifies eCommandRequiresTarget returns failure
+         # without a target.
