@@ -314,19 +314,20 @@ protected:
                                    "key not in dict");
   }
 
+#if PY_MAJOR_VERSION < 3
+  static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
+#else
+  static const char *py2_const_cast(const char *s) { return s; }
+#endif
+
 public:
   template <typename... T>
   llvm::Expected<PythonObject> CallMethod(const char *name,
                                           const T &... t) const {
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
-#if PY_MAJOR_VERSION < 3
-    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
-                                        const_cast<char *>(format),
-                                        PythonFormat<T>::get(t)...);
-#else
     PyObject *obj =
-        PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
-#endif
+        PyObject_CallMethod(m_py_obj, py2_const_cast(name),
+                            py2_const_cast(format), PythonFormat<T>::get(t)...);
     if (!obj)
       return exception();
     return python::Take<PythonObject>(obj);
@@ -335,13 +336,8 @@ public:
   template <typename... T>
   llvm::Expected<PythonObject> Call(const T &... t) const {
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
-#if PY_MAJOR_VERSION < 3
-    PyObject *obj = PyObject_CallFunction(m_py_obj, const_cast<char *>(format),
+    PyObject *obj = PyObject_CallFunction(m_py_obj, py2_const_cast(format),
                                           PythonFormat<T>::get(t)...);
-#else
-    PyObject *obj =
-        PyObject_CallFunction(m_py_obj, format, PythonFormat<T>::get(t)...);
-#endif
     if (!obj)
       return exception();
     return python::Take<PythonObject>(obj);
