@@ -1,5 +1,5 @@
 Bottom: d764b96f530a896538a143efcdeae83ebabed172
-Top:    a252766949eb9893bc9e9e238a57429a8de31310
+Top:    8a6bf8c67a10f7034bbc269b77f0426b3313a8b2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 16:48:26 -0700
 
@@ -253,7 +253,7 @@ index 71be92cc534..5adce7aba96 100644
    auto arginfo = GetArgInfo();
    if (!arginfo) {
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 0da54f36a83..163a6c54946 100644
+index 0da54f36a83..853e6cb5f7f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -628,6 +628,11 @@ public:
@@ -261,8 +261,8 @@ index 0da54f36a83..163a6c54946 100644
  
    struct ArgInfo {
 +    /* the largest number of positional arguments this callable
-+     * can accept, or INT_MAX if it's a varargs function and can
-+     * accept an arbitrary number */
++     * can accept, or UNBOUNDED, ie UINT_MAX if it's a varargs
++     * function and can accept an arbitrary number */
 +    unsigned max_positional_args;
 +    static constexpr unsigned UNBOUNDED = UINT_MAX; // FIXME c++17 inline
      /* the number of positional arguments, including optional ones,
