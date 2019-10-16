@@ -683,9 +683,13 @@ Expected<PythonObject>
 PythonDictionary::GetItem(const PythonObject &key) const {
   if (!IsValid())
     return nullDeref();
+#if PY_MAJOR_VERSION >= 3
   PyObject *o = PyDict_GetItemWithError(m_py_obj, key.get());
   if (PyErr_Occurred())
     return exception();
+#else
+  PyObject *o = PyDict_GetItem(m_py_obj, key.get());
+#endif
   if (!o)
     return keyError();
   return Retain<PythonObject>(o);
