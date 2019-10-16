@@ -41,6 +41,8 @@ class CmdPythonTestCase(TestBase):
             self.expect("sfoobar4", substrs=["All good"])
             self.expect("cfoobar4", substrs=["All good"])
             self.expect("ifoobar4", substrs=["All good"])
+            self.expect("ofoobar", substrs=["All good"])
+            self.expect("ofoobar4", substrs=["All good"])
 
         # Verify command that specifies eCommandRequiresTarget returns failure
         # without a target.

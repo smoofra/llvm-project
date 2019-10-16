@@ -40,6 +40,9 @@ class FooBar:
     def ifoobar(self, debugger, command, context, result, internal_dict):
       check(debugger, command, context, result, internal_dict)
 
+    def __call__(self, debugger, command, context, result, internal_dict):
+      check(debugger, command, context, result, internal_dict)
+
     @staticmethod
     def sfoobar4(debugger, command, result, internal_dict):
       check(debugger, command, None, result, internal_dict)
@@ -51,6 +54,10 @@ class FooBar:
     def ifoobar4(self, debugger, command, result, internal_dict):
       check(debugger, command, None, result, internal_dict)
 
+class FooBar4:
+    def __call__(self, debugger, command, result, internal_dict):
+      check(debugger, command, None, result, internal_dict)
 
 FooBarObj = FooBar()
 
+FooBar4Obj = FooBar4()

@@ -675,7 +675,18 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     const char *script = "class Foo: \n"
                          "  def bar(self, x):\n"
                          "     return x \n"
+                         "  @classmethod \n"
+                         "  def classbar(cls, x):\n"
+                         "     return x \n"
+                         "  @staticmethod \n"
+                         "  def staticbar(x):\n"
+                         "     return x \n"
+                         "  def __call__(self, x): \n"
+                         "     return x \n"
+                         "obj = Foo() \n"
                          "bar_bound   = Foo().bar \n"
+                         "bar_class   = Foo().classbar \n"
+                         "bar_static  = Foo().staticbar \n"
                          "bar_unbound = Foo.bar \n";
     PyObject *o =
         PyRun_String(script, Py_file_input, globals.get(), globals.get());
@@ -687,7 +698,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = bar_bound.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
-    EXPECT_EQ(arginfo.get().max_positional_args, 1); // FIXME, wrong
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
     EXPECT_EQ(arginfo.get().has_varargs, false);
 
     auto bar_unbound = As<PythonCallable>(globals.GetItem("bar_unbound"));
@@ -696,6 +707,27 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
     EXPECT_EQ(arginfo.get().max_positional_args, 2);
+    EXPECT_EQ(arginfo.get().has_varargs, false);
+
+    auto bar_class = As<PythonCallable>(globals.GetItem("bar_class"));
+    ASSERT_THAT_EXPECTED(bar_class, llvm::Succeeded());
+    arginfo = bar_class.get().GetArgInfo();
+    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().has_varargs, false);
+
+    auto bar_static = As<PythonCallable>(globals.GetItem("bar_static"));
+    ASSERT_THAT_EXPECTED(bar_static, llvm::Succeeded());
+    arginfo = bar_static.get().GetArgInfo();
+    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().has_varargs, false);
+
+    auto obj = As<PythonCallable>(globals.GetItem("obj"));
+    ASSERT_THAT_EXPECTED(obj, llvm::Succeeded());
+    arginfo = obj.get().GetArgInfo();
+    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+    EXPECT_EQ(arginfo.get().max_positional_args, 1);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 

@@ -892,7 +892,6 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
     result.count++;
 
 #else
-
   bool is_bound_method = false;
   PyObject *py_func_obj = m_py_obj;
   if (PyMethod_Check(py_func_obj)) {
@@ -908,7 +907,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
         auto __callable__ = __call__.AsType<PythonCallable>();
         if (__callable__.IsValid()) {
           py_func_obj = PyMethod_GET_FUNCTION(__callable__.get());
-          PythonObject im_self = GetAttributeValue("im_self");
+          PythonObject im_self = __callable__.GetAttributeValue("im_self");
           if (im_self.IsValid() && !im_self.IsNone())
             is_bound_method = true;
         }
@@ -925,9 +924,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
 
   result.count = code->co_argcount;
   result.has_varargs = !!(code->co_flags & CO_VARARGS);
-
-  result.max_positional_args = result.has_varargs ? INT_MAX : result.count - (int)is_bound_method;
-
+  result.max_positional_args =
+      result.has_varargs ? INT_MAX : (result.count - (int)is_bound_method);
 
 #endif
 
