@@ -1,5 +1,5 @@
 Bottom: d764b96f530a896538a143efcdeae83ebabed172
-Top:    3c7997cdf795cc5c1e9e4299a6a6dc1b4eeacde7
+Top:    3274b21e1af0a86c3b468828ac15d56ccc6488ad
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 16:48:26 -0700
 
@@ -31,7 +31,7 @@ Differential Revision: https://reviews.llvm.org/D69014
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
-index 6531cd67279..448ce402cc6 100644
+index 6531cd67279..673fc8d40e1 100644
 --- a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
 +++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
 @@ -4,7 +4,7 @@ Test lldb Python commands.
@@ -43,7 +43,7 @@ index 6531cd67279..448ce402cc6 100644
  import lldb
  from lldbsuite.test.decorators import *
  from lldbsuite.test.lldbtest import *
-@@ -22,6 +22,26 @@ class CmdPythonTestCase(TestBase):
+@@ -22,6 +22,28 @@ class CmdPythonTestCase(TestBase):
      def pycmd_tests(self):
          self.runCmd("command source py_import")
  
@@ -66,16 +66,18 @@ index 6531cd67279..448ce402cc6 100644
 +            self.expect("sfoobar4", substrs=["All good"])
 +            self.expect("cfoobar4", substrs=["All good"])
 +            self.expect("ifoobar4", substrs=["All good"])
++            self.expect("ofoobar", substrs=["All good"])
++            self.expect("ofoobar4", substrs=["All good"])
 +
          # Verify command that specifies eCommandRequiresTarget returns failure
          # without a target.
          self.expect('targetname',
 diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py
 new file mode 100644
-index 00000000000..56bc97414d1
+index 00000000000..21e599b82e5
 --- /dev/null
 +++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/callables.py
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,63 @@
 +
 +from __future__ import print_function
 +
@@ -118,6 +120,9 @@ index 00000000000..56bc97414d1
 +    def ifoobar(self, debugger, command, context, result, internal_dict):
 +      check(debugger, command, context, result, internal_dict)
 +
++    def __call__(self, debugger, command, context, result, internal_dict):
++      check(debugger, command, context, result, internal_dict)
++
 +    @staticmethod
 +    def sfoobar4(debugger, command, result, internal_dict):
 +      check(debugger, command, None, result, internal_dict)
@@ -129,14 +134,19 @@ index 00000000000..56bc97414d1
 +    def ifoobar4(self, debugger, command, result, internal_dict):
 +      check(debugger, command, None, result, internal_dict)
 +
++class FooBar4:
++    def __call__(self, debugger, command, result, internal_dict):
++      check(debugger, command, None, result, internal_dict)
 +
 +FooBarObj = FooBar()
 +
++FooBar4Obj = FooBar4()
+\ No newline at end of file
 diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
-index 6c1f7b8185f..1026fd58f65 100644
+index 6c1f7b8185f..4372d32b0ad 100644
 --- a/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
 +++ b/lldb/packages/Python/lldbsuite/test/commands/command/script/py_import
-@@ -11,3 +11,19 @@ command script add tell_async --function welcome.check_for_synchro --synchronici
+@@ -11,3 +11,22 @@ command script add tell_async --function welcome.check_for_synchro --synchronici
  command script add tell_curr --function welcome.check_for_synchro --synchronicity curr
  command script add takes_exe_ctx --function welcome.takes_exe_ctx
  command script import decorated.py
@@ -156,6 +166,9 @@ index 6c1f7b8185f..1026fd58f65 100644
 +command script add -f callables.FooBar.sfoobar4 sfoobar4
 +command script add -f callables.FooBar.cfoobar4 cfoobar4
 +command script add -f callables.FooBarObj.ifoobar4 ifoobar4
++
++command script add -f callables.FooBarObj ofoobar
++command script add -f callables.FooBar4Obj ofoobar4
 diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
 index 7d507b31c5c..b79c4331da7 100644
 --- a/lldb/scripts/Python/python-wrapper.swig
@@ -185,10 +198,10 @@ index 7d507b31c5c..b79c4331da7 100644
      return true;
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 71be92cc534..df9c98996a4 100644
+index 71be92cc534..39406ee1600 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -884,20 +884,22 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -884,20 +884,21 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
        As<bool>(pyarginfo.get().GetAttribute("is_bound_method"));
    if (!is_method)
      return is_method.takeError();
@@ -202,7 +215,7 @@ index 71be92cc534..df9c98996a4 100644
      result.count++;
  
  #else
- 
+-
 +  bool is_bound_method = false;
    PyObject *py_func_obj = m_py_obj;
    if (PyMethod_Check(py_func_obj)) {
@@ -214,25 +227,27 @@ index 71be92cc534..df9c98996a4 100644
    } else {
      // see if this is a callable object with an __call__ method
      if (!PyFunction_Check(py_func_obj)) {
-@@ -908,7 +910,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -906,9 +907,9 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+         auto __callable__ = __call__.AsType<PythonCallable>();
+         if (__callable__.IsValid()) {
            py_func_obj = PyMethod_GET_FUNCTION(__callable__.get());
-           PythonObject im_self = GetAttributeValue("im_self");
+-          PythonObject im_self = GetAttributeValue("im_self");
++          PythonObject im_self = __callable__.GetAttributeValue("im_self");
            if (im_self.IsValid() && !im_self.IsNone())
 -            result.is_bound_method = true;
 +            is_bound_method = true;
          }
        }
      }
-@@ -924,6 +926,9 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -923,6 +924,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+ 
    result.count = code->co_argcount;
    result.has_varargs = !!(code->co_flags & CO_VARARGS);
++  result.max_positional_args =
++      result.has_varargs ? INT_MAX : (result.count - (int)is_bound_method);
  
-+  result.max_positional_args = result.has_varargs ? INT_MAX : result.count - (int)is_bound_method;
-+
-+
  #endif
  
-   return result;
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 index 0da54f36a83..d63fc88a752 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
@@ -258,7 +273,7 @@ index 0da54f36a83..d63fc88a752 100644
  
    static bool Check(PyObject *py_obj);
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 6e1d7ab178e..2590a709515 100644
+index 6e1d7ab178e..0e8c6b42edd 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
@@ -281,7 +296,7 @@ index 6e1d7ab178e..2590a709515 100644
    }
  
    {
-@@ -667,8 +667,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -667,15 +667,26 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = lambda.GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2);
@@ -291,11 +306,29 @@ index 6e1d7ab178e..2590a709515 100644
    }
  
    {
-@@ -687,16 +687,16 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     const char *script = "class Foo: \n"
+                          "  def bar(self, x):\n"
+                          "     return x \n"
++                         "  @classmethod \n"
++                         "  def classbar(cls, x):\n"
++                         "     return x \n"
++                         "  @staticmethod \n"
++                         "  def staticbar(x):\n"
++                         "     return x \n"
++                         "  def __call__(self, x): \n"
++                         "     return x \n"
++                         "obj = Foo() \n"
+                          "bar_bound   = Foo().bar \n"
++                         "bar_class   = Foo().classbar \n"
++                         "bar_static  = Foo().staticbar \n"
+                          "bar_unbound = Foo.bar \n";
+     PyObject *o =
+         PyRun_String(script, Py_file_input, globals.get(), globals.get());
+@@ -687,16 +698,37 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = bar_bound.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
-+    EXPECT_EQ(arginfo.get().max_positional_args, 1); // FIXME, wrong
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
      EXPECT_EQ(arginfo.get().has_varargs, false);
 -    EXPECT_EQ(arginfo.get().is_bound_method, true);
  
@@ -305,12 +338,33 @@ index 6e1d7ab178e..2590a709515 100644
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2);
 +    EXPECT_EQ(arginfo.get().max_positional_args, 2);
++    EXPECT_EQ(arginfo.get().has_varargs, false);
++
++    auto bar_class = As<PythonCallable>(globals.GetItem("bar_class"));
++    ASSERT_THAT_EXPECTED(bar_class, llvm::Succeeded());
++    arginfo = bar_class.get().GetArgInfo();
++    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
++    EXPECT_EQ(arginfo.get().has_varargs, false);
++
++    auto bar_static = As<PythonCallable>(globals.GetItem("bar_static"));
++    ASSERT_THAT_EXPECTED(bar_static, llvm::Succeeded());
++    arginfo = bar_static.get().GetArgInfo();
++    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
++    EXPECT_EQ(arginfo.get().has_varargs, false);
++
++    auto obj = As<PythonCallable>(globals.GetItem("obj"));
++    ASSERT_THAT_EXPECTED(obj, llvm::Succeeded());
++    arginfo = obj.get().GetArgInfo();
++    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
++    EXPECT_EQ(arginfo.get().max_positional_args, 1);
      EXPECT_EQ(arginfo.get().has_varargs, false);
 -    EXPECT_EQ(arginfo.get().is_bound_method, false);
    }
  
  #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-@@ -710,8 +710,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -710,8 +742,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = hex.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 1);
