@@ -643,7 +643,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 1);
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 
@@ -655,7 +655,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
-    EXPECT_EQ(arginfo.get().max_positional_args, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 
@@ -667,7 +667,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
-    EXPECT_EQ(arginfo.get().max_positional_args, INT_MAX);
+    EXPECT_EQ(arginfo.get().max_positional_args,
+              PythonCallable::ArgInfo::UNBOUNDED);
     EXPECT_EQ(arginfo.get().has_varargs, true);
   }
 
@@ -698,7 +699,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = bar_bound.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
 
     auto bar_unbound = As<PythonCallable>(globals.GetItem("bar_unbound"));
@@ -706,28 +707,28 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     arginfo = bar_unbound.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
-    EXPECT_EQ(arginfo.get().max_positional_args, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
 
     auto bar_class = As<PythonCallable>(globals.GetItem("bar_class"));
     ASSERT_THAT_EXPECTED(bar_class, llvm::Succeeded());
     arginfo = bar_class.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
 
     auto bar_static = As<PythonCallable>(globals.GetItem("bar_static"));
     ASSERT_THAT_EXPECTED(bar_static, llvm::Succeeded());
     arginfo = bar_static.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
 
     auto obj = As<PythonCallable>(globals.GetItem("obj"));
     ASSERT_THAT_EXPECTED(obj, llvm::Succeeded());
     arginfo = obj.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 
@@ -742,7 +743,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = hex.get().GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 1);
-    EXPECT_EQ(arginfo.get().max_positional_args, 1);
+    EXPECT_EQ(arginfo.get().max_positional_args, 1u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 

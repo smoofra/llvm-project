@@ -885,7 +885,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
   if (!is_method)
     return is_method.takeError();
 
-  result.max_positional_args = result.has_varargs ? INT_MAX : result.count;
+  result.max_positional_args =
+      result.has_varargs ? ArgInfo::UNBOUNDED : result.count;
 
   // FIXME emulate old broken behavior
   if (is_method.get())
@@ -924,13 +925,17 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
 
   result.count = code->co_argcount;
   result.has_varargs = !!(code->co_flags & CO_VARARGS);
-  result.max_positional_args =
-      result.has_varargs ? INT_MAX : (result.count - (int)is_bound_method);
+  result.max_positional_args = result.has_varargs
+                                   ? ArgInfo::UNBOUNDED
+                                   : (result.count - (int)is_bound_method);
 
 #endif
 
   return result;
 }
+
+constexpr unsigned
+    PythonCallable::ArgInfo::UNBOUNDED; // FIXME delete after c++17
 
 PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
   auto arginfo = GetArgInfo();

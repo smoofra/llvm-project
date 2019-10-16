@@ -631,7 +631,8 @@ public:
     /* the largest number of positional arguments this callable
      * can accept, or INT_MAX if it's a varargs function and can
      * accept an arbitrary number */
-    int max_positional_args;
+    unsigned max_positional_args;
+    static constexpr unsigned UNBOUNDED = UINT_MAX; // FIXME c++17 inline
     /* the number of positional arguments, including optional ones,
      * and excluding varargs.  If this is a bound method, then the
      * count will still include a +1 for self.

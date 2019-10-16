@@ -705,7 +705,7 @@ LLDBSwigPythonCallCommand
     PythonObject exe_ctx_arg(PyRefType::Owned, SBTypeToSWIGWrapper(exe_ctx_sb));
     PythonObject cmd_retobj_arg(PyRefType::Owned, SBTypeToSWIGWrapper(&cmd_retobj_sb));
 
-    if (argc.get().max_positional_args < 5)
+    if (argc.get().max_positional_args < 5u)
         pfunc(debugger_arg, PythonString(args), cmd_retobj_arg, dict);
     else
         pfunc(debugger_arg, PythonString(args), exe_ctx_arg, cmd_retobj_arg, dict);
