@@ -31,6 +31,7 @@
 using namespace lldb_private;
 using namespace lldb;
 using namespace lldb_private::python;
+using llvm::cantFail;
 using llvm::Error;
 using llvm::Expected;
 
@@ -817,34 +818,36 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetInitArgInfo() const {
   return init.get().GetArgInfo();
 }
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
+static const char *get_arg_info_script = R"(
+from inspect import signature, Parameter, ismethod
+from collections import namedtuple
+ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', 'is_bound_method'])
+def get_arg_info(f):
+    count = 0
+    varargs = False
+    for parameter in signature(f).parameters.values():
+        kind = parameter.kind
+        if kind in (Parameter.POSITIONAL_ONLY,
+                    Parameter.POSITIONAL_OR_KEYWORD):
+            count += 1
+        elif kind == Parameter.VAR_POSITIONAL:
+            varargs = True
+        elif kind in (Parameter.KEYWORD_ONLY,
+                      Parameter.KEYWORD_ONLY):
+            pass
+        else:
+            raise Exception(f'unknown parameter kind: {kind}')
+    return ArgInfo(count, varargs, ismethod(f))
+)";
+#endif
+
 Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
   ArgInfo result = {};
   if (!IsValid())
     return nullDeref();
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-
-  const char *script =
-      "from inspect import signature, Parameter, ismethod \n"
-      "from collections import namedtuple \n"
-      "ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', "
-      "'is_bound_method']) \n"
-      "def get_arg_info(f): \n"
-      "    count = 0 \n"
-      "    varargs = False  \n"
-      "    for parameter in signature(f).parameters.values():  \n"
-      "        kind = parameter.kind  \n"
-      "        if kind in (Parameter.POSITIONAL_ONLY,   \n"
-      "                    Parameter.POSITIONAL_OR_KEYWORD):  \n"
-      "            count += 1  \n"
-      "        elif kind == Parameter.VAR_POSITIONAL:  \n"
-      "            varargs = True  \n"
-      "        elif kind in (Parameter.KEYWORD_ONLY,  \n"
-      "                      Parameter.KEYWORD_ONLY):  \n"
-      "            pass  \n"
-      "        else:  \n"
-      "            raise Exception(f'unknown parameter kind: {kind}')  \n"
-      "    return ArgInfo(count, varargs, ismethod(f))  \n";
 
   // this global is protected by the GIL
   static PythonCallable get_arg_info;
@@ -856,8 +859,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
     Error error = globals.SetItem("__builtins__", builtins);
     if (error)
       return std::move(error);
-    PyObject *o =
-        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+    PyObject *o = PyRun_String(get_arg_info_script, Py_file_input,
+                               globals.get(), globals.get());
     if (!o)
       return exception();
     Take<PythonObject>(o);
@@ -870,21 +873,11 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
   Expected<PythonObject> pyarginfo = get_arg_info.Call(*this);
   if (!pyarginfo)
     return pyarginfo.takeError();
-  Expected<long long> count =
-      As<long long>(pyarginfo.get().GetAttribute("count"));
-  if (!count)
-    return count.takeError();
-  result.count = count.get();
-  Expected<bool> has_varargs =
-      As<bool>(pyarginfo.get().GetAttribute("has_varargs"));
-  if (!has_varargs)
-    return has_varargs.takeError();
-  result.has_varargs = has_varargs.get();
-  Expected<bool> is_method =
-      As<bool>(pyarginfo.get().GetAttribute("is_bound_method"));
-  if (!is_method)
-    return is_method.takeError();
-  result.is_bound_method = is_method.get();
+  result.count = cantFail(As<long long>(pyarginfo.get().GetAttribute("count")));
+  result.has_varargs =
+      cantFail(As<bool>(pyarginfo.get().GetAttribute("has_varargs")));
+  result.is_bound_method =
+      cantFail(As<bool>(pyarginfo.get().GetAttribute("is_bound_method")));
 
   // FIXME emulate old broken behavior
   if (result.is_bound_method)
