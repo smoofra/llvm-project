@@ -1,7 +1,7 @@
 Bottom: b806ede0d21dd1132f8c3f40f6373ad556dae968
-Top:    d764b96f530a896538a143efcdeae83ebabed172
+Top:    6cd6dc38dfbaa8ffc04309ff2fb22fdbb34c9843
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-15 17:36:04 -0700
+Date:   2019-10-16 13:51:05 -0700
 
 clean up the implementation of PythonCallable::GetNumArguments
 
@@ -29,10 +29,18 @@ Differential Revision: https://reviews.llvm.org/D68995
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 8c0618cd91a..71be92cc534 100644
+index 8c0618cd91a..f7dc686ca59 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -47,6 +47,20 @@ Expected<long long> python::As<long long>(Expected<PythonObject> &&obj) {
+@@ -31,6 +31,7 @@
+ using namespace lldb_private;
+ using namespace lldb;
+ using namespace lldb_private::python;
++using llvm::cantFail;
+ using llvm::Error;
+ using llvm::Expected;
+ 
+@@ -47,6 +48,20 @@ Expected<long long> python::As<long long>(Expected<PythonObject> &&obj) {
    return obj.get().AsLongLong();
  }
  
@@ -53,7 +61,7 @@ index 8c0618cd91a..71be92cc534 100644
  void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
    s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
  }
-@@ -657,16 +671,66 @@ PythonList PythonDictionary::GetKeys() const {
+@@ -657,16 +672,66 @@ PythonList PythonDictionary::GetKeys() const {
  }
  
  PythonObject PythonDictionary::GetItemForKey(const PythonObject &key) const {
@@ -126,7 +134,7 @@ index 8c0618cd91a..71be92cc534 100644
  }
  
  StructuredData::DictionarySP
-@@ -736,23 +800,97 @@ bool PythonCallable::Check(PyObject *py_obj) {
+@@ -736,23 +801,89 @@ bool PythonCallable::Check(PyObject *py_obj) {
  }
  
  PythonCallable::ArgInfo PythonCallable::GetNumInitArguments() const {
@@ -160,34 +168,36 @@ index 8c0618cd91a..71be92cc534 100644
 +  return init.get().GetArgInfo();
 +}
 +
++#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
++static const char *get_arg_info_script = R"(
++from inspect import signature, Parameter, ismethod
++from collections import namedtuple
++ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', 'is_bound_method'])
++def get_arg_info(f):
++    count = 0
++    varargs = False
++    for parameter in signature(f).parameters.values():
++        kind = parameter.kind
++        if kind in (Parameter.POSITIONAL_ONLY,
++                    Parameter.POSITIONAL_OR_KEYWORD):
++            count += 1
++        elif kind == Parameter.VAR_POSITIONAL:
++            varargs = True
++        elif kind in (Parameter.KEYWORD_ONLY,
++                      Parameter.KEYWORD_ONLY):
++            pass
++        else:
++            raise Exception(f'unknown parameter kind: {kind}')
++    return ArgInfo(count, varargs, ismethod(f))
++)";
++#endif
++
 +Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
 +  ArgInfo result = {};
 +  if (!IsValid())
 +    return nullDeref();
 +
 +#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-+
-+  const char *script =
-+      "from inspect import signature, Parameter, ismethod \n"
-+      "from collections import namedtuple \n"
-+      "ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', "
-+      "'is_bound_method']) \n"
-+      "def get_arg_info(f): \n"
-+      "    count = 0 \n"
-+      "    varargs = False  \n"
-+      "    for parameter in signature(f).parameters.values():  \n"
-+      "        kind = parameter.kind  \n"
-+      "        if kind in (Parameter.POSITIONAL_ONLY,   \n"
-+      "                    Parameter.POSITIONAL_OR_KEYWORD):  \n"
-+      "            count += 1  \n"
-+      "        elif kind == Parameter.VAR_POSITIONAL:  \n"
-+      "            varargs = True  \n"
-+      "        elif kind in (Parameter.KEYWORD_ONLY,  \n"
-+      "                      Parameter.KEYWORD_ONLY):  \n"
-+      "            pass  \n"
-+      "        else:  \n"
-+      "            raise Exception(f'unknown parameter kind: {kind}')  \n"
-+      "    return ArgInfo(count, varargs, ismethod(f))  \n";
 +
 +  // this global is protected by the GIL
 +  static PythonCallable get_arg_info;
@@ -199,8 +209,8 @@ index 8c0618cd91a..71be92cc534 100644
 +    Error error = globals.SetItem("__builtins__", builtins);
 +    if (error)
 +      return std::move(error);
-+    PyObject *o =
-+        PyRun_String(script, Py_file_input, globals.get(), globals.get());
++    PyObject *o = PyRun_String(get_arg_info_script, Py_file_input,
++                               globals.get(), globals.get());
 +    if (!o)
 +      return exception();
 +    Take<PythonObject>(o);
@@ -213,21 +223,11 @@ index 8c0618cd91a..71be92cc534 100644
 +  Expected<PythonObject> pyarginfo = get_arg_info.Call(*this);
 +  if (!pyarginfo)
 +    return pyarginfo.takeError();
-+  Expected<long long> count =
-+      As<long long>(pyarginfo.get().GetAttribute("count"));
-+  if (!count)
-+    return count.takeError();
-+  result.count = count.get();
-+  Expected<bool> has_varargs =
-+      As<bool>(pyarginfo.get().GetAttribute("has_varargs"));
-+  if (!has_varargs)
-+    return has_varargs.takeError();
-+  result.has_varargs = has_varargs.get();
-+  Expected<bool> is_method =
-+      As<bool>(pyarginfo.get().GetAttribute("is_bound_method"));
-+  if (!is_method)
-+    return is_method.takeError();
-+  result.is_bound_method = is_method.get();
++  result.count = cantFail(As<long long>(pyarginfo.get().GetAttribute("count")));
++  result.has_varargs =
++      cantFail(As<bool>(pyarginfo.get().GetAttribute("has_varargs")));
++  result.is_bound_method =
++      cantFail(As<bool>(pyarginfo.get().GetAttribute("is_bound_method")));
 +
 +  // FIXME emulate old broken behavior
 +  if (result.is_bound_method)
@@ -237,7 +237,7 @@ index 8c0618cd91a..71be92cc534 100644
  
    PyObject *py_func_obj = m_py_obj;
    if (PyMethod_Check(py_func_obj)) {
-@@ -785,10 +923,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
+@@ -785,10 +916,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
  
    result.count = code->co_argcount;
    result.has_varargs = !!(code->co_flags & CO_VARARGS);
@@ -261,10 +261,10 @@ index 8c0618cd91a..71be92cc534 100644
    return PythonObject(PyRefType::Owned, PyObject_CallObject(m_py_obj, nullptr));
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 255fa06c057..0da54f36a83 100644
+index 255fa06c057..a5e316f6fe9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -309,6 +309,10 @@ protected:
+@@ -309,20 +309,35 @@ protected:
    static llvm::Error exception(const char *s = nullptr) {
      return llvm::make_error<PythonException>(s);
    }
@@ -272,32 +272,42 @@ index 255fa06c057..0da54f36a83 100644
 +    return llvm::createStringError(llvm::inconvertibleErrorCode(),
 +                                   "key not in dict");
 +  }
++
++#if PY_MAJOR_VERSION < 3
++  static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
++#else
++  static const char *py2_const_cast(const char *s) { return s; }
++#endif
  
  public:
    template <typename... T>
-@@ -328,6 +332,21 @@ public:
-     return python::Take<PythonObject>(obj);
-   }
- 
-+  template <typename... T>
-+  llvm::Expected<PythonObject> Call(const T &... t) const {
-+    const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
-+#if PY_MAJOR_VERSION < 3
-+    PyObject *obj = PyObject_CallFunction(m_py_obj, const_cast<char *>(format),
-+                                          PythonFormat<T>::get(t)...);
-+#else
-+    PyObject *obj =
-+        PyObject_CallFunction(m_py_obj, format, PythonFormat<T>::get(t)...);
-+#endif
+   llvm::Expected<PythonObject> CallMethod(const char *name,
+                                           const T &... t) const {
+     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
+-#if PY_MAJOR_VERSION < 3
+-    PyObject *obj = PyObject_CallMethod(m_py_obj, const_cast<char *>(name),
+-                                        const_cast<char *>(format),
+-                                        PythonFormat<T>::get(t)...);
+-#else
+     PyObject *obj =
+-        PyObject_CallMethod(m_py_obj, name, format, PythonFormat<T>::get(t)...);
+-#endif
++        PyObject_CallMethod(m_py_obj, py2_const_cast(name),
++                            py2_const_cast(format), PythonFormat<T>::get(t)...);
 +    if (!obj)
 +      return exception();
 +    return python::Take<PythonObject>(obj);
 +  }
 +
-   llvm::Expected<PythonObject> GetAttribute(const char *name) const {
-     if (!m_py_obj)
-       return nullDeref();
-@@ -386,6 +405,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
++  template <typename... T>
++  llvm::Expected<PythonObject> Call(const T &... t) const {
++    const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
++    PyObject *obj = PyObject_CallFunction(m_py_obj, py2_const_cast(format),
++                                          PythonFormat<T>::get(t)...);
+     if (!obj)
+       return exception();
+     return python::Take<PythonObject>(obj);
+@@ -386,6 +401,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
  template <>
  llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
  
@@ -307,7 +317,7 @@ index 255fa06c057..0da54f36a83 100644
  } // namespace python
  
  template <class T> class TypedPythonObject : public PythonObject {
-@@ -559,8 +581,14 @@ public:
+@@ -559,8 +577,14 @@ public:
  
    PythonList GetKeys() const;
  
@@ -324,7 +334,7 @@ index 255fa06c057..0da54f36a83 100644
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -600,19 +628,31 @@ public:
+@@ -600,19 +624,31 @@ public:
    using TypedPythonObject::TypedPythonObject;
  
    struct ArgInfo {
