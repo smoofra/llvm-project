@@ -629,8 +629,8 @@ public:
 
   struct ArgInfo {
     /* the largest number of positional arguments this callable
-     * can accept, or INT_MAX if it's a varargs function and can
-     * accept an arbitrary number */
+     * can accept, or UNBOUNDED, ie UINT_MAX if it's a varargs
+     * function and can accept an arbitrary number */
     unsigned max_positional_args;
     static constexpr unsigned UNBOUNDED = UINT_MAX; // FIXME c++17 inline
     /* the number of positional arguments, including optional ones,
