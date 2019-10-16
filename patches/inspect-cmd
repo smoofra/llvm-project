@@ -1,5 +1,5 @@
-Bottom: 3812d291a01da883ee0fa1ff7629bc303f359cde
-Top:    ee3eb95074ddf5e284104775524da98213fe495b
+Bottom: d764b96f530a896538a143efcdeae83ebabed172
+Top:    3c7997cdf795cc5c1e9e4299a6a6dc1b4eeacde7
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 16:48:26 -0700
 
@@ -161,10 +161,10 @@ index 7d507b31c5c..b79c4331da7 100644
      return true;
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2011d13f1a0..aa5bf87e59d 100644
+index 71be92cc534..df9c98996a4 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -880,20 +880,22 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -884,20 +884,22 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
        As<bool>(pyarginfo.get().GetAttribute("is_bound_method"));
    if (!is_method)
      return is_method.takeError();
@@ -190,7 +190,7 @@ index 2011d13f1a0..aa5bf87e59d 100644
    } else {
      // see if this is a callable object with an __call__ method
      if (!PyFunction_Check(py_func_obj)) {
-@@ -904,7 +906,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -908,7 +910,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
            py_func_obj = PyMethod_GET_FUNCTION(__callable__.get());
            PythonObject im_self = GetAttributeValue("im_self");
            if (im_self.IsValid() && !im_self.IsNone())
@@ -199,7 +199,7 @@ index 2011d13f1a0..aa5bf87e59d 100644
          }
        }
      }
-@@ -920,6 +922,9 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+@@ -924,6 +926,9 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
    result.count = code->co_argcount;
    result.has_varargs = !!(code->co_flags & CO_VARARGS);
  

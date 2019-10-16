@@ -1,7 +1,7 @@
 Bottom: b806ede0d21dd1132f8c3f40f6373ad556dae968
-Top:    3812d291a01da883ee0fa1ff7629bc303f359cde
+Top:    d764b96f530a896538a143efcdeae83ebabed172
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-15 08:36:36 -0700
+Date:   2019-10-15 17:36:04 -0700
 
 clean up the implementation of PythonCallable::GetNumArguments
 
@@ -27,10 +27,9 @@ Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D68995
 
-
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 8c0618cd91a..2011d13f1a0 100644
+index 8c0618cd91a..71be92cc534 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -47,6 +47,20 @@ Expected<long long> python::As<long long>(Expected<PythonObject> &&obj) {
@@ -54,7 +53,7 @@ index 8c0618cd91a..2011d13f1a0 100644
  void StructuredPythonObject::Serialize(llvm::json::OStream &s) const {
    s.value(llvm::formatv("Python Obj: {0:X}", GetValue()).str());
  }
-@@ -657,16 +671,62 @@ PythonList PythonDictionary::GetKeys() const {
+@@ -657,16 +671,66 @@ PythonList PythonDictionary::GetKeys() const {
  }
  
  PythonObject PythonDictionary::GetItemForKey(const PythonObject &key) const {
@@ -74,9 +73,13 @@ index 8c0618cd91a..2011d13f1a0 100644
 +PythonDictionary::GetItem(const PythonObject &key) const {
 +  if (!IsValid())
 +    return nullDeref();
++#if PY_MAJOR_VERSION >= 3
 +  PyObject *o = PyDict_GetItemWithError(m_py_obj, key.get());
 +  if (PyErr_Occurred())
 +    return exception();
++#else
++  PyObject *o = PyDict_GetItem(m_py_obj, key.get());
++#endif
 +  if (!o)
 +    return keyError();
 +  return Retain<PythonObject>(o);
@@ -123,7 +126,7 @@ index 8c0618cd91a..2011d13f1a0 100644
  }
  
  StructuredData::DictionarySP
-@@ -736,23 +796,97 @@ bool PythonCallable::Check(PyObject *py_obj) {
+@@ -736,23 +800,97 @@ bool PythonCallable::Check(PyObject *py_obj) {
  }
  
  PythonCallable::ArgInfo PythonCallable::GetNumInitArguments() const {
@@ -234,7 +237,7 @@ index 8c0618cd91a..2011d13f1a0 100644
  
    PyObject *py_func_obj = m_py_obj;
    if (PyMethod_Check(py_func_obj)) {
-@@ -785,10 +919,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
+@@ -785,10 +923,21 @@ PythonCallable::ArgInfo PythonCallable::GetNumArguments() const {
  
    result.count = code->co_argcount;
    result.has_varargs = !!(code->co_flags & CO_VARARGS);
