@@ -1,5 +1,5 @@
-Bottom: 6cd6dc38dfbaa8ffc04309ff2fb22fdbb34c9843
-Top:    d1e304a7b95a76948e79fc4e1b9e85c21809ff8f
+Bottom: 825d55604ceecfd32313985584b826139e73d4b7
+Top:    619be582fca5d792247d1d2ae82b7079e045f81a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-15 16:48:26 -0700
 
@@ -191,7 +191,7 @@ index 7d507b31c5c..c50f9d1fab9 100644
      return true;
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index f7dc686ca59..fdd2104dd66 100644
+index 1832355c8a0..6a72f8623da 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -876,21 +876,23 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
@@ -279,7 +279,7 @@ index a5e316f6fe9..2a2d2172dfb 100644
  
    static bool Check(PyObject *py_obj);
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 6e1d7ab178e..b20f41ee73a 100644
+index a5f41fb611e..f2936d66273 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
@@ -302,7 +302,7 @@ index 6e1d7ab178e..b20f41ee73a 100644
    }
  
    {
-@@ -667,15 +667,27 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -679,8 +679,9 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = lambda.GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2);
@@ -313,6 +313,7 @@ index 6e1d7ab178e..b20f41ee73a 100644
    }
  
    {
+@@ -700,7 +701,18 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      const char *script = "class Foo: \n"
                           "  def bar(self, x):\n"
                           "     return x \n"
@@ -331,7 +332,7 @@ index 6e1d7ab178e..b20f41ee73a 100644
                           "bar_unbound = Foo.bar \n";
      PyObject *o =
          PyRun_String(script, Py_file_input, globals.get(), globals.get());
-@@ -687,16 +699,37 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -712,16 +724,37 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = bar_bound.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
@@ -371,7 +372,7 @@ index 6e1d7ab178e..b20f41ee73a 100644
    }
  
  #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-@@ -710,8 +743,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -735,8 +768,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = hex.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 1);
