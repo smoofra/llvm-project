@@ -1,5 +1,5 @@
 Bottom: b806ede0d21dd1132f8c3f40f6373ad556dae968
-Top:    6cd6dc38dfbaa8ffc04309ff2fb22fdbb34c9843
+Top:    825d55604ceecfd32313985584b826139e73d4b7
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 13:51:05 -0700
 
@@ -29,7 +29,7 @@ Differential Revision: https://reviews.llvm.org/D68995
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 8c0618cd91a..f7dc686ca59 100644
+index 8c0618cd91a..1832355c8a0 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -31,6 +31,7 @@
@@ -184,7 +184,7 @@ index 8c0618cd91a..f7dc686ca59 100644
 +        elif kind == Parameter.VAR_POSITIONAL:
 +            varargs = True
 +        elif kind in (Parameter.KEYWORD_ONLY,
-+                      Parameter.KEYWORD_ONLY):
++                      Parameter.VAR_KEYWORD):
 +            pass
 +        else:
 +            raise Exception(f'unknown parameter kind: {kind}')
@@ -373,7 +373,7 @@ index 255fa06c057..a5e316f6fe9 100644
    PythonObject operator()();
  
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 5c3c6097007..6e1d7ab178e 100644
+index 5c3c6097007..a5f41fb611e 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -20,6 +20,7 @@
@@ -384,7 +384,7 @@ index 5c3c6097007..6e1d7ab178e 100644
  
  class PythonDataObjectsTest : public PythonTestSuite {
  public:
-@@ -626,3 +627,92 @@ TEST_F(PythonDataObjectsTest, TestExtractingUInt64ThroughStructuredData) {
+@@ -626,3 +627,117 @@ TEST_F(PythonDataObjectsTest, TestExtractingUInt64ThroughStructuredData) {
      }
    }
  }
@@ -421,6 +421,18 @@ index 5c3c6097007..6e1d7ab178e 100644
 +  }
 +
 +  {
++    PyObject *o = PyRun_String("lambda x,y=0, **kw: x", Py_eval_input,
++                               globals.get(), globals.get());
++    ASSERT_FALSE(o == NULL);
++    auto lambda = Take<PythonCallable>(o);
++    auto arginfo = lambda.GetArgInfo();
++    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
++    EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
++    EXPECT_EQ(arginfo.get().has_varargs, false);
++  }
++
++  {
 +    PyObject *o = PyRun_String("lambda x,y,*a: x", Py_eval_input, globals.get(),
 +                               globals.get());
 +    ASSERT_FALSE(o == NULL);
@@ -430,6 +442,19 @@ index 5c3c6097007..6e1d7ab178e 100644
 +    EXPECT_EQ(arginfo.get().count, 2);
 +    EXPECT_EQ(arginfo.get().has_varargs, true);
 +    EXPECT_EQ(arginfo.get().is_bound_method, false);
++  }
++
++  {
++    PyObject *o = PyRun_String("lambda x,y,*a,**kw: x", Py_eval_input,
++                               globals.get(), globals.get());
++    ASSERT_FALSE(o == NULL);
++    auto lambda = Take<PythonCallable>(o);
++    auto arginfo = lambda.GetArgInfo();
++    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
++    EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args,
++              PythonCallable::ArgInfo::UNBOUNDED);
++    EXPECT_EQ(arginfo.get().has_varargs, true);
 +  }
 +
 +  {
