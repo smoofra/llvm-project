@@ -1,5 +1,5 @@
 Version: 1
-Previous: c7744e3f50d519b9c8e0da03b9483e59ee32b019
+Previous: 59afc71f23a538d651f1bf28f49a1062b5b5e822
 Head: e05079f951cd20074aab9223553b5aab5d531922
 Applied:
   python-fix: 4489b1b1ed22eb5e3707a400c20e321fbd1358c6
@@ -8,6 +8,6 @@ Applied:
   ScriptInterpreterPython: b71b2ad9af6079ce8266220beb12bdd71c227554
   delete-swig-typemaps-for-file: b98ba65e12d1f04e295481ce270e844dd307b1bd
   inspect: b9e53a7a4deaef220c9722e0d21b248e99ab3a99
-  lldb-bugfix-command-script-add: e05079f951cd20074aab9223553b5aab5d531922
+  inspect-cmd: e05079f951cd20074aab9223553b5aab5d531922
 Unapplied:
 Hidden:
