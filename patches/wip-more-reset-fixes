@@ -1,5 +1,5 @@
-Bottom: 8b22cbbee33e199aab1525cc96400ee3516f781d
-Top:    a55c45a7d1b4847edc12c673ceff26f99de5da91
+Bottom: bb5e86f4480af409b6c351dbd8bc0203c9fcb215
+Top:    f545b7e546fb330d2c8d23f89fdaa5afedd1aaff
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -8,7 +8,7 @@ wip, more Reset fixes
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 6493ba388ed..92720afa5e4 100644
+index 2b70762e368..93414ea9874 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -278,7 +278,9 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
