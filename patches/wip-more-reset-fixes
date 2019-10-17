@@ -1,5 +1,5 @@
-Bottom: 76e19c93df6b967f336d932ebb885cc7df8adea2
-Top:    0f5edfbc6d9d7d6c2e8398c6f6d754a861ebb4c8
+Bottom: 8b22cbbee33e199aab1525cc96400ee3516f781d
+Top:    a55c45a7d1b4847edc12c673ceff26f99de5da91
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -82,10 +82,10 @@ index 6493ba388ed..92720afa5e4 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index ef8be0c7485..e3ec7645924 100644
+index d34b96c566f..cbb0f0ef6c1 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -336,6 +336,10 @@ public:
+@@ -338,6 +338,10 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
@@ -96,7 +96,7 @@ index ef8be0c7485..e3ec7645924 100644
    llvm::Expected<bool> IsTrue() {
      if (!m_py_obj)
        return nullDeref();
-@@ -398,8 +402,12 @@ public:
+@@ -400,8 +404,12 @@ public:
  
    using PythonObject::Reset;
  
@@ -111,7 +111,7 @@ index ef8be0c7485..e3ec7645924 100644
      if (!py_obj)
        return;
      T::Convert(type, py_obj);
-@@ -409,8 +417,6 @@ public:
+@@ -411,8 +419,6 @@ public:
        Py_DECREF(py_obj);
    }
  
@@ -120,7 +120,7 @@ index ef8be0c7485..e3ec7645924 100644
    TypedPythonObject() {}
  };
  
-@@ -567,6 +573,9 @@ public:
+@@ -569,6 +575,9 @@ public:
  
    llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
    llvm::Expected<PythonObject> GetItem(const char *key) const;
@@ -130,7 +130,7 @@ index ef8be0c7485..e3ec7645924 100644
    llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
    llvm::Error SetItem(const char *key, const PythonObject &value) const;
  
-@@ -712,6 +721,15 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -714,6 +723,15 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
@@ -207,7 +207,7 @@ index 70654a42384..8f713352416 100644
    if (!locals.IsValid())
      locals = globals;
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 525e5768bdc..288e3ec9d00 100644
+index e51c6f0eb0c..c01dade4440 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -27,8 +27,7 @@ public:
