@@ -278,9 +278,7 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
 
 PythonByteArray::PythonByteArray(const uint8_t *bytes, size_t length) {
   const char *str = reinterpret_cast<const char *>(bytes);
-  PyObject *obj = PyByteArray_FromStringAndSize(str, length);
-  assert(obj);
-  *this = Take<PythonByteArray>(obj);
+  *this = Take<PythonByteArray>(PyByteArray_FromStringAndSize(str, length));
 }
 
 bool PythonByteArray::Check(PyObject *py_obj) {
@@ -794,9 +792,7 @@ bool PythonModule::Check(PyObject *py_obj) {
 PythonDictionary PythonModule::GetDictionary() const {
   if (!IsValid())
     return PythonDictionary();
-  PyObject *obj = PyModule_GetDict(m_py_obj);
-  assert(obj);
-  return Retain<PythonDictionary>(obj);
+  return Retain<PythonDictionary>(PyModule_GetDict(m_py_obj));
 }
 
 bool PythonCallable::Check(PyObject *py_obj) {
