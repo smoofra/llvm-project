@@ -1,12 +1,11 @@
 Version: 1
-Previous: 8abf468d947f7aac9e33bf228c62976d7006835e
-Head: fecd3ceaaa7c86e242008ce0c489cc6177ed963c
+Previous: a57875ff364e646028f3ed0a7691e30d640419ae
+Head: 200df99cce1a811b5eb27526d0f71b346f301d11
 Applied:
   python-fix: 42771df458c6ee9b5342a0165cd6946fbe492296
   lldbpexpect-make-sure-term-is: fac701236f0a8e894be7ac7d4a22a2e7f825d3a8
   stringliteral-intellisense: da8f70b04ffabec7caefb311208df542c133f555
-  delete-swig-typemaps-for-file: d60053455ebbbb7776f9c3126609aab9e01caa0c
-  inspect: a9f633aa815f137ff5b2bf6e20afa78f394a78c7
-  inspect-cmd: fecd3ceaaa7c86e242008ce0c489cc6177ed963c
+  inspect: 91534f57765eef89332d5f5e3bc50d6e0a5a0350
+  inspect-cmd: 200df99cce1a811b5eb27526d0f71b346f301d11
 Unapplied:
 Hidden:
