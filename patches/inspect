@@ -1,5 +1,5 @@
 Bottom: ab660efd212c4e8ca7df37c66dfb571e9a19e26f
-Top:    cd9a58a8a75a4954c49a06c491c3c74d15576252
+Top:    39c745cd25381e5adb103d2a12a4570babbaf7ac
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-17 01:12:04 -0700
 
@@ -261,10 +261,32 @@ index 8c0618cd91a..3ac404b532d 100644
    return PythonObject(PyRefType::Owned, PyObject_CallObject(m_py_obj, nullptr));
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 255fa06c057..7f460234ffb 100644
+index 255fa06c057..24afe8c9059 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -309,20 +309,37 @@ protected:
+@@ -244,19 +244,9 @@ public:
+     return result;
+   }
+ 
+-  PythonObject &operator=(const PythonObject &other) {
+-    Reset(PyRefType::Borrowed, other.get());
+-    return *this;
+-  }
+-
+-  void Reset(PythonObject &&other) {
++  PythonObject &operator=(PythonObject other) {
+     Reset();
+-    m_py_obj = other.m_py_obj;
+-    other.m_py_obj = nullptr;
+-  }
+-
+-  PythonObject &operator=(PythonObject &&other) {
+-    Reset(std::move(other));
++    m_py_obj = std::exchange(other.m_py_obj, nullptr);
+     return *this;
+   }
+ 
+@@ -309,20 +299,37 @@ protected:
    static llvm::Error exception(const char *s = nullptr) {
      return llvm::make_error<PythonException>(s);
    }
@@ -309,7 +331,7 @@ index 255fa06c057..7f460234ffb 100644
      if (!obj)
        return exception();
      return python::Take<PythonObject>(obj);
-@@ -386,6 +403,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
+@@ -386,6 +393,9 @@ template <> llvm::Expected<bool> As<bool>(llvm::Expected<PythonObject> &&obj);
  template <>
  llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
  
@@ -319,7 +341,7 @@ index 255fa06c057..7f460234ffb 100644
  } // namespace python
  
  template <class T> class TypedPythonObject : public PythonObject {
-@@ -559,8 +579,14 @@ public:
+@@ -559,8 +569,14 @@ public:
  
    PythonList GetKeys() const;
  
@@ -336,7 +358,7 @@ index 255fa06c057..7f460234ffb 100644
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -600,19 +626,31 @@ public:
+@@ -600,19 +616,31 @@ public:
    using TypedPythonObject::TypedPythonObject;
  
    struct ArgInfo {
