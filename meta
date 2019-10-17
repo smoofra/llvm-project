@@ -1,13 +1,13 @@
 Version: 1
-Previous: d0384e35f67070550437f768dcb6f37015da0378
-Head: 8492a7c66b071b2924a491bfe177bea9c4b6323e
+Previous: c95637ab5ee9585a7580f51cad49850c60746b10
+Head: 9f2830b311ceb3990885a071a13f389a5de7297f
 Applied:
   python-fix: 42771df458c6ee9b5342a0165cd6946fbe492296
   lldbpexpect-make-sure-term-is: fac701236f0a8e894be7ac7d4a22a2e7f825d3a8
   stringliteral-intellisense: da8f70b04ffabec7caefb311208df542c133f555
   inspect: 9f2830b311ceb3990885a071a13f389a5de7297f
+Unapplied:
   inspect-cmd: 19b19dd4809630923fb15c7230146d2a022aa5e1
   eliminate-one-form-of: ff244479ca4e9b462b402973518f6e746bdad615
   wip-more-reset-fixes: 8492a7c66b071b2924a491bfe177bea9c4b6323e
-Unapplied:
 Hidden:
