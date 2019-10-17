@@ -174,6 +174,32 @@ struct PythonFormat<
   static auto get(const T &value) { return value.get(); }
 };
 
+/* This is a helper class for functions that wrap python C API functions
+ * that want a null-terminated c string as an argument.   It's suboptimal
+ * for such wrappers to just take a StringRef, because those may not be
+ * null-terminated, so we'd wind up doing a full copy just to pass a
+ * fixed string. Instead, wrappers can just take their arguments as
+ * CStringArg, and callers can pass StringRefs, Twines, strings, or
+ * const char*, and the right thing will happen. */
+class CStringArg {
+  llvm::SmallString<32> storage;
+  const char *cstr;
+
+public:
+  CStringArg(const char *s) { cstr = s; }
+  CStringArg(const std::string &s) { cstr = s.c_str(); }
+
+  template <typename T>
+  CStringArg(T x,
+             typename std::enable_if<std::is_convertible<T, llvm::Twine>::value,
+                                     void *>::type = 0) {
+    llvm::Twine twine(x);
+    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
+    cstr = ref.data();
+  }
+  const char *str() const { return cstr; }
+};
+
 class PythonObject {
 public:
   PythonObject() : m_py_obj(nullptr) {}
@@ -323,10 +349,10 @@ public:
     return python::Take<PythonObject>(obj);
   }
 
-  llvm::Expected<PythonObject> GetAttribute(const char *name) const {
+  llvm::Expected<PythonObject> GetAttribute(CStringArg name) const {
     if (!m_py_obj)
       return nullDeref();
-    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
+    PyObject *obj = PyObject_GetAttrString(m_py_obj, name.str());
     if (!obj)
       return exception();
     return python::Take<PythonObject>(obj);
@@ -392,10 +418,11 @@ public:
   // This can be eliminated once we drop python 2 support.
   static void Convert(PyRefType &type, PyObject *&py_obj) {}
 
-  using PythonObject::Reset;
+  void Reset() { PythonObject::Reset(); }
 
-  void Reset(PyRefType type, PyObject *py_obj) {
-    Reset();
+  void Reset(PyRefType type, PyObject *py_obj) = delete;
+
+  TypedPythonObject(PyRefType type, PyObject *py_obj) {
     if (!py_obj)
       return;
     T::Convert(type, py_obj);
@@ -404,8 +431,6 @@ public:
     else if (type == PyRefType::Owned)
       Py_DECREF(py_obj);
   }
-
-  TypedPythonObject(PyRefType type, PyObject *py_obj) { Reset(type, py_obj); }
 
   TypedPythonObject() {}
 };
@@ -562,9 +587,9 @@ public:
                      const PythonObject &value); // DEPRECATED
 
   llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
-  llvm::Expected<PythonObject> GetItem(const char *key) const;
+  llvm::Expected<PythonObject> GetItem(CStringArg key) const;
   llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
-  llvm::Error SetItem(const char *key, const PythonObject &value) const;
+  llvm::Error SetItem(CStringArg key, const PythonObject &value) const;
 
   StructuredData::DictionarySP CreateStructuredDictionary() const;
 };
@@ -592,9 +617,9 @@ public:
     return std::move(mod.get());
   }
 
-  static llvm::Expected<PythonModule> Import(const char *name);
+  static llvm::Expected<PythonModule> Import(CStringArg name);
 
-  llvm::Expected<PythonObject> Get(const char *name);
+  llvm::Expected<PythonObject> Get(CStringArg name);
 
   PythonDictionary GetDictionary() const;
 };
@@ -707,6 +732,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
       });
   return T();
 }
+
+namespace python {
+// This is only here to help incrementally migrate old, exception-unsafe
+// code.
+template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+  if (expected)
+    return std::move(expected.get());
+  llvm::consumeError(expected.takeError());
+  return T();
+}
+} // namespace python
 
 } // namespace lldb_private
 
