@@ -1,5 +1,5 @@
 Bottom: 2274f2ba5823350293fe9639230772a6aada7984
-Top:    054c5ee74384ef3c45838489b09d8e59ca25a00d
+Top:    76e19c93df6b967f336d932ebb885cc7df8adea2
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 21:23:07 -0700
 
@@ -23,8 +23,21 @@ Differential Revision: https://reviews.llvm.org/D69080
 
 
 ---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 6a72f8623da..6493ba388ed 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -410,7 +410,7 @@ void PythonString::SetString(llvm::StringRef string) {
+     llvm::consumeError(s.takeError());
+     Reset();
+   } else {
+-    PythonObject::Reset(std::move(s.get()));
++    *this = std::move(s.get());
+   }
+ }
+ 
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 2a2d2172dfb..a6fde7ef075 100644
+index 2a2d2172dfb..ef8be0c7485 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -182,7 +182,8 @@ public:
@@ -37,7 +50,7 @@ index 2a2d2172dfb..a6fde7ef075 100644
  
    PythonObject(PythonObject &&rhs) {
      m_py_obj = rhs.m_py_obj;
-@@ -197,13 +198,6 @@ public:
+@@ -197,19 +198,6 @@ public:
      m_py_obj = nullptr;
    }
  
@@ -48,6 +61,73 @@ index 2a2d2172dfb..a6fde7ef075 100644
 -      Reset(PyRefType::Borrowed, rhs.m_py_obj);
 -  }
 -
-   // PythonObject is implicitly convertible to PyObject *, which will call the
-   // wrong overload.  We want to explicitly disallow this, since a PyObject
-   // *always* owns its reference.  Therefore the overload which takes a
+-  // PythonObject is implicitly convertible to PyObject *, which will call the
+-  // wrong overload.  We want to explicitly disallow this, since a PyObject
+-  // *always* owns its reference.  Therefore the overload which takes a
+-  // PyRefType doesn't make sense, and the copy constructor should be used.
+-  void Reset(PyRefType type, const PythonObject &ref) = delete;
+-
+   void Reset(PyRefType type, PyObject *py_obj) {
+     if (py_obj == m_py_obj)
+       return;
+@@ -249,14 +237,10 @@ public:
+     return *this;
+   }
+ 
+-  void Reset(PythonObject &&other) {
++  PythonObject &operator=(PythonObject &&other) {
+     Reset();
+     m_py_obj = other.m_py_obj;
+     other.m_py_obj = nullptr;
+-  }
+-
+-  PythonObject &operator=(PythonObject &&other) {
+-    Reset(std::move(other));
+     return *this;
+   }
+ 
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index f2936d66273..525e5768bdc 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -323,8 +323,8 @@ TEST_F(PythonDataObjectsTest, TestPythonListValueEquality) {
+   PythonList list(PyRefType::Owned, py_list);
+ 
+   PythonObject list_items[list_size];
+-  list_items[0].Reset(PythonInteger(long_value0));
+-  list_items[1].Reset(PythonString(string_value1));
++  list_items[0] = PythonInteger(long_value0);
++  list_items[1] = PythonString(string_value1);
+ 
+   for (unsigned i = 0; i < list_size; ++i)
+     list.SetItemAtIndex(i, list_items[i]);
+@@ -469,10 +469,10 @@ TEST_F(PythonDataObjectsTest, TestPythonDictionaryValueEquality) {
+   PythonObject py_keys[dict_entries];
+   PythonObject py_values[dict_entries];
+ 
+-  py_keys[0].Reset(PythonString(key_0));
+-  py_keys[1].Reset(PythonInteger(key_1));
+-  py_values[0].Reset(PythonInteger(value_0));
+-  py_values[1].Reset(PythonString(value_1));
++  py_keys[0] = PythonString(key_0);
++  py_keys[1] = PythonInteger(key_1);
++  py_values[0] = PythonInteger(value_0);
++  py_values[1] = PythonString(value_1);
+ 
+   PyObject *py_dict = PyDict_New();
+   EXPECT_TRUE(PythonDictionary::Check(py_dict));
+@@ -509,10 +509,10 @@ TEST_F(PythonDataObjectsTest, TestPythonDictionaryManipulation) {
+   PythonString keys[dict_entries];
+   PythonObject values[dict_entries];
+ 
+-  keys[0].Reset(PythonString(key_0));
+-  keys[1].Reset(PythonString(key_1));
+-  values[0].Reset(PythonInteger(value_0));
+-  values[1].Reset(PythonString(value_1));
++  keys[0] = PythonString(key_0);
++  keys[1] = PythonString(key_1);
++  values[0] = PythonInteger(value_0);
++  values[1] = PythonString(value_1);
+ 
+   PythonDictionary dict(PyInitialValue::Empty);
+   for (int i = 0; i < 2; ++i)
