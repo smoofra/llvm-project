@@ -1,7 +1,7 @@
 Bottom: ab660efd212c4e8ca7df37c66dfb571e9a19e26f
-Top:    187d896c4bfc6d8066ca2c45e3ab53150e10fbee
+Top:    fbc2d9f50bd02fc1ea2344c35a5fa2f10d8a8497
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-16 13:51:05 -0700
+Date:   2019-10-17 01:12:04 -0700
 
 clean up the implementation of PythonCallable::GetNumArguments
 
@@ -373,7 +373,7 @@ index 255fa06c057..a5e316f6fe9 100644
    PythonObject operator()();
  
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 5c3c6097007..a5f41fb611e 100644
+index 5c3c6097007..7adfef664f1 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -20,6 +20,7 @@
@@ -384,7 +384,7 @@ index 5c3c6097007..a5f41fb611e 100644
  
  class PythonDataObjectsTest : public PythonTestSuite {
  public:
-@@ -626,3 +627,117 @@ TEST_F(PythonDataObjectsTest, TestExtractingUInt64ThroughStructuredData) {
+@@ -626,3 +627,114 @@ TEST_F(PythonDataObjectsTest, TestExtractingUInt64ThroughStructuredData) {
      }
    }
  }
@@ -428,7 +428,6 @@ index 5c3c6097007..a5f41fb611e 100644
 +    auto arginfo = lambda.GetArgInfo();
 +    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
 +    EXPECT_EQ(arginfo.get().count, 2);
-+    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
 +    EXPECT_EQ(arginfo.get().has_varargs, false);
 +  }
 +
@@ -452,8 +451,6 @@ index 5c3c6097007..a5f41fb611e 100644
 +    auto arginfo = lambda.GetArgInfo();
 +    ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
 +    EXPECT_EQ(arginfo.get().count, 2);
-+    EXPECT_EQ(arginfo.get().max_positional_args,
-+              PythonCallable::ArgInfo::UNBOUNDED);
 +    EXPECT_EQ(arginfo.get().has_varargs, true);
 +  }
 +
