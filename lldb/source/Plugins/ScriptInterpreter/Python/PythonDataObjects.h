@@ -244,19 +244,9 @@ public:
     return result;
   }
 
-  PythonObject &operator=(const PythonObject &other) {
-    Reset(PyRefType::Borrowed, other.get());
-    return *this;
-  }
-
-  void Reset(PythonObject &&other) {
+  PythonObject &operator=(PythonObject other) {
     Reset();
-    m_py_obj = other.m_py_obj;
-    other.m_py_obj = nullptr;
-  }
-
-  PythonObject &operator=(PythonObject &&other) {
-    Reset(std::move(other));
+    m_py_obj = std::exchange(other.m_py_obj, nullptr);
     return *this;
   }
 
