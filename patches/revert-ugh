@@ -1,0 +1,31 @@
+Bottom: fbc2d9f50bd02fc1ea2344c35a5fa2f10d8a8497
+Top:    187d896c4bfc6d8066ca2c45e3ab53150e10fbee
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-17 01:11:28 -0700
+
+Revert "ugh"
+
+This reverts commit 2480c98695eabe3e707e236d9dc4a904240951ba.
+
+
+---
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index 7adfef664f1..a5f41fb611e 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -667,6 +667,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+   }
+ 
+@@ -690,6 +691,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args,
++              PythonCallable::ArgInfo::UNBOUNDED);
+     EXPECT_EQ(arginfo.get().has_varargs, true);
+   }
