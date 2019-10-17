@@ -151,6 +151,18 @@ template <typename T> T Retain(PyObject *obj) {
   return std::move(thing);
 }
 
+class NullTerminated {
+  const char *str;
+  llvm::SmallString<32> storage;
+
+public:
+  NullTerminated(const llvm::Twine &twine) {
+    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
+    str = ref.begin();
+  }
+  operator const char *() { return str; }
+};
+
 } // namespace python
 
 enum class PyInitialValue { Invalid, Empty };
@@ -323,10 +335,10 @@ public:
     return python::Take<PythonObject>(obj);
   }
 
-  llvm::Expected<PythonObject> GetAttribute(const char *name) const {
+  llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
     if (!m_py_obj)
       return nullDeref();
-    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
+    PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
     if (!obj)
       return exception();
     return python::Take<PythonObject>(obj);
@@ -392,10 +404,11 @@ public:
   // This can be eliminated once we drop python 2 support.
   static void Convert(PyRefType &type, PyObject *&py_obj) {}
 
-  using PythonObject::Reset;
+  void Reset() { PythonObject::Reset(); }
 
-  void Reset(PyRefType type, PyObject *py_obj) {
-    Reset();
+  void Reset(PyRefType type, PyObject *py_obj) = delete;
+
+  TypedPythonObject(PyRefType type, PyObject *py_obj) {
     if (!py_obj)
       return;
     T::Convert(type, py_obj);
@@ -404,8 +417,6 @@ public:
     else if (type == PyRefType::Owned)
       Py_DECREF(py_obj);
   }
-
-  TypedPythonObject(PyRefType type, PyObject *py_obj) { Reset(type, py_obj); }
 
   TypedPythonObject() {}
 };
@@ -562,9 +573,9 @@ public:
                      const PythonObject &value); // DEPRECATED
 
   llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
-  llvm::Expected<PythonObject> GetItem(const char *key) const;
+  llvm::Expected<PythonObject> GetItem(const llvm::Twine &key) const;
   llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
-  llvm::Error SetItem(const char *key, const PythonObject &value) const;
+  llvm::Error SetItem(const llvm::Twine &key, const PythonObject &value) const;
 
   StructuredData::DictionarySP CreateStructuredDictionary() const;
 };
@@ -592,9 +603,9 @@ public:
     return std::move(mod.get());
   }
 
-  static llvm::Expected<PythonModule> Import(const char *name);
+  static llvm::Expected<PythonModule> Import(const llvm::Twine &name);
 
-  llvm::Expected<PythonObject> Get(const char *name);
+  llvm::Expected<PythonObject> Get(const llvm::Twine &name);
 
   PythonDictionary GetDictionary() const;
 };
@@ -707,6 +718,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
       });
   return T();
 }
+
+namespace python {
+// This is only here to help incrementally migrate old, exception-unsafe
+// code.
+template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+  if (expected)
+    return std::move(expected.get());
+  llvm::consumeError(expected.takeError());
+  return T();
+}
+} // namespace python
 
 } // namespace lldb_private
 
