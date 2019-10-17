@@ -182,7 +182,8 @@ public:
     Reset(type, py_obj);
   }
 
-  PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
+  PythonObject(const PythonObject &rhs)
+      : PythonObject(PyRefType::Borrowed, rhs.m_py_obj) {}
 
   PythonObject(PythonObject &&rhs) {
     m_py_obj = rhs.m_py_obj;
@@ -195,13 +196,6 @@ public:
     if (m_py_obj && Py_IsInitialized())
       Py_DECREF(m_py_obj);
     m_py_obj = nullptr;
-  }
-
-  void Reset(const PythonObject &rhs) {
-    if (!rhs.IsValid())
-      Reset();
-    else
-      Reset(PyRefType::Borrowed, rhs.m_py_obj);
   }
 
   // PythonObject is implicitly convertible to PyObject *, which will call the
