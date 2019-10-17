@@ -1,5 +1,5 @@
 Bottom: 7a03fb735d76e7a41eeb96fe6a2d61e8de586a43
-Top:    aa46dbea57ca238eb17c9d6d90eeeb934e27a0b9
+Top:    541cd8d79e0e2abd63ff7560497a720dc218206a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -8,21 +8,19 @@ wip, more Reset fixes
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2b70762e368..93414ea9874 100644
+index 2b70762e368..e9f31212946 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -278,7 +278,9 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
+@@ -278,7 +278,7 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
  
  PythonByteArray::PythonByteArray(const uint8_t *bytes, size_t length) {
    const char *str = reinterpret_cast<const char *>(bytes);
 -  Reset(PyRefType::Owned, PyByteArray_FromStringAndSize(str, length));
-+  PyObject *obj = PyByteArray_FromStringAndSize(str, length);
-+  assert(obj);
-+  *this = Take<PythonByteArray>(obj);
++  *this = Take<PythonByteArray>(PyByteArray_FromStringAndSize(str, length));
  }
  
  bool PythonByteArray::Check(PyObject *py_obj) {
-@@ -522,11 +524,11 @@ StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
+@@ -522,11 +522,11 @@ StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
  
  PythonList::PythonList(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -36,7 +34,7 @@ index 2b70762e368..93414ea9874 100644
  }
  
  bool PythonList::Check(PyObject *py_obj) {
-@@ -578,11 +580,11 @@ StructuredData::ArraySP PythonList::CreateStructuredArray() const {
+@@ -578,11 +578,11 @@ StructuredData::ArraySP PythonList::CreateStructuredArray() const {
  
  PythonTuple::PythonTuple(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -50,7 +48,7 @@ index 2b70762e368..93414ea9874 100644
  }
  
  PythonTuple::PythonTuple(std::initializer_list<PythonObject> objects) {
-@@ -649,7 +651,7 @@ StructuredData::ArraySP PythonTuple::CreateStructuredArray() const {
+@@ -649,7 +649,7 @@ StructuredData::ArraySP PythonTuple::CreateStructuredArray() const {
  
  PythonDictionary::PythonDictionary(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -59,20 +57,18 @@ index 2b70762e368..93414ea9874 100644
  }
  
  bool PythonDictionary::Check(PyObject *py_obj) {
-@@ -790,7 +792,11 @@ bool PythonModule::Check(PyObject *py_obj) {
+@@ -790,7 +790,9 @@ bool PythonModule::Check(PyObject *py_obj) {
  }
  
  PythonDictionary PythonModule::GetDictionary() const {
 -  return PythonDictionary(PyRefType::Borrowed, PyModule_GetDict(m_py_obj));
 +  if (!IsValid())
 +    return PythonDictionary();
-+  PyObject *obj = PyModule_GetDict(m_py_obj);
-+  assert(obj);
-+  return Retain<PythonDictionary>(obj);
++  return Retain<PythonDictionary>(PyModule_GetDict(m_py_obj));
  }
  
  bool PythonCallable::Check(PyObject *py_obj) {
-@@ -1092,6 +1098,8 @@ public:
+@@ -1092,6 +1094,8 @@ public:
      assert(m_py_obj);
      GIL takeGIL;
      Close();
