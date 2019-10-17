@@ -1,5 +1,5 @@
 Version: 1
-Previous: e960bfd827a06b8c38cd11a0242bbdbcc2fdc3a9
+Previous: 1473148a2c420aa74d3d8124da2ea28fa54fd1e0
 Head: 876ba587d31826e43253b194f8e82b2f2b4ad98d
 Applied:
   python-fix: 42771df458c6ee9b5342a0165cd6946fbe492296
@@ -8,6 +8,6 @@ Applied:
   inspect: 48a1ce60982cefd01dcf7fe3bc65df1ef6f2ff0d
   inspect-cmd: 9914bba40cc1726ceb3b80eb9b04130e8f7904f1
   eliminate-one-form-of: 0cac7690a9ca3895ad7a8590385435fa0b6915cf
-  wip-more-reset-fixes: 876ba587d31826e43253b194f8e82b2f2b4ad98d
+  more-reset: 876ba587d31826e43253b194f8e82b2f2b4ad98d
 Unapplied:
 Hidden:
