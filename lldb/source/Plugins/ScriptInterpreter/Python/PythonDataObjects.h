@@ -198,12 +198,6 @@ public:
     m_py_obj = nullptr;
   }
 
-  // PythonObject is implicitly convertible to PyObject *, which will call the
-  // wrong overload.  We want to explicitly disallow this, since a PyObject
-  // *always* owns its reference.  Therefore the overload which takes a
-  // PyRefType doesn't make sense, and the copy constructor should be used.
-  void Reset(PyRefType type, const PythonObject &ref) = delete;
-
   void Reset(PyRefType type, PyObject *py_obj) {
     if (py_obj == m_py_obj)
       return;
@@ -243,14 +237,10 @@ public:
     return *this;
   }
 
-  void Reset(PythonObject &&other) {
+  PythonObject &operator=(PythonObject &&other) {
     Reset();
     m_py_obj = other.m_py_obj;
     other.m_py_obj = nullptr;
-  }
-
-  PythonObject &operator=(PythonObject &&other) {
-    Reset(std::move(other));
     return *this;
   }
 
