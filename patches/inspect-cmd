@@ -1,7 +1,7 @@
-Bottom: 6310e362c557872eee34a60b0fea954e9682884e
+Bottom: 1e47401a69fc441705bd28b3d267ada3e6cefb0f
 Top:    78d2dfd0f457cbaabb772453c41fefb333962450
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
-Date:   2019-10-15 16:48:26 -0700
+Date:   2019-10-17 01:22:53 -0700
 
 [LLDB] bugfix: command script add -f doesn't work for some callables
 
@@ -27,7 +27,6 @@ Subscribers: lldb-commits
 Tags: #lldb
 
 Differential Revision: https://reviews.llvm.org/D69014
-
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py b/lldb/packages/Python/lldbsuite/test/commands/command/script/TestCommandScript.py
@@ -279,7 +278,7 @@ index 7f460234ffb..5b68b8715c9 100644
  
    static bool Check(PyObject *py_obj);
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 231917d76e8..1f2a3c58507 100644
+index 3f0cb78b64c..1f2a3c58507 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
@@ -302,7 +301,15 @@ index 231917d76e8..1f2a3c58507 100644
    }
  
    {
-@@ -679,8 +679,9 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -667,6 +667,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
+     EXPECT_EQ(arginfo.get().has_varargs, false);
+   }
+ 
+@@ -678,8 +679,9 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
      auto arginfo = lambda.GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2);
@@ -313,7 +320,16 @@ index 231917d76e8..1f2a3c58507 100644
    }
  
    {
-@@ -701,7 +702,18 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+@@ -690,6 +692,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
+     auto arginfo = lambda.GetArgInfo();
+     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
+     EXPECT_EQ(arginfo.get().count, 2);
++    EXPECT_EQ(arginfo.get().max_positional_args,
++              PythonCallable::ArgInfo::UNBOUNDED);
+     EXPECT_EQ(arginfo.get().has_varargs, true);
+   }
+ 
+@@ -698,7 +702,18 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
  class Foo:
    def bar(self, x):
       return x
@@ -332,7 +348,7 @@ index 231917d76e8..1f2a3c58507 100644
  bar_unbound = Foo.bar
  )";
      PyObject *o =
-@@ -714,16 +726,37 @@ bar_unbound = Foo.bar
+@@ -711,16 +726,37 @@ bar_unbound = Foo.bar
      auto arginfo = bar_bound.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 2); // FIXME, wrong
@@ -372,7 +388,7 @@ index 231917d76e8..1f2a3c58507 100644
    }
  
  #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-@@ -737,8 +770,8 @@ bar_unbound = Foo.bar
+@@ -734,8 +770,8 @@ bar_unbound = Foo.bar
      auto arginfo = hex.get().GetArgInfo();
      ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
      EXPECT_EQ(arginfo.get().count, 1);
