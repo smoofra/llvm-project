@@ -278,7 +278,7 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
 
 PythonByteArray::PythonByteArray(const uint8_t *bytes, size_t length) {
   const char *str = reinterpret_cast<const char *>(bytes);
-  Reset(PyRefType::Owned, PyByteArray_FromStringAndSize(str, length));
+  *this = Take<PythonByteArray>(PyByteArray_FromStringAndSize(str, length));
 }
 
 bool PythonByteArray::Check(PyObject *py_obj) {
@@ -522,11 +522,11 @@ StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
 
 PythonList::PythonList(PyInitialValue value) {
   if (value == PyInitialValue::Empty)
-    Reset(PyRefType::Owned, PyList_New(0));
+    *this = Take<PythonList>(PyList_New(0));
 }
 
 PythonList::PythonList(int list_size) {
-  Reset(PyRefType::Owned, PyList_New(list_size));
+  *this = Take<PythonList>(PyList_New(list_size));
 }
 
 bool PythonList::Check(PyObject *py_obj) {
@@ -578,11 +578,11 @@ StructuredData::ArraySP PythonList::CreateStructuredArray() const {
 
 PythonTuple::PythonTuple(PyInitialValue value) {
   if (value == PyInitialValue::Empty)
-    Reset(PyRefType::Owned, PyTuple_New(0));
+    *this = Take<PythonTuple>(PyTuple_New(0));
 }
 
 PythonTuple::PythonTuple(int tuple_size) {
-  Reset(PyRefType::Owned, PyTuple_New(tuple_size));
+  *this = Take<PythonTuple>(PyTuple_New(tuple_size));
 }
 
 PythonTuple::PythonTuple(std::initializer_list<PythonObject> objects) {
@@ -649,7 +649,7 @@ StructuredData::ArraySP PythonTuple::CreateStructuredArray() const {
 
 PythonDictionary::PythonDictionary(PyInitialValue value) {
   if (value == PyInitialValue::Empty)
-    Reset(PyRefType::Owned, PyDict_New());
+    *this = Take<PythonDictionary>(PyDict_New());
 }
 
 bool PythonDictionary::Check(PyObject *py_obj) {
@@ -790,7 +790,9 @@ bool PythonModule::Check(PyObject *py_obj) {
 }
 
 PythonDictionary PythonModule::GetDictionary() const {
-  return PythonDictionary(PyRefType::Borrowed, PyModule_GetDict(m_py_obj));
+  if (!IsValid())
+    return PythonDictionary();
+  return Retain<PythonDictionary>(PyModule_GetDict(m_py_obj));
 }
 
 bool PythonCallable::Check(PyObject *py_obj) {
@@ -1092,6 +1094,8 @@ public:
     assert(m_py_obj);
     GIL takeGIL;
     Close();
+    // we need to ensure the python object is released while we still
+    // hold the GIL
     m_py_obj.Reset();
   }
 
