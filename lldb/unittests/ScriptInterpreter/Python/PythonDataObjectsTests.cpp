@@ -667,6 +667,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args, 2u);
     EXPECT_EQ(arginfo.get().has_varargs, false);
   }
 
@@ -690,6 +691,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
     auto arginfo = lambda.GetArgInfo();
     ASSERT_THAT_EXPECTED(arginfo, llvm::Succeeded());
     EXPECT_EQ(arginfo.get().count, 2);
+    EXPECT_EQ(arginfo.get().max_positional_args,
+              PythonCallable::ArgInfo::UNBOUNDED);
     EXPECT_EQ(arginfo.get().has_varargs, true);
   }
 
