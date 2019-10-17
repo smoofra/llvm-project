@@ -1,0 +1,21 @@
+Bottom: 1e47401a69fc441705bd28b3d267ada3e6cefb0f
+Top:    cd9a58a8a75a4954c49a06c491c3c74d15576252
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-17 11:16:40 -0700
+
+Refresh of inspect
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 1832355c8a0..3ac404b532d 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -819,7 +819,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetInitArgInfo() const {
+ }
+ 
+ #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
+-static const char *get_arg_info_script = R"(
++static const char get_arg_info_script[] = R"(
+ from inspect import signature, Parameter, ismethod
+ from collections import namedtuple
+ ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', 'is_bound_method'])
