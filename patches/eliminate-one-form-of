@@ -1,5 +1,5 @@
 Bottom: bfcb28053b2452b58ba579c6c4ad3c89a1e27ecb
-Top:    bb5e86f4480af409b6c351dbd8bc0203c9fcb215
+Top:    7a03fb735d76e7a41eeb96fe6a2d61e8de586a43
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 21:23:07 -0700
 
@@ -37,7 +37,7 @@ index 7f2816a08d2..2b70762e368 100644
  }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 5b68b8715c9..d34b96c566f 100644
+index 5b68b8715c9..0cdb63f17c9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -182,7 +182,8 @@ public:
@@ -70,19 +70,25 @@ index 5b68b8715c9..d34b96c566f 100644
    void Reset(PyRefType type, PyObject *py_obj) {
      if (py_obj == m_py_obj)
        return;
-@@ -249,14 +237,10 @@ public:
-     return *this;
+@@ -244,19 +232,9 @@ public:
+     return result;
    }
  
+-  PythonObject &operator=(const PythonObject &other) {
+-    Reset(PyRefType::Borrowed, other.get());
+-    return *this;
+-  }
+-
 -  void Reset(PythonObject &&other) {
-+  PythonObject &operator=(PythonObject &&other) {
++  PythonObject &operator=(PythonObject other) {
      Reset();
-     m_py_obj = other.m_py_obj;
-     other.m_py_obj = nullptr;
+-    m_py_obj = other.m_py_obj;
+-    other.m_py_obj = nullptr;
 -  }
 -
 -  PythonObject &operator=(PythonObject &&other) {
 -    Reset(std::move(other));
++    m_py_obj = std::exchange(other.m_py_obj, nullptr);
      return *this;
    }
  
