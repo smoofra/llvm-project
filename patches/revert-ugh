@@ -1,5 +1,5 @@
-Bottom: fbc2d9f50bd02fc1ea2344c35a5fa2f10d8a8497
-Top:    187d896c4bfc6d8066ca2c45e3ab53150e10fbee
+Bottom: 1e47401a69fc441705bd28b3d267ada3e6cefb0f
+Top:    6310e362c557872eee34a60b0fea954e9682884e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-17 01:11:28 -0700
 
@@ -10,7 +10,7 @@ This reverts commit 2480c98695eabe3e707e236d9dc4a904240951ba.
 
 ---
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 7adfef664f1..a5f41fb611e 100644
+index 3f0cb78b64c..231917d76e8 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -667,6 +667,7 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
