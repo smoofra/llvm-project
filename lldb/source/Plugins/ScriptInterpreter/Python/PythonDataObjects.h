@@ -332,6 +332,10 @@ public:
     return python::Take<PythonObject>(obj);
   }
 
+  llvm::Expected<PythonObject> GetAttribute(const std::string &name) const {
+    return GetAttribute(name.c_str());
+  }
+
   llvm::Expected<bool> IsTrue() {
     if (!m_py_obj)
       return nullDeref();
@@ -394,8 +398,12 @@ public:
 
   using PythonObject::Reset;
 
-  void Reset(PyRefType type, PyObject *py_obj) {
-    Reset();
+  void Reset() { PythonObject::Reset(); }
+
+  void Reset(PyRefType type, PyObject *py_obj) = delete;
+
+  TypedPythonObject(PyRefType type, PyObject *py_obj) {
+    m_py_obj = nullptr;
     if (!py_obj)
       return;
     T::Convert(type, py_obj);
@@ -404,8 +412,6 @@ public:
     else if (type == PyRefType::Owned)
       Py_DECREF(py_obj);
   }
-
-  TypedPythonObject(PyRefType type, PyObject *py_obj) { Reset(type, py_obj); }
 
   TypedPythonObject() {}
 };
@@ -563,6 +569,9 @@ public:
 
   llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
   llvm::Expected<PythonObject> GetItem(const char *key) const;
+  llvm::Expected<PythonObject> GetItem(const std::string &key) const {
+    return GetItem(key.c_str());
+  }
   llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
   llvm::Error SetItem(const char *key, const PythonObject &value) const;
 
@@ -705,6 +714,15 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
       [](const llvm::ErrorInfoBase &E) {
         PyErr_SetString(PyExc_Exception, E.message().c_str());
       });
+  return T();
+}
+
+// This is only here to help incrementally migrate old, exception-unsafe
+// code.
+template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+  if (expected)
+    return std::move(expected.get());
+  llvm::consumeError(expected.takeError());
   return T();
 }
 
