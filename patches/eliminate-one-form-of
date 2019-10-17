@@ -1,0 +1,53 @@
+Bottom: 2274f2ba5823350293fe9639230772a6aada7984
+Top:    054c5ee74384ef3c45838489b09d8e59ca25a00d
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-16 21:23:07 -0700
+
+eliminate one form of PythonObject::Reset()
+
+Summary:
+I'd like to eliminate all forms of Reset() and all public constructors
+on these objects, so the only way to make them is with Take<> and Retain<>
+and the only way to copy or move them is with actual c++ copy, move, or
+assignment.
+
+This is a simple place to start.
+
+Reviewers: JDevlieghere, clayborg, labath, jingham
+
+Subscribers: lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D69080
+
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 2a2d2172dfb..a6fde7ef075 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -182,7 +182,8 @@ public:
+     Reset(type, py_obj);
+   }
+ 
+-  PythonObject(const PythonObject &rhs) : m_py_obj(nullptr) { Reset(rhs); }
++  PythonObject(const PythonObject &rhs)
++      : PythonObject(PyRefType::Borrowed, rhs.m_py_obj) {}
+ 
+   PythonObject(PythonObject &&rhs) {
+     m_py_obj = rhs.m_py_obj;
+@@ -197,13 +198,6 @@ public:
+     m_py_obj = nullptr;
+   }
+ 
+-  void Reset(const PythonObject &rhs) {
+-    if (!rhs.IsValid())
+-      Reset();
+-    else
+-      Reset(PyRefType::Borrowed, rhs.m_py_obj);
+-  }
+-
+   // PythonObject is implicitly convertible to PyObject *, which will call the
+   // wrong overload.  We want to explicitly disallow this, since a PyObject
+   // *always* owns its reference.  Therefore the overload which takes a

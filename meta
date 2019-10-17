@@ -1,5 +1,5 @@
 Version: 1
-Previous: b93a9a2749e00f91bd96ad65b2d837b30a7250c8
+Previous: 8fbe038a8e832f88ebe1bfdd39ff09d485eb7189
 Head: 74f933fba2b429b75bcf34a1ddd5e88a93d814c6
 Applied:
   python-fix: 42771df458c6ee9b5342a0165cd6946fbe492296
@@ -7,5 +7,6 @@ Applied:
   stringliteral-intellisense: da8f70b04ffabec7caefb311208df542c133f555
   inspect: 91534f57765eef89332d5f5e3bc50d6e0a5a0350
   inspect-cmd: 200df99cce1a811b5eb27526d0f71b346f301d11
+  eliminate-one-form-of: 74f933fba2b429b75bcf34a1ddd5e88a93d814c6
 Unapplied:
 Hidden:
