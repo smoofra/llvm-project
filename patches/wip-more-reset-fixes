@@ -1,5 +1,5 @@
-Bottom: bb5e86f4480af409b6c351dbd8bc0203c9fcb215
-Top:    f545b7e546fb330d2c8d23f89fdaa5afedd1aaff
+Bottom: 7a03fb735d76e7a41eeb96fe6a2d61e8de586a43
+Top:    aa46dbea57ca238eb17c9d6d90eeeb934e27a0b9
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -82,10 +82,10 @@ index 2b70762e368..93414ea9874 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index d34b96c566f..cbb0f0ef6c1 100644
+index 0cdb63f17c9..e350680a3a9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -338,6 +338,10 @@ public:
+@@ -332,6 +332,10 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
@@ -96,7 +96,7 @@ index d34b96c566f..cbb0f0ef6c1 100644
    llvm::Expected<bool> IsTrue() {
      if (!m_py_obj)
        return nullDeref();
-@@ -400,8 +404,12 @@ public:
+@@ -394,8 +398,12 @@ public:
  
    using PythonObject::Reset;
  
@@ -111,7 +111,7 @@ index d34b96c566f..cbb0f0ef6c1 100644
      if (!py_obj)
        return;
      T::Convert(type, py_obj);
-@@ -411,8 +419,6 @@ public:
+@@ -405,8 +413,6 @@ public:
        Py_DECREF(py_obj);
    }
  
@@ -120,7 +120,7 @@ index d34b96c566f..cbb0f0ef6c1 100644
    TypedPythonObject() {}
  };
  
-@@ -569,6 +575,9 @@ public:
+@@ -563,6 +569,9 @@ public:
  
    llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
    llvm::Expected<PythonObject> GetItem(const char *key) const;
@@ -130,7 +130,7 @@ index d34b96c566f..cbb0f0ef6c1 100644
    llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
    llvm::Error SetItem(const char *key, const PythonObject &value) const;
  
-@@ -714,6 +723,15 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -708,6 +717,15 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
