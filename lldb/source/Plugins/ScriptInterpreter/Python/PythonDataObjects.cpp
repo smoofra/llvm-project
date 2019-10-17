@@ -819,7 +819,7 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetInitArgInfo() const {
 }
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
-static const char *get_arg_info_script = R"(
+static const char get_arg_info_script[] = R"(
 from inspect import signature, Parameter, ismethod
 from collections import namedtuple
 ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', 'is_bound_method'])
