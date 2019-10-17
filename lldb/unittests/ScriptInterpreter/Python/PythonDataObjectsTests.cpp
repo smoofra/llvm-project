@@ -694,11 +694,13 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
   }
 
   {
-    const char *script = "class Foo: \n"
-                         "  def bar(self, x):\n"
-                         "     return x \n"
-                         "bar_bound   = Foo().bar \n"
-                         "bar_unbound = Foo.bar \n";
+    const char *script = R"(
+class Foo:
+  def bar(self, x):
+     return x
+bar_bound   = Foo().bar
+bar_unbound = Foo.bar
+)";
     PyObject *o =
         PyRun_String(script, Py_file_input, globals.get(), globals.get());
     ASSERT_FALSE(o == NULL);
