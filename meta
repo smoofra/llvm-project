@@ -1,5 +1,5 @@
 Version: 1
-Previous: 56cb69dae36b76f1700d7886e75b9ccf8ff40c29
+Previous: 8717abedf83933f3b4e74eccb86b69526b09f913
 Head: ce7f50fe20ce9559bf46fc1e4c74208d52245648
 Applied:
   python-fix: 42771df458c6ee9b5342a0165cd6946fbe492296
@@ -8,6 +8,7 @@ Applied:
   inspect: 48a1ce60982cefd01dcf7fe3bc65df1ef6f2ff0d
   inspect-cmd: 9914bba40cc1726ceb3b80eb9b04130e8f7904f1
   eliminate-one-form-of: 0cac7690a9ca3895ad7a8590385435fa0b6915cf
-  more-reset: 58e62bef6c962e86b38e0a854fee0b9e3d60333b
+  eliminate-nontrivial-reset: ce7f50fe20ce9559bf46fc1e4c74208d52245648
 Unapplied:
+  more-reset: 58e62bef6c962e86b38e0a854fee0b9e3d60333b
 Hidden:
