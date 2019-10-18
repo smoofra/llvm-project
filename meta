@@ -1,5 +1,5 @@
 Version: 1
-Previous: bb2bc9ce3262e3f9944108cf2b680b8f56b6be66
+Previous: 3c69638a7a0ce536e674a78dc99123b625481639
 Head: febc73d2a109d10a95fb792a3e53a6f31cb38a34
 Applied:
   python-fix: 6c80545ec19342226b979c989b598d971004bd61
@@ -8,6 +8,6 @@ Applied:
   inspect-cmd: 8e6fe5a0ffcd6f8bb99a3b9a145e924c2bcf9e4a
   more-reset: f5a28a20738476c8f33cb8c0a25ccf0ecc93a3e0
   type-formatters: 7fb11e8d439a5bf35bc21cc0db531c0a1fe3e099
-  refresh-temp: febc73d2a109d10a95fb792a3e53a6f31cb38a34
+  no-more-reset: febc73d2a109d10a95fb792a3e53a6f31cb38a34
 Unapplied:
 Hidden:
