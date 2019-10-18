@@ -151,6 +151,20 @@ template <typename T> T Retain(PyObject *obj) {
   return std::move(thing);
 }
 
+inline llvm::Error nullDeref() {
+  return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                 "A NULL PyObject* was dereferenced");
+}
+
+inline llvm::Error exception(const char *s = nullptr) {
+  return llvm::make_error<PythonException>(s);
+}
+
+inline llvm::Error keyError() {
+  return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                 "key not in dict");
+}
+
 } // namespace python
 
 enum class PyInitialValue { Invalid, Empty };
@@ -165,6 +179,11 @@ template <> struct PythonFormat<unsigned long long> {
 template <> struct PythonFormat<long long> {
   static constexpr char format = 'L';
   static auto get(long long value) { return value; }
+};
+
+template <> struct PythonFormat<PyObject *> {
+  static constexpr char format = 'O';
+  static auto get(PyObject *value) { return value; }
 };
 
 template <typename T>
@@ -192,6 +211,7 @@ public:
     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
     cstr = ref.data();
   }
+  CStringArg(llvm::StringRef ref) : CStringArg(llvm::Twine(ref)) {}
   const char *str() const { return cstr; }
 };
 
@@ -199,8 +219,14 @@ class PythonObject {
 public:
   PythonObject() : m_py_obj(nullptr) {}
 
-  PythonObject(PyRefType type, PyObject *py_obj) : m_py_obj(nullptr) {
-    Reset(type, py_obj);
+  PythonObject(PyRefType type, PyObject *py_obj) {
+    m_py_obj = py_obj;
+    // If this is a borrowed reference, we need to convert it to
+    // an owned reference by incrementing it.  If it is an owned
+    // reference (for example the caller allocated it with PyDict_New()
+    // then we must *not* increment it.
+    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
+      Py_XINCREF(m_py_obj);
   }
 
   PythonObject(const PythonObject &rhs)
@@ -217,23 +243,6 @@ public:
     if (m_py_obj && Py_IsInitialized())
       Py_DECREF(m_py_obj);
     m_py_obj = nullptr;
-  }
-
-  void Reset(PyRefType type, PyObject *py_obj) {
-    if (py_obj == m_py_obj)
-      return;
-
-    if (Py_IsInitialized())
-      Py_XDECREF(m_py_obj);
-
-    m_py_obj = py_obj;
-
-    // If this is a borrowed reference, we need to convert it to
-    // an owned reference by incrementing it.  If it is an owned
-    // reference (for example the caller allocated it with PyDict_New()
-    // then we must *not* increment it.
-    if (m_py_obj && Py_IsInitialized() && type == PyRefType::Borrowed)
-      Py_XINCREF(m_py_obj);
   }
 
   void Dump() const {
@@ -301,17 +310,6 @@ public:
   StructuredData::ObjectSP CreateStructuredObject() const;
 
 protected:
-  static llvm::Error nullDeref() {
-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                   "A NULL PyObject* was dereferenced");
-  }
-  static llvm::Error exception(const char *s = nullptr) {
-    return llvm::make_error<PythonException>(s);
-  }
-  static llvm::Error keyError() {
-    return llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                   "key not in dict");
-  }
 
 #if PY_MAJOR_VERSION < 3
   // The python 2 API declares some arguments as char* that should
@@ -325,6 +323,7 @@ public:
   template <typename... T>
   llvm::Expected<PythonObject> CallMethod(const char *name,
                                           const T &... t) const {
+    using namespace python;
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
     PyObject *obj =
         PyObject_CallMethod(m_py_obj, py2_const_cast(name),
@@ -336,6 +335,7 @@ public:
 
   template <typename... T>
   llvm::Expected<PythonObject> Call(const T &... t) const {
+    using namespace python;
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
     PyObject *obj = PyObject_CallFunction(m_py_obj, py2_const_cast(format),
                                           PythonFormat<T>::get(t)...);
@@ -345,6 +345,7 @@ public:
   }
 
   llvm::Expected<PythonObject> GetAttribute(CStringArg name) const {
+    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     PyObject *obj = PyObject_GetAttrString(m_py_obj, name.str());
@@ -354,6 +355,7 @@ public:
   }
 
   llvm::Expected<bool> IsTrue() {
+    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     int r = PyObject_IsTrue(m_py_obj);
@@ -363,6 +365,7 @@ public:
   }
 
   llvm::Expected<long long> AsLongLong() {
+    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     assert(!PyErr_Occurred());
@@ -373,6 +376,7 @@ public:
   }
 
   llvm::Expected<bool> IsInstance(const PythonObject &cls) {
+    using namespace python;
     if (!m_py_obj || !cls.IsValid())
       return nullDeref();
     int r = PyObject_IsInstance(m_py_obj, cls.get());
@@ -413,16 +417,12 @@ public:
   // This can be eliminated once we drop python 2 support.
   static void Convert(PyRefType &type, PyObject *&py_obj) {}
 
-  void Reset() { PythonObject::Reset(); }
-
-  void Reset(PyRefType type, PyObject *py_obj) = delete;
-
   TypedPythonObject(PyRefType type, PyObject *py_obj) {
     if (!py_obj)
       return;
     T::Convert(type, py_obj);
     if (T::Check(py_obj))
-      PythonObject::Reset(type, py_obj);
+      PythonObject::operator=(PythonObject(type, py_obj));
     else if (type == PyRefType::Owned)
       Py_DECREF(py_obj);
   }
@@ -694,6 +694,8 @@ public:
   ~PythonException();
   void log(llvm::raw_ostream &OS) const override;
   std::error_code convertToErrorCode() const override;
+  bool Matches(PyObject *exc) const;
+  std::string ReadBacktrace() const;
 };
 
 // This extracts the underlying T out of an Expected<T> and returns it.
@@ -737,7 +739,54 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
   llvm::consumeError(expected.takeError());
   return T();
 }
+
+llvm::Expected<PythonObject> runStringOneLine(CStringArg string,
+                                              const PythonDictionary &globals,
+                                              const PythonDictionary &locals);
+
+llvm::Expected<PythonObject> runStringMultiLine(CStringArg string,
+                                                const PythonDictionary &globals,
+                                                const PythonDictionary &locals);
+
 } // namespace python
+
+/* Sometimes the best way to interact with a python interpreter is
+ * to run some python code.   You construct a PythonScript with
+ * script string and a function name, and you get a C++ callable
+ * object that calls the python function.
+ *
+ * Example:
+ *
+ * const char script[] = R"(
+ * def foo(x, y):
+ *    ....
+ * )";
+ *
+ * Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
+ *   // global is protected by the GIL
+ *   static PythonScript foo(script, "foo")
+ *   return  foo(x, y);
+ * }
+ */
+class PythonScript {
+  const char *script;
+  const char *function_name;
+  PythonCallable function;
+
+  llvm::Error Init();
+
+public:
+  PythonScript(const char *script, const char *name)
+      : script(script), function_name(name), function() {}
+
+  template <typename... Args>
+  llvm::Expected<PythonObject> operator()(Args &&... args) {
+    llvm::Error e = Init();
+    if (e)
+      return std::move(e);
+    return function.Call(std::forward<Args>(args)...);
+  }
+};
 
 } // namespace lldb_private
 
