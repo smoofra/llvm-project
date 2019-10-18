@@ -363,7 +363,7 @@ public:
     eIOHandlerWatchpoint
   };
 
-  PythonObject &GetMainModule();
+  PythonModule &GetMainModule();
 
   PythonDictionary &GetSessionDictionary();
 
@@ -377,7 +377,7 @@ public:
   PythonObject m_saved_stdin;
   PythonObject m_saved_stdout;
   PythonObject m_saved_stderr;
-  PythonObject m_main_module;
+  PythonModule m_main_module;
   PythonDictionary m_session_dict;
   PythonDictionary m_sys_module_dict;
   PythonObject m_run_one_line_function;
