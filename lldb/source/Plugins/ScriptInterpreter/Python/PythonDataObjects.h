@@ -179,7 +179,7 @@ struct PythonFormat<
  * for such wrappers to just take a StringRef, because those may not be
  * null-terminated, so we'd wind up doing a full copy just to pass a
  * fixed string. Instead, wrappers can just take their arguments as
- * CStringArg, an callers can pass StringRefs, Twines, strings, or
+ * CStringArg, and callers can pass StringRefs, Twines, strings, or
  * const char*, and the right thing will happen. */
 class CStringArg {
   llvm::SmallString<32> storage;
