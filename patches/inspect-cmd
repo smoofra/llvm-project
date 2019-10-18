@@ -1,5 +1,5 @@
-Bottom: cd9a58a8a75a4954c49a06c491c3c74d15576252
-Top:    bfcb28053b2452b58ba579c6c4ad3c89a1e27ecb
+Bottom: 091a4f2a886fbe632ca6d6cdb04a5edb34ce840a
+Top:    b9a187c0456a14d9359d44ff686fd5babae5a075
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-17 01:22:53 -0700
 
@@ -190,7 +190,7 @@ index 7d507b31c5c..c50f9d1fab9 100644
      return true;
  }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 3ac404b532d..7f2816a08d2 100644
+index 1fb9355b9ee..2b70762e368 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -876,21 +876,23 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
@@ -253,10 +253,10 @@ index 3ac404b532d..7f2816a08d2 100644
    auto arginfo = GetArgInfo();
    if (!arginfo) {
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 7f460234ffb..5b68b8715c9 100644
+index 5823f740a53..0cdb63f17c9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -626,6 +626,11 @@ public:
+@@ -604,6 +604,11 @@ public:
    using TypedPythonObject::TypedPythonObject;
  
    struct ArgInfo {
@@ -268,7 +268,7 @@ index 7f460234ffb..5b68b8715c9 100644
      /* the number of positional arguments, including optional ones,
       * and excluding varargs.  If this is a bound method, then the
       * count will still include a +1 for self.
-@@ -636,8 +641,6 @@ public:
+@@ -614,8 +619,6 @@ public:
      int count;
      /* does the callable have positional varargs? */
      bool has_varargs : 1; // FIXME delete this
@@ -278,7 +278,7 @@ index 7f460234ffb..5b68b8715c9 100644
  
    static bool Check(PyObject *py_obj);
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index 3f0cb78b64c..1f2a3c58507 100644
+index d9e4435bf93..e51c6f0eb0c 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -643,8 +643,8 @@ TEST_F(PythonDataObjectsTest, TestCallable) {
