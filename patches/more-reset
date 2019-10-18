@@ -1,5 +1,5 @@
 Bottom: b9a187c0456a14d9359d44ff686fd5babae5a075
-Top:    72655a880e952a055a6230f4b59db1a6011cfa21
+Top:    8068b91b6e0211da0600fe0b8a80e030ad4de21e
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -148,7 +148,7 @@ index 2b70762e368..7f93776a85d 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 0cdb63f17c9..ffe9b5e6ccf 100644
+index 0cdb63f17c9..fcf7f3ce70a 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -174,6 +174,27 @@ struct PythonFormat<
@@ -160,7 +160,7 @@ index 0cdb63f17c9..ffe9b5e6ccf 100644
 + * for such wrappers to just take a StringRef, because those may not be
 + * null-terminated, so we'd wind up doing a full copy just to pass a
 + * fixed string. Instead, wrappers can just take their arguments as
-+ * CStringArg, an callers can pass StringRefs, Twines, strings, or
++ * CStringArg, and callers can pass StringRefs, Twines, strings, or
 + * const char*, and the right thing will happen. */
 +class CStringArg {
 +  llvm::SmallString<32> storage;
