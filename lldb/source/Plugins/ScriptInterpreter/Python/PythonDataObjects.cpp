@@ -696,10 +696,10 @@ PythonDictionary::GetItem(const PythonObject &key) const {
   return Retain<PythonObject>(o);
 }
 
-Expected<PythonObject> PythonDictionary::GetItem(const char *key) const {
+Expected<PythonObject> PythonDictionary::GetItem(CStringArg key) const {
   if (!IsValid())
     return nullDeref();
-  PyObject *o = PyDict_GetItemString(m_py_obj, key);
+  PyObject *o = PyDict_GetItemString(m_py_obj, key.str());
   if (PyErr_Occurred())
     return exception();
   if (!o)
@@ -717,11 +717,11 @@ Error PythonDictionary::SetItem(const PythonObject &key,
   return Error::success();
 }
 
-Error PythonDictionary::SetItem(const char *key,
+Error PythonDictionary::SetItem(CStringArg key,
                                 const PythonObject &value) const {
   if (!IsValid() || !value.IsValid())
     return nullDeref();
-  int r = PyDict_SetItemString(m_py_obj, key, value.get());
+  int r = PyDict_SetItemString(m_py_obj, key.str(), value.get());
   if (r < 0)
     return exception();
   return Error::success();
@@ -763,20 +763,20 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
   return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
 }
 
-Expected<PythonModule> PythonModule::Import(const char *name) {
-  PyObject *mod = PyImport_ImportModule(name);
+Expected<PythonModule> PythonModule::Import(CStringArg name) {
+  PyObject *mod = PyImport_ImportModule(name.str());
   if (!mod)
     return exception();
   return Take<PythonModule>(mod);
 }
 
-Expected<PythonObject> PythonModule::Get(const char *name) {
+Expected<PythonObject> PythonModule::Get(CStringArg name) {
   if (!IsValid())
     return nullDeref();
   PyObject *dict = PyModule_GetDict(m_py_obj);
   if (!dict)
     return exception();
-  PyObject *item = PyDict_GetItemString(dict, name);
+  PyObject *item = PyDict_GetItemString(dict, name.str());
   if (!item)
     return exception();
   return Retain<PythonObject>(item);
