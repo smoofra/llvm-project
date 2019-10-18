@@ -9,9 +9,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -25,9 +25,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -41,9 +41,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -72,9 +72,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -89,9 +89,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -122,9 +122,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -151,9 +151,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -180,9 +180,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -196,9 +196,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -212,9 +212,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -243,9 +243,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -259,9 +259,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -275,9 +275,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -291,9 +291,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -322,9 +322,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -338,9 +338,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -354,9 +354,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -385,9 +385,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -402,9 +402,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -433,9 +433,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -450,9 +450,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -467,9 +467,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -483,9 +483,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -527,9 +527,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -556,9 +556,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -572,9 +572,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -589,9 +589,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 
@@ -620,9 +620,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -636,9 +636,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -652,9 +652,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -681,9 +681,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -697,9 +697,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -713,9 +713,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -729,9 +729,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -745,9 +745,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -774,9 +774,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -803,9 +803,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -832,9 +832,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
     %pythoncode %{
@@ -861,9 +861,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -886,9 +886,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
@@ -902,9 +902,9 @@
                 if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                     --desc_len;
                 if (desc_len > 0)
-                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
                 else
-                    return lldb_private::PythonString("").release();
+                    return PythonString("").release();
         }
         %clearnothreadallow;
 }
