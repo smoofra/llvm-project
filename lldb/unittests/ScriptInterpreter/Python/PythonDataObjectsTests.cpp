@@ -21,6 +21,7 @@
 
 using namespace lldb_private;
 using namespace lldb_private::python;
+using llvm::Expected;
 
 class PythonDataObjectsTest : public PythonTestSuite {
 public:
@@ -771,4 +772,51 @@ bar_unbound = Foo.bar
   }
 
 #endif
+}
+
+TEST_F(PythonDataObjectsTest, TestScript) {
+
+  static const char script[] = R"(
+def factorial(n):
+  if n > 1:
+    return n * factorial(n-1)
+  else:
+    return 1;
+_function_ = factorial
+)";
+
+  PythonScript factorial(script);
+  Expected<long long> r = As<long long>(factorial(5ll));
+  bool ok = (bool)r;
+  ASSERT_TRUE(ok);
+  EXPECT_EQ(r.get(), 120);
+}
+
+TEST_F(PythonDataObjectsTest, TestExceptions) {
+
+  static const char script[] = R"(
+def foo():
+  return bar()
+def bar():
+  return baz()
+def baz():
+  return 1 / 0
+_function_ = foo
+)";
+
+  PythonScript foo(script);
+  Expected<PythonObject> r = foo();
+
+  bool failed = !r;
+  ASSERT_TRUE(failed);
+
+  std::string backtrace;
+  llvm::handleAllErrors(r.takeError(), [&](const PythonException &E) {
+    backtrace = E.ReadBacktrace();
+  });
+
+  EXPECT_NE(backtrace.find("line 3, in foo"), std::string::npos);
+  EXPECT_NE(backtrace.find("line 5, in bar"), std::string::npos);
+  EXPECT_NE(backtrace.find("line 7, in baz"), std::string::npos);
+  EXPECT_NE(backtrace.find("ZeroDivisionError"), std::string::npos);
 }
