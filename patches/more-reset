@@ -1,5 +1,5 @@
 Bottom: 918249dc264517e713dbadf5e4f4e6e1b7486d67
-Top:    684e7b6c521aedf5125766534de0b7c5fe7e0a2d
+Top:    7939f065220b9845e51af519bd13f38fda13c0df
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -156,7 +156,7 @@ index 2b70762e368..d0d593656ef 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 0cdb63f17c9..452abe16ad7 100644
+index 0cdb63f17c9..24fc4748c41 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -151,6 +151,18 @@ template <typename T> T Retain(PyObject *obj) {
@@ -178,12 +178,13 @@ index 0cdb63f17c9..452abe16ad7 100644
  } // namespace python
  
  enum class PyInitialValue { Invalid, Empty };
-@@ -323,10 +335,10 @@ public:
+@@ -323,10 +335,11 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
 -  llvm::Expected<PythonObject> GetAttribute(const char *name) const {
 +  llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
++    using namespace python;
      if (!m_py_obj)
        return nullDeref();
 -    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
@@ -191,7 +192,7 @@ index 0cdb63f17c9..452abe16ad7 100644
      if (!obj)
        return exception();
      return python::Take<PythonObject>(obj);
-@@ -392,10 +404,11 @@ public:
+@@ -392,10 +405,11 @@ public:
    // This can be eliminated once we drop python 2 support.
    static void Convert(PyRefType &type, PyObject *&py_obj) {}
  
@@ -206,7 +207,7 @@ index 0cdb63f17c9..452abe16ad7 100644
      if (!py_obj)
        return;
      T::Convert(type, py_obj);
-@@ -405,8 +418,6 @@ public:
+@@ -405,8 +419,6 @@ public:
        Py_DECREF(py_obj);
    }
  
@@ -215,7 +216,7 @@ index 0cdb63f17c9..452abe16ad7 100644
    TypedPythonObject() {}
  };
  
-@@ -562,9 +573,9 @@ public:
+@@ -562,9 +574,9 @@ public:
                       const PythonObject &value); // DEPRECATED
  
    llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
@@ -227,7 +228,7 @@ index 0cdb63f17c9..452abe16ad7 100644
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -592,9 +603,9 @@ public:
+@@ -592,9 +604,9 @@ public:
      return std::move(mod.get());
    }
  
@@ -239,7 +240,7 @@ index 0cdb63f17c9..452abe16ad7 100644
  
    PythonDictionary GetDictionary() const;
  };
-@@ -708,6 +719,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -708,6 +720,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
