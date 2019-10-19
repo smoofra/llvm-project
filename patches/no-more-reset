@@ -1,5 +1,5 @@
 Bottom: 8d08ba7002045d0102c4a0da6a62a284ba0a92b0
-Top:    878fa5d99641d8880d99e69eebedba7aea66be79
+Top:    320391e09eff895944f656162aa0e4b0149e78c5
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -33,7 +33,7 @@ index 2c5071bc765..54b5c236f75 100644
  
    LINK_LIBS
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 7f93776a85d..dca03a9d609 100644
+index 7f93776a85d..90b4eafcb5a 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -260,8 +260,7 @@ size_t PythonBytes::GetSize() const {
@@ -64,77 +64,64 @@ index 7f93776a85d..dca03a9d609 100644
  }
  
  StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
-@@ -844,6 +843,39 @@ def get_arg_info(f):
+@@ -844,35 +843,37 @@ def get_arg_info(f):
  )";
  #endif
  
-+class PythonScript {
-+  const char *script;
-+  const char *function_name;
-+  PythonCallable function;
-+
-+public:
-+  PythonScript(const char *script, const char *name)
-+      : script(script), function_name(name), function() {}
-+
-+  template <typename... Args>
-+  Expected<PythonObject> operator()(Args &&... args) {
-+    if (!function.IsValid()) {
-+      PythonDictionary globals(PyInitialValue::Empty);
-+
-+      auto builtins = PythonModule::BuiltinsModule();
-+      Error error = globals.SetItem("__builtins__", builtins);
-+      if (error)
-+        return std::move(error);
-+      PyObject *o =
-+          PyRun_String(script, Py_file_input, globals.get(), globals.get());
-+      if (!o)
-+        return exception();
-+      Take<PythonObject>(o);
-+      auto f = As<PythonCallable>(globals.GetItem(function_name));
-+      if (!f)
-+        return f.takeError();
-+      function = std::move(f.get());
-+    }
-+
-+    return function.Call(std::forward<Args>(args)...);
-+  }
-+};
-+
- Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
-   ArgInfo result = {};
-   if (!IsValid())
-@@ -852,27 +884,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
- #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
- 
-   // this global is protected by the GIL
+-Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+-  ArgInfo result = {};
+-  if (!IsValid())
+-    return nullDeref();
+-
+-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
+-
+-  // this global is protected by the GIL
 -  static PythonCallable get_arg_info;
 -
 -  if (!get_arg_info.IsValid()) {
--    PythonDictionary globals(PyInitialValue::Empty);
--
--    auto builtins = PythonModule::BuiltinsModule();
--    Error error = globals.SetItem("__builtins__", builtins);
--    if (error)
++Error PythonScript::Init() {
++  if (!function.IsValid()) {
+     PythonDictionary globals(PyInitialValue::Empty);
+ 
+     auto builtins = PythonModule::BuiltinsModule();
+     Error error = globals.SetItem("__builtins__", builtins);
+     if (error)
 -      return std::move(error);
 -    PyObject *o = PyRun_String(get_arg_info_script, Py_file_input,
 -                               globals.get(), globals.get());
--    if (!o)
--      return exception();
--    Take<PythonObject>(o);
++      return error;
++    PyObject *o =
++        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+     if (!o)
+       return exception();
+     Take<PythonObject>(o);
 -    auto function = As<PythonCallable>(globals.GetItem("get_arg_info"));
 -    if (!function)
 -      return function.takeError();
 -    get_arg_info = std::move(function.get());
--  }
--
++    auto f = As<PythonCallable>(globals.GetItem(function_name));
++    if (!f)
++      return f.takeError();
++    function = std::move(f.get());
+   }
++  return Error::success();
++}
+ 
 -  Expected<PythonObject> pyarginfo = get_arg_info.Call(*this);
++Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
++  ArgInfo result = {};
++  if (!IsValid())
++    return nullDeref();
++
++#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
++
++  // this global is protected by the GIL
 +  static PythonScript get_arg_info(get_arg_info_script, "get_arg_info");
 +  Expected<PythonObject> pyarginfo = get_arg_info(*this);
    if (!pyarginfo)
      return pyarginfo.takeError();
    result.count = cantFail(As<long long>(pyarginfo.get().GetAttribute("count")));
-@@ -1055,6 +1068,35 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1055,6 +1056,35 @@ std::error_code PythonException::convertToErrorCode() const {
    return llvm::inconvertibleErrorCode();
  }
  
@@ -170,7 +157,7 @@ index 7f93776a85d..dca03a9d609 100644
  char PythonException::ID = 0;
  
  llvm::Expected<File::OpenOptions>
-@@ -1495,4 +1537,38 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+@@ -1495,4 +1525,38 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
    return Take<PythonFile>(file_obj);
  }
  
@@ -210,7 +197,7 @@ index 7f93776a85d..dca03a9d609 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index fcf7f3ce70a..922a179de37 100644
+index fcf7f3ce70a..0b7ab21d521 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -151,6 +151,20 @@ template <typename T> T Retain(PyObject *obj) {
@@ -388,7 +375,7 @@ index fcf7f3ce70a..922a179de37 100644
  };
  
  // This extracts the underlying T out of an Expected<T> and returns it.
-@@ -737,6 +739,15 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+@@ -737,8 +739,55 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
    llvm::consumeError(expected.takeError());
    return T();
  }
@@ -403,7 +390,47 @@ index fcf7f3ce70a..922a179de37 100644
 +
  } // namespace python
  
++/* Sometimes the best way to interact with a python interpreter is
++ * to run some python code.   You construct a PythonScript with
++ * script string and a function name, and you get a C++ callable
++ * objedct that calls the python function.
++ *
++ * Example:
++ *
++ * const char script[] = R"(
++ * def foo(x, y):
++ *    ....
++ * )";
++ *
++ * Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
++ *   // global is protected by the GIL
++ *   static PythonScript foo(script, "foo")
++ *   return  foo(x, y);
++ * }
++ */
++class PythonScript {
++  const char *script;
++  const char *function_name;
++  PythonCallable function;
++
++  llvm::Error Init();
++
++public:
++  PythonScript(const char *script, const char *name)
++      : script(script), function_name(name), function() {}
++
++  template <typename... Args>
++  llvm::Expected<PythonObject> operator()(Args &&... args) {
++    llvm::Error e = Init();
++    if (e)
++      return std::move(e);
++    return function.Call(std::forward<Args>(args)...);
++  }
++};
++
  } // namespace lldb_private
+ 
+ #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonExceptionState.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonExceptionState.cpp
 deleted file mode 100644
 index c9d834ce686..00000000000
@@ -1042,6 +1069,52 @@ index 618767de91e..471f4c6dbc3 100644
    PythonTestSuite.cpp
  
    LINK_LIBS
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index c01dade4440..4cf4fd13d9f 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -21,6 +21,7 @@
+ 
+ using namespace lldb_private;
+ using namespace lldb_private::python;
++using llvm::Expected;
+ 
+ class PythonDataObjectsTest : public PythonTestSuite {
+ public:
+@@ -771,4 +772,32 @@ bar_unbound = Foo.bar
+   }
+ 
+ #endif
++}
++
++TEST_F(PythonDataObjectsTest, TestExceptions) {
++
++  static const char script[] = R"(
++def foo():
++  return bar()
++def bar():
++  return baz()
++def baz():
++  return 1 / 0
++)";
++
++  PythonScript foo(script, "foo");
++  Expected<PythonObject> r = foo();
++
++  bool failed = !r;
++  ASSERT_TRUE(failed);
++
++  std::string backtrace;
++  llvm::handleAllErrors(r.takeError(), [&](const PythonException &E) {
++    backtrace = E.ReadBacktrace();
++  });
++
++  EXPECT_NE(backtrace.find("line 3, in foo"), std::string::npos);
++  EXPECT_NE(backtrace.find("line 5, in bar"), std::string::npos);
++  EXPECT_NE(backtrace.find("line 7, in baz"), std::string::npos);
++  EXPECT_NE(backtrace.find("ZeroDivisionError"), std::string::npos);
+ }
+\ No newline at end of file
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonExceptionStateTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonExceptionStateTests.cpp
 deleted file mode 100644
 index 8334e64738e..00000000000
