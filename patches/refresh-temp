@@ -1,0 +1,53 @@
+Bottom: aee61eaff356cf466c5c825d509dc756dfe946e0
+Top:    d54f5c84956cea3ef0464c86690acf6e1499d3ce
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-19 14:24:30 -0700
+
+Refresh of no-more-reset
+
+---
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index 52289301a51..bacc09c3b9c 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -21,6 +21,7 @@
+ 
+ using namespace lldb_private;
+ using namespace lldb_private::python;
++using llvm::Error;
+ using llvm::Expected;
+ 
+ class PythonDataObjectsTest : public PythonTestSuite {
+@@ -819,4 +820,31 @@ _function_ = foo
+   EXPECT_NE(backtrace.find("line 5, in bar"), std::string::npos);
+   EXPECT_NE(backtrace.find("line 7, in baz"), std::string::npos);
+   EXPECT_NE(backtrace.find("ZeroDivisionError"), std::string::npos);
++}
++
++TEST_F(PythonDataObjectsTest, TestRun) {
++
++  PythonDictionary globals(PyInitialValue::Empty);
++
++  auto x = As<long long>(runStringOneLine("40 + 2", globals, globals));
++  ASSERT_THAT_EXPECTED(x, llvm::Succeeded());
++  EXPECT_EQ(x.get(), 42l);
++
++  Expected<PythonObject> r = runStringOneLine("n = 42", globals, globals);
++  ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
++  auto y = As<long long>(globals.GetItem("n"));
++  ASSERT_THAT_EXPECTED(y, llvm::Succeeded());
++  EXPECT_EQ(y.get(), 42l);
++
++  const char script[] = R"(
++def foobar():
++  return "foo" + "bar" + "baz"
++g = foobar()
++)";
++
++  r = runStringMultiLine(script, globals, globals);
++  ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
++  auto g = As<std::string>(globals.GetItem("g"));
++  ASSERT_THAT_EXPECTED(g, llvm::Succeeded());
++  EXPECT_EQ(g.get(), "foobarbaz");
+ }
+\ No newline at end of file
