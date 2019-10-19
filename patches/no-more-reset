@@ -1,5 +1,5 @@
-Bottom: 8d08ba7002045d0102c4a0da6a62a284ba0a92b0
-Top:    8b2bba3e6db687b768022942436aac12062dad38
+Bottom: 1114ded0145d806930c3c47702f88ca095eea77c
+Top:    7e93e64c7b9d9087b0b7d8f564b48ff1cb6a4802
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -200,7 +200,7 @@ index 7f93776a85d..c345c05c844 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index fcf7f3ce70a..128270ceef9 100644
+index 421e8af3517..a5fe8e174e2 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -151,6 +151,20 @@ template <typename T> T Retain(PyObject *obj) {
@@ -236,7 +236,7 @@ index fcf7f3ce70a..128270ceef9 100644
  template <typename T>
  struct PythonFormat<
      T, typename std::enable_if<std::is_base_of<PythonObject, T>::value>::type> {
-@@ -192,6 +211,7 @@ public:
+@@ -195,6 +214,7 @@ public:
      llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
      cstr = ref.data();
    }
@@ -244,7 +244,7 @@ index fcf7f3ce70a..128270ceef9 100644
    const char *str() const { return cstr; }
  };
  
-@@ -199,8 +219,14 @@ class PythonObject {
+@@ -202,8 +222,14 @@ class PythonObject {
  public:
    PythonObject() : m_py_obj(nullptr) {}
  
@@ -261,7 +261,7 @@ index fcf7f3ce70a..128270ceef9 100644
    }
  
    PythonObject(const PythonObject &rhs)
-@@ -219,23 +245,6 @@ public:
+@@ -222,23 +248,6 @@ public:
      m_py_obj = nullptr;
    }
  
@@ -285,7 +285,7 @@ index fcf7f3ce70a..128270ceef9 100644
    void Dump() const {
      if (m_py_obj)
        _PyObject_Dump(m_py_obj);
-@@ -301,17 +310,6 @@ public:
+@@ -304,17 +313,6 @@ public:
    StructuredData::ObjectSP CreateStructuredObject() const;
  
  protected:
@@ -303,7 +303,7 @@ index fcf7f3ce70a..128270ceef9 100644
  
  #if PY_MAJOR_VERSION < 3
    // The python 2 API declares some arguments as char* that should
-@@ -325,6 +323,7 @@ public:
+@@ -328,6 +326,7 @@ public:
    template <typename... T>
    llvm::Expected<PythonObject> CallMethod(const char *name,
                                            const T &... t) const {
@@ -311,7 +311,7 @@ index fcf7f3ce70a..128270ceef9 100644
      const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
      PyObject *obj =
          PyObject_CallMethod(m_py_obj, py2_const_cast(name),
-@@ -336,6 +335,7 @@ public:
+@@ -339,6 +338,7 @@ public:
  
    template <typename... T>
    llvm::Expected<PythonObject> Call(const T &... t) const {
@@ -319,7 +319,7 @@ index fcf7f3ce70a..128270ceef9 100644
      const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
      PyObject *obj = PyObject_CallFunction(m_py_obj, py2_const_cast(format),
                                            PythonFormat<T>::get(t)...);
-@@ -345,6 +345,7 @@ public:
+@@ -348,6 +348,7 @@ public:
    }
  
    llvm::Expected<PythonObject> GetAttribute(CStringArg name) const {
@@ -327,7 +327,7 @@ index fcf7f3ce70a..128270ceef9 100644
      if (!m_py_obj)
        return nullDeref();
      PyObject *obj = PyObject_GetAttrString(m_py_obj, name.str());
-@@ -354,6 +355,7 @@ public:
+@@ -357,6 +358,7 @@ public:
    }
  
    llvm::Expected<bool> IsTrue() {
@@ -335,7 +335,7 @@ index fcf7f3ce70a..128270ceef9 100644
      if (!m_py_obj)
        return nullDeref();
      int r = PyObject_IsTrue(m_py_obj);
-@@ -363,6 +365,7 @@ public:
+@@ -366,6 +368,7 @@ public:
    }
  
    llvm::Expected<long long> AsLongLong() {
@@ -343,7 +343,7 @@ index fcf7f3ce70a..128270ceef9 100644
      if (!m_py_obj)
        return nullDeref();
      assert(!PyErr_Occurred());
-@@ -373,6 +376,7 @@ public:
+@@ -376,6 +379,7 @@ public:
    }
  
    llvm::Expected<bool> IsInstance(const PythonObject &cls) {
@@ -351,7 +351,7 @@ index fcf7f3ce70a..128270ceef9 100644
      if (!m_py_obj || !cls.IsValid())
        return nullDeref();
      int r = PyObject_IsInstance(m_py_obj, cls.get());
-@@ -413,16 +417,12 @@ public:
+@@ -416,16 +420,12 @@ public:
    // This can be eliminated once we drop python 2 support.
    static void Convert(PyRefType &type, PyObject *&py_obj) {}
  
@@ -369,7 +369,7 @@ index fcf7f3ce70a..128270ceef9 100644
      else if (type == PyRefType::Owned)
        Py_DECREF(py_obj);
    }
-@@ -694,6 +694,8 @@ public:
+@@ -697,6 +697,8 @@ public:
    ~PythonException();
    void log(llvm::raw_ostream &OS) const override;
    std::error_code convertToErrorCode() const override;
@@ -378,7 +378,7 @@ index fcf7f3ce70a..128270ceef9 100644
  };
  
  // This extracts the underlying T out of an Expected<T> and returns it.
-@@ -737,8 +739,55 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+@@ -740,8 +742,55 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
    llvm::consumeError(expected.takeError());
    return T();
  }
