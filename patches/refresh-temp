@@ -1,0 +1,20 @@
+Bottom: 350aecfeead3d815c5f2010c67a0ca9b44dc249e
+Top:    5b54b3005b37f12abc7f287d52107e95235c4e10
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-18 20:21:42 -0700
+
+Refresh of no-more-reset
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 6edfe62a3ca..0fe0f4af517 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -216,7 +216,7 @@ public:
+     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
+     cstr = ref.data();
+   }
+-  CStringArg(llvm::StringRef ref) : CStringArg(llvm::Twine(ref)) {}
++
+   const char *str() const { return cstr; }
+ };
