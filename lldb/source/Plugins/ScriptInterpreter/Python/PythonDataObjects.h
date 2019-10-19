@@ -750,6 +750,44 @@ llvm::Expected<PythonObject> runStringMultiLine(CStringArg string,
 
 } // namespace python
 
+/* Sometimes the best way to interact with a python interpreter is
+ * to run some python code.   You construct a PythonScript with
+ * script string and a function name, and you get a C++ callable
+ * objedct that calls the python function.
+ *
+ * Example:
+ *
+ * const char script[] = R"(
+ * def foo(x, y):
+ *    ....
+ * )";
+ *
+ * Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
+ *   // global is protected by the GIL
+ *   static PythonScript foo(script, "foo")
+ *   return  foo(x, y);
+ * }
+ */
+class PythonScript {
+  const char *script;
+  const char *function_name;
+  PythonCallable function;
+
+  llvm::Error Init();
+
+public:
+  PythonScript(const char *script, const char *name)
+      : script(script), function_name(name), function() {}
+
+  template <typename... Args>
+  llvm::Expected<PythonObject> operator()(Args &&... args) {
+    llvm::Error e = Init();
+    if (e)
+      return std::move(e);
+    return function.Call(std::forward<Args>(args)...);
+  }
+};
+
 } // namespace lldb_private
 
 #endif

@@ -843,38 +843,26 @@ def get_arg_info(f):
 )";
 #endif
 
-class PythonScript {
-  const char *script;
-  const char *function_name;
-  PythonCallable function;
+Error PythonScript::Init() {
+  if (!function.IsValid()) {
+    PythonDictionary globals(PyInitialValue::Empty);
 
-public:
-  PythonScript(const char *script, const char *name)
-      : script(script), function_name(name), function() {}
-
-  template <typename... Args>
-  Expected<PythonObject> operator()(Args &&... args) {
-    if (!function.IsValid()) {
-      PythonDictionary globals(PyInitialValue::Empty);
-
-      auto builtins = PythonModule::BuiltinsModule();
-      Error error = globals.SetItem("__builtins__", builtins);
-      if (error)
-        return std::move(error);
-      PyObject *o =
-          PyRun_String(script, Py_file_input, globals.get(), globals.get());
-      if (!o)
-        return exception();
-      Take<PythonObject>(o);
-      auto f = As<PythonCallable>(globals.GetItem(function_name));
-      if (!f)
-        return f.takeError();
-      function = std::move(f.get());
-    }
-
-    return function.Call(std::forward<Args>(args)...);
+    auto builtins = PythonModule::BuiltinsModule();
+    Error error = globals.SetItem("__builtins__", builtins);
+    if (error)
+      return error;
+    PyObject *o =
+        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+    if (!o)
+      return exception();
+    Take<PythonObject>(o);
+    auto f = As<PythonCallable>(globals.GetItem(function_name));
+    if (!f)
+      return f.takeError();
+    function = std::move(f.get());
   }
-};
+  return Error::success();
+}
 
 Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
   ArgInfo result = {};
