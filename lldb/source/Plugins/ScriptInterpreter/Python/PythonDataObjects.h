@@ -742,19 +742,20 @@ llvm::Expected<PythonObject> runStringMultiLine(const llvm::Twine &string,
 
 // Sometimes the best way to interact with a python interpreter is
 // to run some python code.   You construct a PythonScript with
-// script string and a function name, and you get a C++ callable
-// object that calls the python function.
+// script string.   The script assigns some function to `_function_`
+// and you get a C++ callable object that calls the python function.
 //
 // Example:
 //
 // const char script[] = R"(
 // def foo(x, y):
 //    ....
+// _function_ = foo
 // )";
 //
 // Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
 //   // no need to synchronize access to this global, we already have the GIL
-//   static PythonScript foo(script, "foo")
+//   static PythonScript foo(script)
 //   return  foo(x, y);
 // }
 class PythonScript {
