@@ -1,5 +1,5 @@
 Bottom: f2d8b77e9399ad8917d0ce1f9ab77858b6e0e56c
-Top:    d54f5c84956cea3ef0464c86690acf6e1499d3ce
+Top:    c9d48d40e7da076269ea99a43eeb2bbd8a556331
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -1142,7 +1142,7 @@ index d0d593656ef..3311cf9259f 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 634d6e89601..935c4ec0abd 100644
+index 634d6e89601..5c8acec229f 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -59,6 +59,7 @@
@@ -1313,7 +1313,7 @@ index 634d6e89601..935c4ec0abd 100644
  // This is only here to help incrementally migrate old, exception-unsafe
  // code.
  template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
-@@ -741,8 +731,51 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+@@ -741,8 +731,52 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
    llvm::consumeError(expected.takeError());
    return T();
  }
@@ -1329,19 +1329,20 @@ index 634d6e89601..935c4ec0abd 100644
 +
 +// Sometimes the best way to interact with a python interpreter is
 +// to run some python code.   You construct a PythonScript with
-+// script string and a function name, and you get a C++ callable
-+// object that calls the python function.
++// script string.   The script assigns some function to `_function_`
++// and you get a C++ callable object that calls the python function.
 +//
 +// Example:
 +//
 +// const char script[] = R"(
 +// def foo(x, y):
 +//    ....
++// _function_ = foo
 +// )";
 +//
 +// Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
 +//   // no need to synchronize access to this global, we already have the GIL
-+//   static PythonScript foo(script, "foo")
++//   static PythonScript foo(script)
 +//   return  foo(x, y);
 +// }
 +class PythonScript {
