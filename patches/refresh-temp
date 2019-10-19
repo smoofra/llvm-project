@@ -1,0 +1,177 @@
+Bottom: 9cf13a9a7f0658fb472ed0659da54b59e8a031d2
+Top:    aee61eaff356cf466c5c825d509dc756dfe946e0
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-19 14:12:39 -0700
+
+Refresh of no-more-reset
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 8c4ef17ef5e..3311cf9259f 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -841,6 +841,7 @@ def get_arg_info(f):
+         else:
+             raise Exception(f'unknown parameter kind: {kind}')
+     return ArgInfo(count, varargs, ismethod(f))
++_function_ = get_arg_info
+ )";
+ #endif
+ 
+@@ -851,8 +852,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+ 
+ #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
+ 
+-  // this global is protected by the GIL
+-  static PythonScript get_arg_info(get_arg_info_script, "get_arg_info");
++  // no need to synchronize access to this global, we already have the GIL
++  static PythonScript get_arg_info(get_arg_info_script);
+   Expected<PythonObject> pyarginfo = get_arg_info(*this);
+   if (!pyarginfo)
+     return pyarginfo.takeError();
+@@ -1051,6 +1052,7 @@ def read_exception(exc_type, exc_value, tb):
+   f = StringIO()
+   print_exception(exc_type, exc_value, tb, file=f)
+   return f.getvalue()
++_function_ = read_exception  
+ )";
+ 
+ std::string PythonException::ReadBacktrace(bool recursing) const {
+@@ -1058,8 +1060,8 @@ std::string PythonException::ReadBacktrace(bool recursing) const {
+   if (!m_traceback)
+     return toCString();
+ 
+-  // global is protected by the GIL
+-  static PythonScript read_exception(read_exception_script, "read_exception");
++  // no need to synchronize access to this global, we already have the GIL
++  static PythonScript read_exception(read_exception_script);
+ 
+   Expected<std::string> backtrace = As<std::string>(
+       read_exception(m_exception_type, m_exception, m_traceback));
+@@ -1525,23 +1527,24 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+ }
+ 
+ Error PythonScript::Init() {
+-  if (!function.IsValid()) {
+-    PythonDictionary globals(PyInitialValue::Empty);
++  if (function.IsValid())
++    return Error::success();
++
++  PythonDictionary globals(PyInitialValue::Empty);
++  auto builtins = PythonModule::BuiltinsModule();
++  Error error = globals.SetItem("__builtins__", builtins);
++  if (error)
++    return error;
++  PyObject *o =
++      PyRun_String(script, Py_file_input, globals.get(), globals.get());
++  if (!o)
++    return exception();
++  Take<PythonObject>(o);
++  auto f = As<PythonCallable>(globals.GetItem("_function_"));
++  if (!f)
++    return f.takeError();
++  function = std::move(f.get());
+ 
+-    auto builtins = PythonModule::BuiltinsModule();
+-    Error error = globals.SetItem("__builtins__", builtins);
+-    if (error)
+-      return error;
+-    PyObject *o =
+-        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+-    if (!o)
+-      return exception();
+-    Take<PythonObject>(o);
+-    auto f = As<PythonCallable>(globals.GetItem(function_name));
+-    if (!f)
+-      return f.takeError();
+-    function = std::move(f.get());
+-  }
+   return Error::success();
+ }
+ 
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 8801e661336..935c4ec0abd 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -740,35 +740,31 @@ llvm::Expected<PythonObject> runStringMultiLine(const llvm::Twine &string,
+                                                 const PythonDictionary &globals,
+                                                 const PythonDictionary &locals);
+ 
+-
+-/* Sometimes the best way to interact with a python interpreter is
+- * to run some python code.   You construct a PythonScript with
+- * script string and a function name, and you get a C++ callable
+- * object that calls the python function.
+- *
+- * Example:
+- *
+- * const char script[] = R"(
+- * def foo(x, y):
+- *    ....
+- * )";
+- *
+- * Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
+- *   // global is protected by the GIL
+- *   static PythonScript foo(script, "foo")
+- *   return  foo(x, y);
+- * }
+- */
++// Sometimes the best way to interact with a python interpreter is
++// to run some python code.   You construct a PythonScript with
++// script string and a function name, and you get a C++ callable
++// object that calls the python function.
++//
++// Example:
++//
++// const char script[] = R"(
++// def foo(x, y):
++//    ....
++// )";
++//
++// Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
++//   // no need to synchronize access to this global, we already have the GIL
++//   static PythonScript foo(script, "foo")
++//   return  foo(x, y);
++// }
+ class PythonScript {
+   const char *script;
+-  const char *function_name;
+   PythonCallable function;
+ 
+   llvm::Error Init();
+ 
+ public:
+-  PythonScript(const char *script, const char *name)
+-      : script(script), function_name(name), function() {}
++  PythonScript(const char *script) : script(script), function() {}
+ 
+   template <typename... Args>
+   llvm::Expected<PythonObject> operator()(Args &&... args) {
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+index 4e06b5331de..52289301a51 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
+@@ -782,9 +782,10 @@ def factorial(n):
+     return n * factorial(n-1)
+   else:
+     return 1;
++_function_ = factorial
+ )";
+ 
+-  PythonScript factorial(script, "factorial");
++  PythonScript factorial(script);
+   Expected<long long> r = As<long long>(factorial(5ll));
+   bool ok = (bool)r;
+   ASSERT_TRUE(ok);
+@@ -800,9 +801,10 @@ def bar():
+   return baz()
+ def baz():
+   return 1 / 0
++_function_ = foo
+ )";
+ 
+-  PythonScript foo(script, "foo");
++  PythonScript foo(script);
+   Expected<PythonObject> r = foo();
+ 
+   bool failed = !r;
