@@ -34,6 +34,7 @@ using namespace lldb_private::python;
 using llvm::cantFail;
 using llvm::Error;
 using llvm::Expected;
+using llvm::Twine;
 
 template <> Expected<bool> python::As<bool>(Expected<PythonObject> &&obj) {
   if (!obj)
@@ -696,10 +697,10 @@ PythonDictionary::GetItem(const PythonObject &key) const {
   return Retain<PythonObject>(o);
 }
 
-Expected<PythonObject> PythonDictionary::GetItem(CStringArg key) const {
+Expected<PythonObject> PythonDictionary::GetItem(const Twine &key) const {
   if (!IsValid())
     return nullDeref();
-  PyObject *o = PyDict_GetItemString(m_py_obj, key.str());
+  PyObject *o = PyDict_GetItemString(m_py_obj, NullTerminated(key));
   if (PyErr_Occurred())
     return exception();
   if (!o)
@@ -717,11 +718,11 @@ Error PythonDictionary::SetItem(const PythonObject &key,
   return Error::success();
 }
 
-Error PythonDictionary::SetItem(CStringArg key,
+Error PythonDictionary::SetItem(const Twine &key,
                                 const PythonObject &value) const {
   if (!IsValid() || !value.IsValid())
     return nullDeref();
-  int r = PyDict_SetItemString(m_py_obj, key.str(), value.get());
+  int r = PyDict_SetItemString(m_py_obj, NullTerminated(key), value.get());
   if (r < 0)
     return exception();
   return Error::success();
@@ -763,20 +764,20 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
   return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
 }
 
-Expected<PythonModule> PythonModule::Import(CStringArg name) {
-  PyObject *mod = PyImport_ImportModule(name.str());
+Expected<PythonModule> PythonModule::Import(const Twine &name) {
+  PyObject *mod = PyImport_ImportModule(NullTerminated(name));
   if (!mod)
     return exception();
   return Take<PythonModule>(mod);
 }
 
-Expected<PythonObject> PythonModule::Get(CStringArg name) {
+Expected<PythonObject> PythonModule::Get(const Twine &name) {
   if (!IsValid())
     return nullDeref();
   PyObject *dict = PyModule_GetDict(m_py_obj);
   if (!dict)
     return exception();
-  PyObject *item = PyDict_GetItemString(dict, name.str());
+  PyObject *item = PyDict_GetItemString(dict, NullTerminated(name));
   if (!item)
     return exception();
   return Retain<PythonObject>(item);

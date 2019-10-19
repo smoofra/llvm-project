@@ -151,6 +151,18 @@ template <typename T> T Retain(PyObject *obj) {
   return std::move(thing);
 }
 
+class NullTerminated {
+  const char *str;
+  llvm::SmallString<32> storage;
+
+public:
+  NullTerminated(const llvm::Twine &twine) {
+    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
+    str = ref.begin();
+  }
+  operator const char *() { return str; }
+};
+
 } // namespace python
 
 enum class PyInitialValue { Invalid, Empty };
@@ -172,32 +184,6 @@ struct PythonFormat<
     T, typename std::enable_if<std::is_base_of<PythonObject, T>::value>::type> {
   static constexpr char format = 'O';
   static auto get(const T &value) { return value.get(); }
-};
-
-/* This is a helper class for functions that wrap python C API functions
- * that want a null-terminated c string as an argument.   It's suboptimal
- * for such wrappers to just take a StringRef, because those may not be
- * null-terminated, so we'd wind up doing a full copy just to pass a
- * fixed string. Instead, wrappers can just take their arguments as
- * CStringArg, and callers can pass StringRefs, Twines, strings, or
- * const char*, and the right thing will happen. */
-class CStringArg {
-  llvm::SmallString<32> storage;
-  const char *cstr;
-
-public:
-  CStringArg(const char *s) { cstr = s; }
-  CStringArg(const std::string &s) { cstr = s.c_str(); }
-
-  template <typename T>
-  CStringArg(T x,
-             typename std::enable_if<std::is_convertible<T, llvm::Twine>::value,
-                                     void *>::type = 0) {
-    llvm::Twine twine(x);
-    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
-    cstr = ref.data();
-  }
-  const char *str() const { return cstr; }
 };
 
 class PythonObject {
@@ -349,10 +335,10 @@ public:
     return python::Take<PythonObject>(obj);
   }
 
-  llvm::Expected<PythonObject> GetAttribute(CStringArg name) const {
+  llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
     if (!m_py_obj)
       return nullDeref();
-    PyObject *obj = PyObject_GetAttrString(m_py_obj, name.str());
+    PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
     if (!obj)
       return exception();
     return python::Take<PythonObject>(obj);
@@ -587,9 +573,9 @@ public:
                      const PythonObject &value); // DEPRECATED
 
   llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
-  llvm::Expected<PythonObject> GetItem(CStringArg key) const;
+  llvm::Expected<PythonObject> GetItem(const llvm::Twine &key) const;
   llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
-  llvm::Error SetItem(CStringArg key, const PythonObject &value) const;
+  llvm::Error SetItem(const llvm::Twine &key, const PythonObject &value) const;
 
   StructuredData::DictionarySP CreateStructuredDictionary() const;
 };
@@ -617,9 +603,9 @@ public:
     return std::move(mod.get());
   }
 
-  static llvm::Expected<PythonModule> Import(CStringArg name);
+  static llvm::Expected<PythonModule> Import(const llvm::Twine &name);
 
-  llvm::Expected<PythonObject> Get(CStringArg name);
+  llvm::Expected<PythonObject> Get(const llvm::Twine &name);
 
   PythonDictionary GetDictionary() const;
 };
