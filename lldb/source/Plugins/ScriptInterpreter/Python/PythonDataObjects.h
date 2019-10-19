@@ -336,6 +336,7 @@ public:
   }
 
   llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
+    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
