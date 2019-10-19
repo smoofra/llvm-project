@@ -216,7 +216,7 @@ public:
     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
     cstr = ref.data();
   }
-  CStringArg(llvm::StringRef ref) : CStringArg(llvm::Twine(ref)) {}
+
   const char *str() const { return cstr; }
 };
 
