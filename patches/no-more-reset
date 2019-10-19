@@ -1,5 +1,5 @@
 Bottom: 8d08ba7002045d0102c4a0da6a62a284ba0a92b0
-Top:    320391e09eff895944f656162aa0e4b0149e78c5
+Top:    36966c4401d831ff9b2904957aa148db5d4281a8
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -197,7 +197,7 @@ index 7f93776a85d..90b4eafcb5a 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index fcf7f3ce70a..0b7ab21d521 100644
+index fcf7f3ce70a..128270ceef9 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -151,6 +151,20 @@ template <typename T> T Retain(PyObject *obj) {
@@ -393,7 +393,7 @@ index fcf7f3ce70a..0b7ab21d521 100644
 +/* Sometimes the best way to interact with a python interpreter is
 + * to run some python code.   You construct a PythonScript with
 + * script string and a function name, and you get a C++ callable
-+ * objedct that calls the python function.
++ * object that calls the python function.
 + *
 + * Example:
 + *
