@@ -190,7 +190,9 @@ public:
   CStringArg(const std::string &s) { cstr = s.c_str(); }
 
   template <typename T>
-  CStringArg(std::enable_if<std::is_convertible<T, llvm::Twine>::value, T> x) {
+  CStringArg(T x,
+             typename std::enable_if<std::is_convertible<T, llvm::Twine>::value,
+                                     void *>::type = 0) {
     llvm::Twine twine(x);
     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
     cstr = ref.data();
