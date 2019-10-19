@@ -1,0 +1,68 @@
+Bottom: 36966c4401d831ff9b2904957aa148db5d4281a8
+Top:    60f33ac7a1ddb5218e2d351820645baa95ff6868
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-18 17:17:50 -0700
+
+Refresh of no-more-reset
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 90b4eafcb5a..db6b3f35af5 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -843,27 +843,6 @@ def get_arg_info(f):
+ )";
+ #endif
+ 
+-Error PythonScript::Init() {
+-  if (!function.IsValid()) {
+-    PythonDictionary globals(PyInitialValue::Empty);
+-
+-    auto builtins = PythonModule::BuiltinsModule();
+-    Error error = globals.SetItem("__builtins__", builtins);
+-    if (error)
+-      return error;
+-    PyObject *o =
+-        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+-    if (!o)
+-      return exception();
+-    Take<PythonObject>(o);
+-    auto f = As<PythonCallable>(globals.GetItem(function_name));
+-    if (!f)
+-      return f.takeError();
+-    function = std::move(f.get());
+-  }
+-  return Error::success();
+-}
+-
+ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
+   ArgInfo result = {};
+   if (!IsValid())
+@@ -1525,6 +1504,27 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   return Take<PythonFile>(file_obj);
+ }
+ 
++Error PythonScript::Init() {
++  if (!function.IsValid()) {
++    PythonDictionary globals(PyInitialValue::Empty);
++
++    auto builtins = PythonModule::BuiltinsModule();
++    Error error = globals.SetItem("__builtins__", builtins);
++    if (error)
++      return error;
++    PyObject *o =
++        PyRun_String(script, Py_file_input, globals.get(), globals.get());
++    if (!o)
++      return exception();
++    Take<PythonObject>(o);
++    auto f = As<PythonCallable>(globals.GetItem(function_name));
++    if (!f)
++      return f.takeError();
++    function = std::move(f.get());
++  }
++  return Error::success();
++}
++
+ llvm::Expected<PythonObject>
+ python::runStringOneLine(CStringArg string, const PythonDictionary &globals,
+                          const PythonDictionary &locals) {
