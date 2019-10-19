@@ -753,7 +753,7 @@ llvm::Expected<PythonObject> runStringMultiLine(CStringArg string,
 /* Sometimes the best way to interact with a python interpreter is
  * to run some python code.   You construct a PythonScript with
  * script string and a function name, and you get a C++ callable
- * objedct that calls the python function.
+ * object that calls the python function.
  *
  * Example:
  *
