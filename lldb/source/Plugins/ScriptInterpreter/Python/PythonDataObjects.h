@@ -697,7 +697,7 @@ public:
   void log(llvm::raw_ostream &OS) const override;
   std::error_code convertToErrorCode() const override;
   bool Matches(PyObject *exc) const;
-  std::string ReadBacktrace() const;
+  std::string ReadBacktrace(bool recursing = false) const;
 };
 
 // This extracts the underlying T out of an Expected<T> and returns it.

@@ -774,6 +774,23 @@ bar_unbound = Foo.bar
 #endif
 }
 
+TEST_F(PythonDataObjectsTest, TestScript) {
+
+  static const char script[] = R"(
+def factorial(n):
+  if n > 1:
+    return n * factorial(n-1)
+  else:
+    return 1;
+)";
+
+  PythonScript factorial(script, "factorial");
+  Expected<long long> r = As<long long>(factorial(5ll));
+  bool ok = (bool)r;
+  ASSERT_TRUE(ok);
+  EXPECT_EQ(r.get(), 120);
+}
+
 TEST_F(PythonDataObjectsTest, TestExceptions) {
 
   static const char script[] = R"(

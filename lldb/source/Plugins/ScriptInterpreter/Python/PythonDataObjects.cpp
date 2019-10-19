@@ -1053,7 +1053,10 @@ def read_exception(exc_type, exc_value, tb):
   return f.getvalue()
 )";
 
-std::string PythonException::ReadBacktrace() const {
+std::string PythonException::ReadBacktrace(bool recursing) const {
+
+  if (!m_traceback)
+    return toCString();
 
   // global is protected by the GIL
   static PythonScript read_exception(read_exception_script, "read_exception");
@@ -1062,8 +1065,20 @@ std::string PythonException::ReadBacktrace() const {
       read_exception(m_exception_type, m_exception, m_traceback));
 
   if (!backtrace) {
-    llvm::consumeError(backtrace.takeError());
-    return "backtrace unavailable";
+    Twine message =
+        Twine(toCString()) + "\n" +
+        "Traceback unavailble, an error occurred while reading it:\n";
+    if (recursing)
+      return (message + llvm::toString(backtrace.takeError())).str();
+
+    std::string backtrace2;
+    Error error =
+        llvm::handleErrors(backtrace.takeError(), [&](PythonException &E) {
+          backtrace2 = E.ReadBacktrace(true);
+        });
+    if (error)
+      backtrace2 = llvm::toString(std::move(error));
+    return (message + backtrace2).str();
   }
 
   return std::move(backtrace.get());

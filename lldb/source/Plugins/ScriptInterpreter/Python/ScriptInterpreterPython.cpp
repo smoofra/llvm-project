@@ -1165,19 +1165,17 @@ Status ScriptInterpreterPythonImpl::ExecuteMultipleLines(
 
   Expected<PythonObject> return_value =
       runStringMultiLine(in_string, globals, locals);
+
   if (!return_value) {
-    Status error;
-    llvm::handleAllErrors(
-        return_value.takeError(),
-        [&](PythonException &E) {
-          error.SetErrorString(E.ReadBacktrace());
+    llvm::Error error =
+        llvm::handleErrors(return_value.takeError(), [&](PythonException &E) {
+          llvm::Error error = llvm::createStringError(
+              llvm::inconvertibleErrorCode(), E.ReadBacktrace());
           if (!options.GetMaskoutErrors())
             E.Restore();
-        },
-        [&](const llvm::ErrorInfoBase &E) {
-          error.SetErrorString(E.message());
+          return error;
         });
-    return error;
+    return Status(std::move(error));
   }
 
   return Status();
@@ -1974,19 +1972,22 @@ StructuredData::DictionarySP ScriptInterpreterPythonImpl::GetDynamicSettings(
   if (!generic)
     return StructuredData::DictionarySP();
 
-  PythonObject reply_pyobj;
   Locker py_lock(this,
                  Locker::AcquireLock | Locker::InitSession | Locker::NoSTDIN);
   TargetSP target_sp(target->shared_from_this());
 
   auto setting = (PyObject *)LLDBSWIGPython_GetDynamicSetting(
       generic->GetValue(), setting_name, target_sp);
-  if (setting)
-    reply_pyobj = Take<PythonObject>(setting);
-  else
-    reply_pyobj.Reset();
 
-  PythonDictionary py_dict(PyRefType::Borrowed, reply_pyobj.get());
+  if (!setting)
+    return StructuredData::DictionarySP();
+
+  PythonDictionary py_dict =
+      unwrapIgnoringErrors(As<PythonDictionary>(Take<PythonObject>(setting)));
+
+  if (!py_dict)
+    return StructuredData::DictionarySP();
+
   return py_dict.CreateStructuredDictionary();
 }
 
