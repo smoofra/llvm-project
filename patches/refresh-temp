@@ -1,0 +1,23 @@
+Bottom: 452f2d770571959facd82a7a5574ce40a3665c58
+Top:    9b1ffa669e140188303025fe7bfaf4b7636e530e
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-18 20:18:09 -0700
+
+Refresh of more-reset
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 421e8af3517..388e003e701 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -190,7 +190,9 @@ public:
+   CStringArg(const std::string &s) { cstr = s.c_str(); }
+ 
+   template <typename T>
+-  CStringArg(std::enable_if<std::is_convertible<T, llvm::Twine>::value, T> x) {
++  CStringArg(T x,
++             typename std::enable_if<std::is_convertible<T, llvm::Twine>::value,
++                                     void *>::type = 0) {
+     llvm::Twine twine(x);
+     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
+     cstr = ref.data();
