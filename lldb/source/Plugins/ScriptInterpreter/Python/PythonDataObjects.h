@@ -188,7 +188,10 @@ class CStringArg {
 public:
   CStringArg(const char *s) { cstr = s; }
   CStringArg(const std::string &s) { cstr = s.c_str(); }
-  CStringArg(const llvm::Twine &twine) {
+
+  template <typename T>
+  CStringArg(std::enable_if<std::is_convertible<T, llvm::Twine>::value, T> x) {
+    llvm::Twine twine(x);
     llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
     cstr = ref.data();
   }
