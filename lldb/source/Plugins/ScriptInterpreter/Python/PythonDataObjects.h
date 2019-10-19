@@ -59,6 +59,7 @@
 #include "llvm/ADT/ArrayRef.h"
 
 namespace lldb_private {
+namespace python {
 
 class PythonObject;
 class PythonBytes;
@@ -113,7 +114,6 @@ enum class PyRefType {
             // not call Py_INCREF.
 };
 
-namespace python {
 
 // Take a reference that you already own, and turn it into
 // a PythonObject.
@@ -189,7 +189,6 @@ inline llvm::Error keyError() {
                                  "key not in dict");
 }
 
-} // namespace python
 
 enum class PyInitialValue { Invalid, Empty };
 
@@ -325,7 +324,6 @@ public:
   template <typename... T>
   llvm::Expected<PythonObject> CallMethod(const char *name,
                                           const T &... t) const {
-    using namespace python;
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
     PyObject *obj =
         PyObject_CallMethod(m_py_obj, py2_const_cast(name),
@@ -337,7 +335,6 @@ public:
 
   template <typename... T>
   llvm::Expected<PythonObject> Call(const T &... t) const {
-    using namespace python;
     const char format[] = {'(', PythonFormat<T>::format..., ')', 0};
     PyObject *obj = PyObject_CallFunction(m_py_obj, py2_const_cast(format),
                                           PythonFormat<T>::get(t)...);
@@ -347,7 +344,6 @@ public:
   }
 
   llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
-    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
@@ -357,7 +353,6 @@ public:
   }
 
   llvm::Expected<bool> IsTrue() {
-    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     int r = PyObject_IsTrue(m_py_obj);
@@ -367,7 +362,6 @@ public:
   }
 
   llvm::Expected<long long> AsLongLong() {
-    using namespace python;
     if (!m_py_obj)
       return nullDeref();
     assert(!PyErr_Occurred());
@@ -378,7 +372,6 @@ public:
   }
 
   llvm::Expected<bool> IsInstance(const PythonObject &cls) {
-    using namespace python;
     if (!m_py_obj || !cls.IsValid())
       return nullDeref();
     int r = PyObject_IsInstance(m_py_obj, cls.get());
@@ -391,7 +384,6 @@ protected:
   PyObject *m_py_obj;
 };
 
-namespace python {
 
 // This is why C++ needs monads.
 template <typename T> llvm::Expected<T> As(llvm::Expected<PythonObject> &&obj) {
@@ -411,7 +403,6 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
 template <>
 llvm::Expected<std::string> As<std::string>(llvm::Expected<PythonObject> &&obj);
 
-} // namespace python
 
 template <class T> class TypedPythonObject : public PythonObject {
 public:
@@ -732,7 +723,6 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
   return T();
 }
 
-namespace python {
 // This is only here to help incrementally migrate old, exception-unsafe
 // code.
 template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
@@ -750,7 +740,6 @@ llvm::Expected<PythonObject> runStringMultiLine(const llvm::Twine &string,
                                                 const PythonDictionary &globals,
                                                 const PythonDictionary &locals);
 
-} // namespace python
 
 /* Sometimes the best way to interact with a python interpreter is
  * to run some python code.   You construct a PythonScript with
@@ -790,6 +779,7 @@ public:
   }
 };
 
+} // namespace python
 } // namespace lldb_private
 
 #endif

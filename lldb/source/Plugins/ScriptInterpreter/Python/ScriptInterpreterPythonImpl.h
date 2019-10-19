@@ -23,6 +23,8 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 
+using namespace lldb_private::python;
+
 namespace lldb_private {
 class IOHandlerPythonInterpreter;
 class ScriptInterpreterPythonImpl : public ScriptInterpreterPython {
