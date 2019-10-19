@@ -1,5 +1,5 @@
 Bottom: 461040a4739180d2ad141274e2bdf6a2ac0cc499
-Top:    350aecfeead3d815c5f2010c67a0ca9b44dc249e
+Top:    5b54b3005b37f12abc7f287d52107e95235c4e10
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -200,7 +200,7 @@ index 7f93776a85d..c345c05c844 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 388e003e701..6edfe62a3ca 100644
+index 388e003e701..0fe0f4af517 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -151,6 +151,20 @@ template <typename T> T Retain(PyObject *obj) {
@@ -240,7 +240,7 @@ index 388e003e701..6edfe62a3ca 100644
      llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
      cstr = ref.data();
    }
-+  CStringArg(llvm::StringRef ref) : CStringArg(llvm::Twine(ref)) {}
++
    const char *str() const { return cstr; }
  };
  
