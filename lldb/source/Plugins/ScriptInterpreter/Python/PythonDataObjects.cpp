@@ -1040,8 +1040,12 @@ bool PythonException::Matches(PyObject *exc) const {
 }
 
 const char read_exception_script[] = R"(
-from io import StringIO
+import sys
 from traceback import print_exception
+if sys.version_info.major < 3:
+  from StringIO import StringIO
+else:
+  from io import StringIO
 def read_exception(exc_type, exc_value, tb):
   f = StringIO()
   print_exception(exc_type, exc_value, tb, file=f)
@@ -1540,7 +1544,12 @@ python::runStringOneLine(CStringArg string, const PythonDictionary &globals,
     return exception();
   auto code_ref = Take<PythonObject>(code);
 
+#if PY_MAJOR_VERSION < 3
+  PyObject *result = PyEval_EvalCode((PyCodeObject*)code, globals.get(), locals.get());
+#else
   PyObject *result = PyEval_EvalCode(code, globals.get(), locals.get());
+#endif
+
   if (!result)
     return exception();
 
