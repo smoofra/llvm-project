@@ -21,6 +21,7 @@
 
 using namespace lldb_private;
 using namespace lldb_private::python;
+using llvm::Error;
 using llvm::Expected;
 
 class PythonDataObjectsTest : public PythonTestSuite {
@@ -819,4 +820,31 @@ _function_ = foo
   EXPECT_NE(backtrace.find("line 5, in bar"), std::string::npos);
   EXPECT_NE(backtrace.find("line 7, in baz"), std::string::npos);
   EXPECT_NE(backtrace.find("ZeroDivisionError"), std::string::npos);
+}
+
+TEST_F(PythonDataObjectsTest, TestRun) {
+
+  PythonDictionary globals(PyInitialValue::Empty);
+
+  auto x = As<long long>(runStringOneLine("40 + 2", globals, globals));
+  ASSERT_THAT_EXPECTED(x, llvm::Succeeded());
+  EXPECT_EQ(x.get(), 42l);
+
+  Expected<PythonObject> r = runStringOneLine("n = 42", globals, globals);
+  ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
+  auto y = As<long long>(globals.GetItem("n"));
+  ASSERT_THAT_EXPECTED(y, llvm::Succeeded());
+  EXPECT_EQ(y.get(), 42l);
+
+  const char script[] = R"(
+def foobar():
+  return "foo" + "bar" + "baz"
+g = foobar()
+)";
+
+  r = runStringMultiLine(script, globals, globals);
+  ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
+  auto g = As<std::string>(globals.GetItem("g"));
+  ASSERT_THAT_EXPECTED(g, llvm::Succeeded());
+  EXPECT_EQ(g.get(), "foobarbaz");
 }
