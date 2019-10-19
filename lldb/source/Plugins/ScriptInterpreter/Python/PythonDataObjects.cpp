@@ -843,27 +843,6 @@ def get_arg_info(f):
 )";
 #endif
 
-Error PythonScript::Init() {
-  if (!function.IsValid()) {
-    PythonDictionary globals(PyInitialValue::Empty);
-
-    auto builtins = PythonModule::BuiltinsModule();
-    Error error = globals.SetItem("__builtins__", builtins);
-    if (error)
-      return error;
-    PyObject *o =
-        PyRun_String(script, Py_file_input, globals.get(), globals.get());
-    if (!o)
-      return exception();
-    Take<PythonObject>(o);
-    auto f = As<PythonCallable>(globals.GetItem(function_name));
-    if (!f)
-      return f.takeError();
-    function = std::move(f.get());
-  }
-  return Error::success();
-}
-
 Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
   ArgInfo result = {};
   if (!IsValid())
@@ -1523,6 +1502,27 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
     return exception();
 
   return Take<PythonFile>(file_obj);
+}
+
+Error PythonScript::Init() {
+  if (!function.IsValid()) {
+    PythonDictionary globals(PyInitialValue::Empty);
+
+    auto builtins = PythonModule::BuiltinsModule();
+    Error error = globals.SetItem("__builtins__", builtins);
+    if (error)
+      return error;
+    PyObject *o =
+        PyRun_String(script, Py_file_input, globals.get(), globals.get());
+    if (!o)
+      return exception();
+    Take<PythonObject>(o);
+    auto f = As<PythonCallable>(globals.GetItem(function_name));
+    if (!f)
+      return f.takeError();
+    function = std::move(f.get());
+  }
+  return Error::success();
 }
 
 llvm::Expected<PythonObject>
