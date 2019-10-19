@@ -841,6 +841,7 @@ def get_arg_info(f):
         else:
             raise Exception(f'unknown parameter kind: {kind}')
     return ArgInfo(count, varargs, ismethod(f))
+_function_ = get_arg_info
 )";
 #endif
 
@@ -851,8 +852,8 @@ Expected<PythonCallable::ArgInfo> PythonCallable::GetArgInfo() const {
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 3
 
-  // this global is protected by the GIL
-  static PythonScript get_arg_info(get_arg_info_script, "get_arg_info");
+  // no need to synchronize access to this global, we already have the GIL
+  static PythonScript get_arg_info(get_arg_info_script);
   Expected<PythonObject> pyarginfo = get_arg_info(*this);
   if (!pyarginfo)
     return pyarginfo.takeError();
@@ -1051,6 +1052,7 @@ def read_exception(exc_type, exc_value, tb):
   f = StringIO()
   print_exception(exc_type, exc_value, tb, file=f)
   return f.getvalue()
+_function_ = read_exception  
 )";
 
 std::string PythonException::ReadBacktrace(bool recursing) const {
@@ -1058,8 +1060,8 @@ std::string PythonException::ReadBacktrace(bool recursing) const {
   if (!m_traceback)
     return toCString();
 
-  // global is protected by the GIL
-  static PythonScript read_exception(read_exception_script, "read_exception");
+  // no need to synchronize access to this global, we already have the GIL
+  static PythonScript read_exception(read_exception_script);
 
   Expected<std::string> backtrace = As<std::string>(
       read_exception(m_exception_type, m_exception, m_traceback));
@@ -1525,23 +1527,24 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
 }
 
 Error PythonScript::Init() {
-  if (!function.IsValid()) {
-    PythonDictionary globals(PyInitialValue::Empty);
+  if (function.IsValid())
+    return Error::success();
 
-    auto builtins = PythonModule::BuiltinsModule();
-    Error error = globals.SetItem("__builtins__", builtins);
-    if (error)
-      return error;
-    PyObject *o =
-        PyRun_String(script, Py_file_input, globals.get(), globals.get());
-    if (!o)
-      return exception();
-    Take<PythonObject>(o);
-    auto f = As<PythonCallable>(globals.GetItem(function_name));
-    if (!f)
-      return f.takeError();
-    function = std::move(f.get());
-  }
+  PythonDictionary globals(PyInitialValue::Empty);
+  auto builtins = PythonModule::BuiltinsModule();
+  Error error = globals.SetItem("__builtins__", builtins);
+  if (error)
+    return error;
+  PyObject *o =
+      PyRun_String(script, Py_file_input, globals.get(), globals.get());
+  if (!o)
+    return exception();
+  Take<PythonObject>(o);
+  auto f = As<PythonCallable>(globals.GetItem("_function_"));
+  if (!f)
+    return f.takeError();
+  function = std::move(f.get());
+
   return Error::success();
 }
 

@@ -782,9 +782,10 @@ def factorial(n):
     return n * factorial(n-1)
   else:
     return 1;
+_function_ = factorial
 )";
 
-  PythonScript factorial(script, "factorial");
+  PythonScript factorial(script);
   Expected<long long> r = As<long long>(factorial(5ll));
   bool ok = (bool)r;
   ASSERT_TRUE(ok);
@@ -800,9 +801,10 @@ def bar():
   return baz()
 def baz():
   return 1 / 0
+_function_ = foo
 )";
 
-  PythonScript foo(script, "foo");
+  PythonScript foo(script);
   Expected<PythonObject> r = foo();
 
   bool failed = !r;

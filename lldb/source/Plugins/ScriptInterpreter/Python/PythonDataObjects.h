@@ -740,35 +740,31 @@ llvm::Expected<PythonObject> runStringMultiLine(const llvm::Twine &string,
                                                 const PythonDictionary &globals,
                                                 const PythonDictionary &locals);
 
-
-/* Sometimes the best way to interact with a python interpreter is
- * to run some python code.   You construct a PythonScript with
- * script string and a function name, and you get a C++ callable
- * object that calls the python function.
- *
- * Example:
- *
- * const char script[] = R"(
- * def foo(x, y):
- *    ....
- * )";
- *
- * Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
- *   // global is protected by the GIL
- *   static PythonScript foo(script, "foo")
- *   return  foo(x, y);
- * }
- */
+// Sometimes the best way to interact with a python interpreter is
+// to run some python code.   You construct a PythonScript with
+// script string and a function name, and you get a C++ callable
+// object that calls the python function.
+//
+// Example:
+//
+// const char script[] = R"(
+// def foo(x, y):
+//    ....
+// )";
+//
+// Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
+//   // no need to synchronize access to this global, we already have the GIL
+//   static PythonScript foo(script, "foo")
+//   return  foo(x, y);
+// }
 class PythonScript {
   const char *script;
-  const char *function_name;
   PythonCallable function;
 
   llvm::Error Init();
 
 public:
-  PythonScript(const char *script, const char *name)
-      : script(script), function_name(name), function() {}
+  PythonScript(const char *script) : script(script), function() {}
 
   template <typename... Args>
   llvm::Expected<PythonObject> operator()(Args &&... args) {
