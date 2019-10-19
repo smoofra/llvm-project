@@ -151,6 +151,18 @@ template <typename T> T Retain(PyObject *obj) {
   return std::move(thing);
 }
 
+// This class can be used like a utility function to convert from
+// a llvm-friendly Twine into a null-terminated const char *,
+// which is the form python C APIs want their strings in.
+//
+// Example:
+// const llvm::Twine &some_twine;
+// PyFoo_Bar(x, y, z, NullTerminated(some_twine));
+//
+// Why a class instead of a function?  If the twine isn't already null
+// terminated, it will need a temporary buffer to copy the string
+// into.   We need that buffer to stick around for the lifetime of the
+// statement.
 class NullTerminated {
   const char *str;
   llvm::SmallString<32> storage;
