@@ -1,5 +1,5 @@
 Bottom: 8d08ba7002045d0102c4a0da6a62a284ba0a92b0
-Top:    60f33ac7a1ddb5218e2d351820645baa95ff6868
+Top:    8b2bba3e6db687b768022942436aac12062dad38
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -33,7 +33,7 @@ index 2c5071bc765..54b5c236f75 100644
  
    LINK_LIBS
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 7f93776a85d..db6b3f35af5 100644
+index 7f93776a85d..c345c05c844 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -260,8 +260,7 @@ size_t PythonBytes::GetSize() const {
@@ -94,7 +94,7 @@ index 7f93776a85d..db6b3f35af5 100644
    if (!pyarginfo)
      return pyarginfo.takeError();
    result.count = cantFail(As<long long>(pyarginfo.get().GetAttribute("count")));
-@@ -1055,6 +1035,35 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1055,6 +1035,39 @@ std::error_code PythonException::convertToErrorCode() const {
    return llvm::inconvertibleErrorCode();
  }
  
@@ -103,8 +103,12 @@ index 7f93776a85d..db6b3f35af5 100644
 +}
 +
 +const char read_exception_script[] = R"(
-+from io import StringIO
++import sys
 +from traceback import print_exception
++if sys.version_info.major < 3:
++  from StringIO import StringIO
++else:
++  from io import StringIO
 +def read_exception(exc_type, exc_value, tb):
 +  f = StringIO()
 +  print_exception(exc_type, exc_value, tb, file=f)
@@ -130,7 +134,7 @@ index 7f93776a85d..db6b3f35af5 100644
  char PythonException::ID = 0;
  
  llvm::Expected<File::OpenOptions>
-@@ -1495,4 +1504,59 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+@@ -1495,4 +1508,64 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
    return Take<PythonFile>(file_obj);
  }
  
@@ -170,7 +174,12 @@ index 7f93776a85d..db6b3f35af5 100644
 +    return exception();
 +  auto code_ref = Take<PythonObject>(code);
 +
++#if PY_MAJOR_VERSION < 3
++  PyObject *result = PyEval_EvalCode((PyCodeObject*)code, globals.get(), locals.get());
++#else
 +  PyObject *result = PyEval_EvalCode(code, globals.get(), locals.get());
++#endif
++
 +  if (!result)
 +    return exception();
 +
