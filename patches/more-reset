@@ -1,5 +1,5 @@
 Bottom: b9a187c0456a14d9359d44ff686fd5babae5a075
-Top:    8068b91b6e0211da0600fe0b8a80e030ad4de21e
+Top:    452f2d770571959facd82a7a5574ce40a3665c58
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -148,10 +148,10 @@ index 2b70762e368..7f93776a85d 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 0cdb63f17c9..fcf7f3ce70a 100644
+index 0cdb63f17c9..421e8af3517 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -174,6 +174,27 @@ struct PythonFormat<
+@@ -174,6 +174,30 @@ struct PythonFormat<
    static auto get(const T &value) { return value.get(); }
  };
  
@@ -169,7 +169,10 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
 +public:
 +  CStringArg(const char *s) { cstr = s; }
 +  CStringArg(const std::string &s) { cstr = s.c_str(); }
-+  CStringArg(const llvm::Twine &twine) {
++
++  template <typename T>
++  CStringArg(std::enable_if<std::is_convertible<T, llvm::Twine>::value, T> x) {
++    llvm::Twine twine(x);
 +    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
 +    cstr = ref.data();
 +  }
@@ -179,7 +182,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
  class PythonObject {
  public:
    PythonObject() : m_py_obj(nullptr) {}
-@@ -323,10 +344,10 @@ public:
+@@ -323,10 +347,10 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
@@ -192,7 +195,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
      if (!obj)
        return exception();
      return python::Take<PythonObject>(obj);
-@@ -392,10 +413,11 @@ public:
+@@ -392,10 +416,11 @@ public:
    // This can be eliminated once we drop python 2 support.
    static void Convert(PyRefType &type, PyObject *&py_obj) {}
  
@@ -207,7 +210,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
      if (!py_obj)
        return;
      T::Convert(type, py_obj);
-@@ -405,8 +427,6 @@ public:
+@@ -405,8 +430,6 @@ public:
        Py_DECREF(py_obj);
    }
  
@@ -216,7 +219,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
    TypedPythonObject() {}
  };
  
-@@ -562,9 +582,9 @@ public:
+@@ -562,9 +585,9 @@ public:
                       const PythonObject &value); // DEPRECATED
  
    llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
@@ -228,7 +231,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -592,9 +612,9 @@ public:
+@@ -592,9 +615,9 @@ public:
      return std::move(mod.get());
    }
  
@@ -240,7 +243,7 @@ index 0cdb63f17c9..fcf7f3ce70a 100644
  
    PythonDictionary GetDictionary() const;
  };
-@@ -708,6 +728,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -708,6 +731,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
