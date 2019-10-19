@@ -1,5 +1,5 @@
 Bottom: 918249dc264517e713dbadf5e4f4e6e1b7486d67
-Top:    b041281dd6df26981b42d8b3e64b02db6584ca5b
+Top:    684e7b6c521aedf5125766534de0b7c5fe7e0a2d
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-16 23:35:47 -0700
 
@@ -26,10 +26,18 @@ Differential Revision: https://reviews.llvm.org/D69133
 
 ---
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2b70762e368..7f93776a85d 100644
+index 2b70762e368..d0d593656ef 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-@@ -278,7 +278,7 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
+@@ -34,6 +34,7 @@ using namespace lldb_private::python;
+ using llvm::cantFail;
+ using llvm::Error;
+ using llvm::Expected;
++using llvm::Twine;
+ 
+ template <> Expected<bool> python::As<bool>(Expected<PythonObject> &&obj) {
+   if (!obj)
+@@ -278,7 +279,7 @@ PythonByteArray::PythonByteArray(llvm::ArrayRef<uint8_t> bytes)
  
  PythonByteArray::PythonByteArray(const uint8_t *bytes, size_t length) {
    const char *str = reinterpret_cast<const char *>(bytes);
@@ -38,7 +46,7 @@ index 2b70762e368..7f93776a85d 100644
  }
  
  bool PythonByteArray::Check(PyObject *py_obj) {
-@@ -522,11 +522,11 @@ StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
+@@ -522,11 +523,11 @@ StructuredData::BooleanSP PythonBoolean::CreateStructuredBoolean() const {
  
  PythonList::PythonList(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -52,7 +60,7 @@ index 2b70762e368..7f93776a85d 100644
  }
  
  bool PythonList::Check(PyObject *py_obj) {
-@@ -578,11 +578,11 @@ StructuredData::ArraySP PythonList::CreateStructuredArray() const {
+@@ -578,11 +579,11 @@ StructuredData::ArraySP PythonList::CreateStructuredArray() const {
  
  PythonTuple::PythonTuple(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -66,7 +74,7 @@ index 2b70762e368..7f93776a85d 100644
  }
  
  PythonTuple::PythonTuple(std::initializer_list<PythonObject> objects) {
-@@ -649,7 +649,7 @@ StructuredData::ArraySP PythonTuple::CreateStructuredArray() const {
+@@ -649,7 +650,7 @@ StructuredData::ArraySP PythonTuple::CreateStructuredArray() const {
  
  PythonDictionary::PythonDictionary(PyInitialValue value) {
    if (value == PyInitialValue::Empty)
@@ -75,59 +83,59 @@ index 2b70762e368..7f93776a85d 100644
  }
  
  bool PythonDictionary::Check(PyObject *py_obj) {
-@@ -696,10 +696,10 @@ PythonDictionary::GetItem(const PythonObject &key) const {
+@@ -696,10 +697,10 @@ PythonDictionary::GetItem(const PythonObject &key) const {
    return Retain<PythonObject>(o);
  }
  
 -Expected<PythonObject> PythonDictionary::GetItem(const char *key) const {
-+Expected<PythonObject> PythonDictionary::GetItem(CStringArg key) const {
++Expected<PythonObject> PythonDictionary::GetItem(const Twine &key) const {
    if (!IsValid())
      return nullDeref();
 -  PyObject *o = PyDict_GetItemString(m_py_obj, key);
-+  PyObject *o = PyDict_GetItemString(m_py_obj, key.str());
++  PyObject *o = PyDict_GetItemString(m_py_obj, NullTerminated(key));
    if (PyErr_Occurred())
      return exception();
    if (!o)
-@@ -717,11 +717,11 @@ Error PythonDictionary::SetItem(const PythonObject &key,
+@@ -717,11 +718,11 @@ Error PythonDictionary::SetItem(const PythonObject &key,
    return Error::success();
  }
  
 -Error PythonDictionary::SetItem(const char *key,
-+Error PythonDictionary::SetItem(CStringArg key,
++Error PythonDictionary::SetItem(const Twine &key,
                                  const PythonObject &value) const {
    if (!IsValid() || !value.IsValid())
      return nullDeref();
 -  int r = PyDict_SetItemString(m_py_obj, key, value.get());
-+  int r = PyDict_SetItemString(m_py_obj, key.str(), value.get());
++  int r = PyDict_SetItemString(m_py_obj, NullTerminated(key), value.get());
    if (r < 0)
      return exception();
    return Error::success();
-@@ -763,20 +763,20 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
+@@ -763,20 +764,20 @@ PythonModule PythonModule::AddModule(llvm::StringRef module) {
    return PythonModule(PyRefType::Borrowed, PyImport_AddModule(str.c_str()));
  }
  
 -Expected<PythonModule> PythonModule::Import(const char *name) {
 -  PyObject *mod = PyImport_ImportModule(name);
-+Expected<PythonModule> PythonModule::Import(CStringArg name) {
-+  PyObject *mod = PyImport_ImportModule(name.str());
++Expected<PythonModule> PythonModule::Import(const Twine &name) {
++  PyObject *mod = PyImport_ImportModule(NullTerminated(name));
    if (!mod)
      return exception();
    return Take<PythonModule>(mod);
  }
  
 -Expected<PythonObject> PythonModule::Get(const char *name) {
-+Expected<PythonObject> PythonModule::Get(CStringArg name) {
++Expected<PythonObject> PythonModule::Get(const Twine &name) {
    if (!IsValid())
      return nullDeref();
    PyObject *dict = PyModule_GetDict(m_py_obj);
    if (!dict)
      return exception();
 -  PyObject *item = PyDict_GetItemString(dict, name);
-+  PyObject *item = PyDict_GetItemString(dict, name.str());
++  PyObject *item = PyDict_GetItemString(dict, NullTerminated(name));
    if (!item)
      return exception();
    return Retain<PythonObject>(item);
-@@ -790,7 +790,9 @@ bool PythonModule::Check(PyObject *py_obj) {
+@@ -790,7 +791,9 @@ bool PythonModule::Check(PyObject *py_obj) {
  }
  
  PythonDictionary PythonModule::GetDictionary() const {
@@ -138,7 +146,7 @@ index 2b70762e368..7f93776a85d 100644
  }
  
  bool PythonCallable::Check(PyObject *py_obj) {
-@@ -1092,6 +1094,8 @@ public:
+@@ -1092,6 +1095,8 @@ public:
      assert(m_py_obj);
      GIL takeGIL;
      Close();
@@ -148,56 +156,42 @@ index 2b70762e368..7f93776a85d 100644
    }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 0cdb63f17c9..388e003e701 100644
+index 0cdb63f17c9..452abe16ad7 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-@@ -174,6 +174,32 @@ struct PythonFormat<
-   static auto get(const T &value) { return value.get(); }
- };
+@@ -151,6 +151,18 @@ template <typename T> T Retain(PyObject *obj) {
+   return std::move(thing);
+ }
  
-+/* This is a helper class for functions that wrap python C API functions
-+ * that want a null-terminated c string as an argument.   It's suboptimal
-+ * for such wrappers to just take a StringRef, because those may not be
-+ * null-terminated, so we'd wind up doing a full copy just to pass a
-+ * fixed string. Instead, wrappers can just take their arguments as
-+ * CStringArg, and callers can pass StringRefs, Twines, strings, or
-+ * const char*, and the right thing will happen. */
-+class CStringArg {
++class NullTerminated {
++  const char *str;
 +  llvm::SmallString<32> storage;
-+  const char *cstr;
 +
 +public:
-+  CStringArg(const char *s) { cstr = s; }
-+  CStringArg(const std::string &s) { cstr = s.c_str(); }
-+
-+  template <typename T>
-+  CStringArg(T x,
-+             typename std::enable_if<std::is_convertible<T, llvm::Twine>::value,
-+                                     void *>::type = 0) {
-+    llvm::Twine twine(x);
++  NullTerminated(const llvm::Twine &twine) {
 +    llvm::StringRef ref = twine.toNullTerminatedStringRef(storage);
-+    cstr = ref.data();
++    str = ref.begin();
 +  }
-+  const char *str() const { return cstr; }
++  operator const char *() { return str; }
 +};
 +
- class PythonObject {
- public:
-   PythonObject() : m_py_obj(nullptr) {}
-@@ -323,10 +349,10 @@ public:
+ } // namespace python
+ 
+ enum class PyInitialValue { Invalid, Empty };
+@@ -323,10 +335,10 @@ public:
      return python::Take<PythonObject>(obj);
    }
  
 -  llvm::Expected<PythonObject> GetAttribute(const char *name) const {
-+  llvm::Expected<PythonObject> GetAttribute(CStringArg name) const {
++  llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
      if (!m_py_obj)
        return nullDeref();
 -    PyObject *obj = PyObject_GetAttrString(m_py_obj, name);
-+    PyObject *obj = PyObject_GetAttrString(m_py_obj, name.str());
++    PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
      if (!obj)
        return exception();
      return python::Take<PythonObject>(obj);
-@@ -392,10 +418,11 @@ public:
+@@ -392,10 +404,11 @@ public:
    // This can be eliminated once we drop python 2 support.
    static void Convert(PyRefType &type, PyObject *&py_obj) {}
  
@@ -212,7 +206,7 @@ index 0cdb63f17c9..388e003e701 100644
      if (!py_obj)
        return;
      T::Convert(type, py_obj);
-@@ -405,8 +432,6 @@ public:
+@@ -405,8 +418,6 @@ public:
        Py_DECREF(py_obj);
    }
  
@@ -221,31 +215,31 @@ index 0cdb63f17c9..388e003e701 100644
    TypedPythonObject() {}
  };
  
-@@ -562,9 +587,9 @@ public:
+@@ -562,9 +573,9 @@ public:
                       const PythonObject &value); // DEPRECATED
  
    llvm::Expected<PythonObject> GetItem(const PythonObject &key) const;
 -  llvm::Expected<PythonObject> GetItem(const char *key) const;
-+  llvm::Expected<PythonObject> GetItem(CStringArg key) const;
++  llvm::Expected<PythonObject> GetItem(const llvm::Twine &key) const;
    llvm::Error SetItem(const PythonObject &key, const PythonObject &value) const;
 -  llvm::Error SetItem(const char *key, const PythonObject &value) const;
-+  llvm::Error SetItem(CStringArg key, const PythonObject &value) const;
++  llvm::Error SetItem(const llvm::Twine &key, const PythonObject &value) const;
  
    StructuredData::DictionarySP CreateStructuredDictionary() const;
  };
-@@ -592,9 +617,9 @@ public:
+@@ -592,9 +603,9 @@ public:
      return std::move(mod.get());
    }
  
 -  static llvm::Expected<PythonModule> Import(const char *name);
-+  static llvm::Expected<PythonModule> Import(CStringArg name);
++  static llvm::Expected<PythonModule> Import(const llvm::Twine &name);
  
 -  llvm::Expected<PythonObject> Get(const char *name);
-+  llvm::Expected<PythonObject> Get(CStringArg name);
++  llvm::Expected<PythonObject> Get(const llvm::Twine &name);
  
    PythonDictionary GetDictionary() const;
  };
-@@ -708,6 +733,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -708,6 +719,17 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
