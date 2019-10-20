@@ -688,7 +688,7 @@ public:
   void log(llvm::raw_ostream &OS) const override;
   std::error_code convertToErrorCode() const override;
   bool Matches(PyObject *exc) const;
-  std::string ReadBacktraceRecursive(int limit = 1) const;
+  std::string ReadBacktraceRecursive(unsigned limit = 1u) const;
   std::string ReadBacktrace() const { return ReadBacktraceRecursive(); };
 };
 

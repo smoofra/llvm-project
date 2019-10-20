@@ -1053,7 +1053,7 @@ def main(exc_type, exc_value, tb):
   return f.getvalue()
 )";
 
-std::string PythonException::ReadBacktraceRecursive(int limit) const {
+std::string PythonException::ReadBacktraceRecursive(unsigned limit) const {
 
   if (!m_traceback)
     return toCString();
@@ -1068,7 +1068,7 @@ std::string PythonException::ReadBacktraceRecursive(int limit) const {
     Twine message =
         Twine(toCString()) + "\n" +
         "Traceback unavailble, an error occurred while reading it:\n";
-    if (limit > 0)
+    if (limit == 0)
       return (message + llvm::toString(backtrace.takeError())).str();
 
     std::string backtrace2;
