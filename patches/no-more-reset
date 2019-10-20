@@ -1,5 +1,5 @@
 Bottom: f2d8b77e9399ad8917d0ce1f9ab77858b6e0e56c
-Top:    a92e503eadbf1dbaa7fc547b22d7282ed18719fa
+Top:    3ececac938d004dbf9814c32e718ad8b654c1c62
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -943,7 +943,7 @@ index 2c5071bc765..54b5c236f75 100644
  
    LINK_LIBS
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index d0d593656ef..cc8e4f94093 100644
+index d0d593656ef..540fa40d5e4 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -261,8 +261,7 @@ size_t PythonBytes::GetSize() const {
@@ -1036,7 +1036,7 @@ index d0d593656ef..cc8e4f94093 100644
 +  return f.getvalue()
 +)";
 +
-+std::string PythonException::ReadBacktraceRecursive(int limit) const {
++std::string PythonException::ReadBacktraceRecursive(unsigned limit) const {
 +
 +  if (!m_traceback)
 +    return toCString();
@@ -1051,7 +1051,7 @@ index d0d593656ef..cc8e4f94093 100644
 +    Twine message =
 +        Twine(toCString()) + "\n" +
 +        "Traceback unavailble, an error occurred while reading it:\n";
-+    if (limit > 0)
++    if (limit == 0)
 +      return (message + llvm::toString(backtrace.takeError())).str();
 +
 +    std::string backtrace2;
@@ -1141,7 +1141,7 @@ index d0d593656ef..cc8e4f94093 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 634d6e89601..cb0bf8eb330 100644
+index 634d6e89601..441325e30b7 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -59,6 +59,7 @@
@@ -1300,7 +1300,7 @@ index 634d6e89601..cb0bf8eb330 100644
    void log(llvm::raw_ostream &OS) const override;
    std::error_code convertToErrorCode() const override;
 +  bool Matches(PyObject *exc) const;
-+  std::string ReadBacktraceRecursive(int limit = 1) const;
++  std::string ReadBacktraceRecursive(unsigned limit = 1u) const;
 +  std::string ReadBacktrace() const { return ReadBacktraceRecursive(); };
  };
  
