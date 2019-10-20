@@ -783,7 +783,7 @@ def factorial(n):
     return n * factorial(n-1)
   else:
     return 1;
-_function_ = factorial
+main = factorial
 )";
 
   PythonScript factorial(script);
@@ -802,24 +802,18 @@ def bar():
   return baz()
 def baz():
   return 1 / 0
-_function_ = foo
+main = foo
 )";
 
   PythonScript foo(script);
-  Expected<PythonObject> r = foo();
 
-  bool failed = !r;
-  ASSERT_TRUE(failed);
-
-  std::string backtrace;
-  llvm::handleAllErrors(r.takeError(), [&](const PythonException &E) {
-    backtrace = E.ReadBacktrace();
-  });
-
-  EXPECT_NE(backtrace.find("line 3, in foo"), std::string::npos);
-  EXPECT_NE(backtrace.find("line 5, in bar"), std::string::npos);
-  EXPECT_NE(backtrace.find("line 7, in baz"), std::string::npos);
-  EXPECT_NE(backtrace.find("ZeroDivisionError"), std::string::npos);
+  EXPECT_THAT_EXPECTED(foo(),
+                       llvm::Failed<PythonException>(testing::Property(
+                           &PythonException::ReadBacktrace,
+                           testing::ContainsRegex("line 3, in foo..*"
+                                                  "line 5, in bar.*"
+                                                  "line 7, in baz.*"
+                                                  "ZeroDivisionError"))));
 }
 
 TEST_F(PythonDataObjectsTest, TestRun) {

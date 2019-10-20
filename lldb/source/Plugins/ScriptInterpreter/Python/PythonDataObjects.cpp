@@ -825,7 +825,7 @@ static const char get_arg_info_script[] = R"(
 from inspect import signature, Parameter, ismethod
 from collections import namedtuple
 ArgInfo = namedtuple('ArgInfo', ['count', 'has_varargs', 'is_bound_method'])
-def get_arg_info(f):
+def main(f):
     count = 0
     varargs = False
     for parameter in signature(f).parameters.values():
@@ -841,7 +841,6 @@ def get_arg_info(f):
         else:
             raise Exception(f'unknown parameter kind: {kind}')
     return ArgInfo(count, varargs, ismethod(f))
-_function_ = get_arg_info
 )";
 #endif
 
@@ -1048,14 +1047,13 @@ if sys.version_info.major < 3:
   from StringIO import StringIO
 else:
   from io import StringIO
-def read_exception(exc_type, exc_value, tb):
+def main(exc_type, exc_value, tb):
   f = StringIO()
   print_exception(exc_type, exc_value, tb, file=f)
   return f.getvalue()
-_function_ = read_exception  
 )";
 
-std::string PythonException::ReadBacktrace(bool recursing) const {
+std::string PythonException::ReadBacktraceRecursive(int limit) const {
 
   if (!m_traceback)
     return toCString();
@@ -1070,13 +1068,13 @@ std::string PythonException::ReadBacktrace(bool recursing) const {
     Twine message =
         Twine(toCString()) + "\n" +
         "Traceback unavailble, an error occurred while reading it:\n";
-    if (recursing)
+    if (limit > 0)
       return (message + llvm::toString(backtrace.takeError())).str();
 
     std::string backtrace2;
     Error error =
         llvm::handleErrors(backtrace.takeError(), [&](PythonException &E) {
-          backtrace2 = E.ReadBacktrace(true);
+          backtrace2 = E.ReadBacktraceRecursive(limit - 1);
         });
     if (error)
       backtrace2 = llvm::toString(std::move(error));
@@ -1532,15 +1530,14 @@ Error PythonScript::Init() {
 
   PythonDictionary globals(PyInitialValue::Empty);
   auto builtins = PythonModule::BuiltinsModule();
-  Error error = globals.SetItem("__builtins__", builtins);
-  if (error)
+  if (Error error = globals.SetItem("__builtins__", builtins))
     return error;
   PyObject *o =
       PyRun_String(script, Py_file_input, globals.get(), globals.get());
   if (!o)
     return exception();
   Take<PythonObject>(o);
-  auto f = As<PythonCallable>(globals.GetItem("_function_"));
+  auto f = As<PythonCallable>(globals.GetItem("main"));
   if (!f)
     return f.takeError();
   function = std::move(f.get());

@@ -688,7 +688,8 @@ public:
   void log(llvm::raw_ostream &OS) const override;
   std::error_code convertToErrorCode() const override;
   bool Matches(PyObject *exc) const;
-  std::string ReadBacktrace(bool recursing = false) const;
+  std::string ReadBacktraceRecursive(int limit = 1) const;
+  std::string ReadBacktrace() const { return ReadBacktraceRecursive(); };
 };
 
 // This extracts the underlying T out of an Expected<T> and returns it.
@@ -748,9 +749,8 @@ llvm::Expected<PythonObject> runStringMultiLine(const llvm::Twine &string,
 // Example:
 //
 // const char script[] = R"(
-// def foo(x, y):
+// def main(x, y):
 //    ....
-// _function_ = foo
 // )";
 //
 // Expected<PythonObject> cpp_foo_wrapper(PythonObject x, PythonObject y) {
@@ -769,9 +769,8 @@ public:
 
   template <typename... Args>
   llvm::Expected<PythonObject> operator()(Args &&... args) {
-    llvm::Error e = Init();
-    if (e)
-      return std::move(e);
+    if (llvm::Error error = Init())
+      return std::move(error);
     return function.Call(std::forward<Args>(args)...);
   }
 };
