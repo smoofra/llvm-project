@@ -189,7 +189,6 @@ inline llvm::Error keyError() {
                                  "key not in dict");
 }
 
-
 enum class PyInitialValue { Invalid, Empty };
 
 template <typename T, typename Enable = void> struct PythonFormat;
@@ -688,8 +687,7 @@ public:
   void log(llvm::raw_ostream &OS) const override;
   std::error_code convertToErrorCode() const override;
   bool Matches(PyObject *exc) const;
-  std::string ReadBacktraceRecursive(unsigned limit = 1u) const;
-  std::string ReadBacktrace() const { return ReadBacktraceRecursive(); };
+  std::string ReadBacktrace() const;
 };
 
 // This extracts the underlying T out of an Expected<T> and returns it.

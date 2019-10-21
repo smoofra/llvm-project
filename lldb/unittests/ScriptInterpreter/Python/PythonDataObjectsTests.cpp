@@ -787,10 +787,8 @@ main = factorial
 )";
 
   PythonScript factorial(script);
-  Expected<long long> r = As<long long>(factorial(5ll));
-  bool ok = (bool)r;
-  ASSERT_TRUE(ok);
-  EXPECT_EQ(r.get(), 120);
+
+  EXPECT_THAT_EXPECTED(As<long long>(factorial(5ll)), llvm::HasValue(120));
 }
 
 TEST_F(PythonDataObjectsTest, TestExceptions) {
@@ -814,6 +812,23 @@ main = foo
                                                   "line 5, in bar.*"
                                                   "line 7, in baz.*"
                                                   "ZeroDivisionError"))));
+
+  static const char script2[] = R"(
+class MyError(Exception):
+  def __str__(self):
+    return self.my_message
+
+def main():
+  raise MyError("lol")
+
+)";
+
+  PythonScript lol(script2);
+
+  EXPECT_THAT_EXPECTED(lol(),
+                       llvm::Failed<PythonException>(testing::Property(
+                           &PythonException::ReadBacktrace,
+                           testing::ContainsRegex("unprintable MyError"))));
 }
 
 TEST_F(PythonDataObjectsTest, TestRun) {
@@ -839,6 +854,5 @@ g = foobar()
   r = runStringMultiLine(script, globals, globals);
   ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
   auto g = As<std::string>(globals.GetItem("g"));
-  ASSERT_THAT_EXPECTED(g, llvm::Succeeded());
-  EXPECT_EQ(g.get(), "foobarbaz");
+  ASSERT_THAT_EXPECTED(g, llvm::HasValue("foobarbaz"));
 }
