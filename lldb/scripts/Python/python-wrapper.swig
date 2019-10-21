@@ -223,7 +223,6 @@ LLDBSwigPythonCreateCommandObject
     const lldb::DebuggerSP debugger_sp
 )
 {
-
     if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
         Py_RETURN_NONE;
 
@@ -254,7 +253,6 @@ LLDBSwigPythonCreateScriptedThreadPlan
     const lldb::ThreadPlanSP& thread_plan_sp
 )
 {
-
     if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
         Py_RETURN_NONE;
 
@@ -312,7 +310,6 @@ LLDBSWIGPythonCallThreadPlan
     bool &got_error
 )
 {
-
     got_error = false;
 
     PyErr_Cleaner py_err_cleaner(false);
@@ -360,7 +357,6 @@ LLDBSwigPythonCreateScriptedBreakpointResolver
     lldb::BreakpointSP &breakpoint_sp
 )
 {
-
     if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
         Py_RETURN_NONE;
 
@@ -403,7 +399,6 @@ LLDBSwigPythonCallBreakpointResolver
     lldb_private::SymbolContext *sym_ctx
 )
 {
-
     PyErr_Cleaner py_err_cleaner(false);
     PythonObject self(PyRefType::Borrowed, static_cast<PyObject*>(implementor));
     auto pfunc = self.ResolveName<PythonCallable>(method_name);
@@ -454,7 +449,6 @@ LLDBSwigPython_CallOptionalMember
     bool* was_found = NULL
 )
 {
-
     PyErr_Cleaner py_err_cleaner(false);
 
     PythonObject self(PyRefType::Borrowed, static_cast<PyObject*>(implementor));
@@ -482,7 +476,6 @@ LLDBSwigPython_CalculateNumChildren
     uint32_t max
 )
 {
-
     PythonObject self(PyRefType::Borrowed, implementor);
     auto pfunc = self.ResolveName<PythonCallable>("num_children");
 
@@ -744,7 +737,6 @@ LLDBSWIGPythonCreateOSPlugin
     const lldb::ProcessSP& process_sp
 )
 {
-
     if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
         Py_RETURN_NONE;
 
@@ -778,7 +770,6 @@ LLDBSWIGPython_CreateFrameRecognizer
     const char *session_dictionary_name
 )
 {
-
     if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
         Py_RETURN_NONE;
 
@@ -805,7 +796,6 @@ LLDBSwigPython_GetRecognizedArguments
     const lldb::StackFrameSP& frame_sp
 )
 {
-
     static char callee_name[] = "get_recognized_arguments";
 
     lldb::SBFrame frame_sb(frame_sp);
@@ -820,7 +810,6 @@ LLDBSwigPython_GetRecognizedArguments
 SWIGEXPORT void*
 LLDBSWIGPython_GetDynamicSetting (void* module, const char* setting, const lldb::TargetSP& target_sp)
 {
-
     if (!module || !setting)
         Py_RETURN_NONE;
 
@@ -846,7 +835,6 @@ lldb::ProcessSP& process,
 std::string& output)
 
 {
-
     if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
         return false;
 
@@ -875,7 +863,6 @@ lldb::ThreadSP& thread,
 std::string& output)
 
 {
-
     if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
         return false;
 
@@ -904,7 +891,6 @@ lldb::TargetSP& target,
 std::string& output)
 
 {
-
     if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
         return false;
 
@@ -933,7 +919,6 @@ lldb::StackFrameSP& frame,
 std::string& output)
 
 {
-
     if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
         return false;
 
@@ -962,7 +947,6 @@ lldb::ValueObjectSP& value,
 std::string& output)
 
 {
-
     if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
         return false;
 
@@ -991,7 +975,6 @@ LLDBSwigPythonCallModuleInit
     lldb::DebuggerSP& debugger
 )
 {
-
     std::string python_function_name_string = python_module_name;
     python_function_name_string += ".__lldb_init_module";
     const char* python_function_name = python_function_name_string.c_str();
