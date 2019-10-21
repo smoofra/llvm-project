@@ -1,5 +1,5 @@
 Bottom: b236189ec824ac8144676e2a95e53c68a716bab4
-Top:    ca44e244256dc0adc25435d77e89812020473039
+Top:    1a9f5804858b612bf7f43c39a396da62033d00b6
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -532,55 +532,50 @@ index 7823dc4ad1a..ccd098dc4bb 100644
          %clearnothreadallow;
  }
 diff --git a/lldb/scripts/Python/python-typemaps.swig b/lldb/scripts/Python/python-typemaps.swig
-index 8ff178bc5e5..99d323fae58 100644
+index 8ff178bc5e5..2ba380bdf0d 100644
 --- a/lldb/scripts/Python/python-typemaps.swig
 +++ b/lldb/scripts/Python/python-typemaps.swig
-@@ -1,7 +1,7 @@
+@@ -1,7 +1,6 @@
  /* Typemap definitions, to allow SWIG to properly handle 'char**' data types. */
  
  %typemap(in) char ** {
 -  using namespace lldb_private;
-+
    /* Check if is a list  */
    if (PythonList::Check($input)) {
      PythonList list(PyRefType::Borrowed, $input);
-@@ -30,7 +30,7 @@
+@@ -30,7 +29,6 @@
  %typemap(typecheck) char ** {
    /* Check if is a list  */
    $1 = 1;
 -  using namespace lldb_private;
-+
    if (PythonList::Check($input)) {
      PythonList list(PyRefType::Borrowed, $input);
      int size = list.GetSize();
-@@ -55,7 +55,7 @@
+@@ -55,7 +53,6 @@
    int i;
    len = 0;
    while ($1[len]) len++;
 -  using namespace lldb_private;
-+
    PythonList list(len);
    for (i = 0; i < len; i++)
      list.SetItemAtIndex(i, PythonString($1[i]));
-@@ -64,7 +64,7 @@
+@@ -64,7 +61,6 @@
  
  
  %typemap(in) lldb::tid_t {
 -  using namespace lldb_private;
-+
    if (PythonInteger::Check($input))
    {
      PythonInteger py_int(PyRefType::Borrowed, $input);
-@@ -78,7 +78,7 @@
+@@ -78,7 +74,6 @@
  }
  
  %typemap(in) lldb::StateType {
 -  using namespace lldb_private;
-+
    if (PythonInteger::Check($input))
    {
      PythonInteger py_int(PyRefType::Borrowed, $input);
-@@ -122,12 +122,12 @@
+@@ -122,12 +117,12 @@
  %typemap(argout) (char *dst, size_t dst_len) {
     Py_XDECREF($result);   /* Blow away any previous result */
     if (result == 0) {
@@ -595,25 +590,23 @@ index 8ff178bc5e5..99d323fae58 100644
        $result = string.release();
     }
     free($1);
-@@ -142,7 +142,7 @@
+@@ -142,7 +137,6 @@
  // Ditto for SBProcess::PutSTDIN(const char *src, size_t src_len).
  %typemap(in) (const char *cstr, uint32_t cstr_len),
               (const char *src, size_t src_len) {
 -   using namespace lldb_private;
-+
     if (PythonString::Check($input)) {
        PythonString str(PyRefType::Borrowed, $input);
        $1 = (char*)str.GetString().data();
-@@ -166,7 +166,7 @@
+@@ -166,7 +160,6 @@
  // For SBProcess::WriteMemory, SBTarget::GetInstructions and SBDebugger::DispatchInput.
  %typemap(in) (const void *buf, size_t size),
               (const void *data, size_t data_len) {
 -   using namespace lldb_private;
-+
     if (PythonString::Check($input)) {
        PythonString str(PyRefType::Borrowed, $input);
        $1 = (void*)str.GetString().data();
-@@ -214,7 +214,7 @@
+@@ -214,7 +207,7 @@
        $result = Py_None;
        Py_INCREF($result);
     } else {
@@ -622,43 +615,39 @@ index 8ff178bc5e5..99d323fae58 100644
        $result = bytes.release();
     }
     free($1);
-@@ -374,7 +374,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -374,7 +367,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  
  
  %typemap(in) lldb::FileSP {
 -  using namespace lldb_private;
-+
    PythonFile py_file(PyRefType::Borrowed, $input);
    if (!py_file) {
      PyErr_SetString(PyExc_TypeError, "not a file");
-@@ -387,7 +387,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -387,7 +379,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typemap(in) lldb::FileSP FORCE_IO_METHODS {
 -  using namespace lldb_private;
-+
    PythonFile py_file(PyRefType::Borrowed, $input);
    if (!py_file) {
      PyErr_SetString(PyExc_TypeError, "not a file");
-@@ -400,7 +400,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -400,7 +391,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typemap(in) lldb::FileSP BORROWED {
 - using namespace lldb_private;
-+
    PythonFile py_file(PyRefType::Borrowed, $input);
    if (!py_file) {
      PyErr_SetString(PyExc_TypeError, "not a file");
-@@ -413,7 +413,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -413,7 +403,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typemap(in) lldb::FileSP BORROWED_FORCE_IO_METHODS {
 -  using namespace lldb_private;
-+
    PythonFile py_file(PyRefType::Borrowed, $input);
    if (!py_file) {
      PyErr_SetString(PyExc_TypeError, "not a file");
-@@ -426,7 +426,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -426,7 +415,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typecheck(SWIG_TYPECHECK_POINTER) lldb::FileSP {
@@ -667,250 +656,223 @@ index 8ff178bc5e5..99d323fae58 100644
      $1 = 1;
    } else {
      PyErr_Clear();
-@@ -435,7 +435,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -435,7 +424,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typemap(out) lldb::FileSP {
 -  using namespace lldb_private;
-+
    $result = nullptr;
    lldb::FileSP &sp = $1;
    if (sp) {
-@@ -452,7 +452,7 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
+@@ -452,7 +440,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
  }
  
  %typemap(in) (const char* string, int len) {
 -    using namespace lldb_private;
-+
      if ($input == Py_None)
      {
          $1 = NULL;
 diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
-index 277b8657d34..a6e69c46a8d 100644
+index 277b8657d34..b8a7309a410 100644
 --- a/lldb/scripts/Python/python-wrapper.swig
 +++ b/lldb/scripts/Python/python-wrapper.swig
-@@ -48,7 +48,7 @@ LLDBSwigPythonBreakpointCallbackFunction
+@@ -48,7 +48,6 @@ LLDBSwigPythonBreakpointCallbackFunction
      const lldb::BreakpointLocationSP& bp_loc_sp
  )
  {
 -    using namespace lldb_private;
-+
      lldb::SBFrame sb_frame (frame_sp);
      lldb::SBBreakpointLocation sb_bp_loc(bp_loc_sp);
  
-@@ -83,7 +83,7 @@ LLDBSwigPythonWatchpointCallbackFunction
+@@ -83,7 +82,6 @@ LLDBSwigPythonWatchpointCallbackFunction
      const lldb::WatchpointSP& wp_sp
  )
  {
 -    using namespace lldb_private;
-+
      lldb::SBFrame sb_frame (frame_sp);
      lldb::SBWatchpoint sb_wp(wp_sp);
  
-@@ -118,7 +118,7 @@ LLDBSwigPythonCallTypeScript
+@@ -118,7 +116,6 @@ LLDBSwigPythonCallTypeScript
      std::string& retval
  )
  {
 -    using namespace lldb_private;
-+
      lldb::SBValue sb_value (valobj_sp);
      lldb::SBTypeSummaryOptions sb_options(options_sp.get());
  
-@@ -190,7 +190,7 @@ LLDBSwigPythonCreateSyntheticProvider
+@@ -190,7 +187,6 @@ LLDBSwigPythonCreateSyntheticProvider
      const lldb::ValueObjectSP& valobj_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -228,7 +228,7 @@ LLDBSwigPythonCreateCommandObject
+@@ -228,7 +224,6 @@ LLDBSwigPythonCreateCommandObject
      const lldb::DebuggerSP debugger_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -260,7 +260,7 @@ LLDBSwigPythonCreateScriptedThreadPlan
+@@ -260,7 +255,6 @@ LLDBSwigPythonCreateScriptedThreadPlan
      const lldb::ThreadPlanSP& thread_plan_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -319,7 +319,7 @@ LLDBSWIGPythonCallThreadPlan
+@@ -319,7 +313,6 @@ LLDBSWIGPythonCallThreadPlan
      bool &got_error
  )
  {
 -    using namespace lldb_private;
-+
  
      got_error = false;
  
-@@ -368,7 +368,7 @@ LLDBSwigPythonCreateScriptedBreakpointResolver
+@@ -368,7 +361,6 @@ LLDBSwigPythonCreateScriptedBreakpointResolver
      lldb::BreakpointSP &breakpoint_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -412,7 +412,7 @@ LLDBSwigPythonCallBreakpointResolver
+@@ -412,7 +404,6 @@ LLDBSwigPythonCallBreakpointResolver
      lldb_private::SymbolContext *sym_ctx
  )
  {
 -    using namespace lldb_private;
-+
  
      PyErr_Cleaner py_err_cleaner(false);
      PythonObject self(PyRefType::Borrowed, static_cast<PyObject*>(implementor));
-@@ -464,7 +464,7 @@ LLDBSwigPython_CallOptionalMember
+@@ -464,7 +455,6 @@ LLDBSwigPython_CallOptionalMember
      bool* was_found = NULL
  )
  {
 -    using namespace lldb_private;
-+
  
      PyErr_Cleaner py_err_cleaner(false);
  
-@@ -493,7 +493,7 @@ LLDBSwigPython_CalculateNumChildren
+@@ -493,7 +483,6 @@ LLDBSwigPython_CalculateNumChildren
      uint32_t max
  )
  {
 -    using namespace lldb_private;
-+
  
      PythonObject self(PyRefType::Borrowed, implementor);
      auto pfunc = self.ResolveName<PythonCallable>("num_children");
-@@ -536,7 +536,7 @@ LLDBSwigPython_GetChildAtIndex
+@@ -536,7 +525,6 @@ LLDBSwigPython_GetChildAtIndex
      uint32_t idx
  )
  {
 -    using namespace lldb_private;
-+
      PyErr_Cleaner py_err_cleaner(true);
  
      PythonObject self(PyRefType::Borrowed, implementor);
-@@ -567,7 +567,7 @@ LLDBSwigPython_GetIndexOfChildWithName
+@@ -567,7 +555,6 @@ LLDBSwigPython_GetIndexOfChildWithName
      const char* child_name
  )
  {
 -    using namespace lldb_private;
-+
      PyErr_Cleaner py_err_cleaner(true);
  
      PythonObject self(PyRefType::Borrowed, implementor);
-@@ -687,7 +687,7 @@ LLDBSwigPythonCallCommand
+@@ -687,7 +674,6 @@ LLDBSwigPythonCallCommand
      lldb::ExecutionContextRefSP exe_ctx_ref_sp
  )
  {
 -    using namespace lldb_private;
-+
      lldb::SBCommandReturnObject cmd_retobj_sb(cmd_retobj);
      lldb::SBDebugger debugger_sb(debugger);
      lldb::SBExecutionContext exe_ctx_sb(exe_ctx_ref_sp);
-@@ -728,7 +728,7 @@ LLDBSwigPythonCallCommandObject
+@@ -728,7 +714,6 @@ LLDBSwigPythonCallCommandObject
      lldb::ExecutionContextRefSP exe_ctx_ref_sp
  )
  {
 -    using namespace lldb_private;
-+
      lldb::SBCommandReturnObject cmd_retobj_sb(cmd_retobj);
      lldb::SBDebugger debugger_sb(debugger);
      lldb::SBExecutionContext exe_ctx_sb(exe_ctx_ref_sp);
-@@ -760,7 +760,7 @@ LLDBSWIGPythonCreateOSPlugin
+@@ -760,7 +745,6 @@ LLDBSWIGPythonCreateOSPlugin
      const lldb::ProcessSP& process_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -795,7 +795,7 @@ LLDBSWIGPython_CreateFrameRecognizer
+@@ -795,7 +779,6 @@ LLDBSWIGPython_CreateFrameRecognizer
      const char *session_dictionary_name
  )
  {
 -    using namespace lldb_private;
-+
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -823,7 +823,7 @@ LLDBSwigPython_GetRecognizedArguments
+@@ -823,7 +806,6 @@ LLDBSwigPython_GetRecognizedArguments
      const lldb::StackFrameSP& frame_sp
  )
  {
 -    using namespace lldb_private;
-+
  
      static char callee_name[] = "get_recognized_arguments";
  
-@@ -839,7 +839,7 @@ LLDBSwigPython_GetRecognizedArguments
+@@ -839,7 +821,6 @@ LLDBSwigPython_GetRecognizedArguments
  SWIGEXPORT void*
  LLDBSWIGPython_GetDynamicSetting (void* module, const char* setting, const lldb::TargetSP& target_sp)
  {
 -    using namespace lldb_private;
-+
  
      if (!module || !setting)
          Py_RETURN_NONE;
-@@ -866,7 +866,7 @@ lldb::ProcessSP& process,
+@@ -866,7 +847,6 @@ lldb::ProcessSP& process,
  std::string& output)
  
  {
 -    using namespace lldb_private;
-+
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -896,7 +896,7 @@ lldb::ThreadSP& thread,
+@@ -896,7 +876,6 @@ lldb::ThreadSP& thread,
  std::string& output)
  
  {
 -    using namespace lldb_private;
-+
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -926,7 +926,7 @@ lldb::TargetSP& target,
+@@ -926,7 +905,6 @@ lldb::TargetSP& target,
  std::string& output)
  
  {
 -    using namespace lldb_private;
-+
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -956,7 +956,7 @@ lldb::StackFrameSP& frame,
+@@ -956,7 +934,6 @@ lldb::StackFrameSP& frame,
  std::string& output)
  
  {
 -    using namespace lldb_private;
-+
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -986,7 +986,7 @@ lldb::ValueObjectSP& value,
+@@ -986,7 +963,6 @@ lldb::ValueObjectSP& value,
  std::string& output)
  
  {
 -    using namespace lldb_private;
-+
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -1016,7 +1016,7 @@ LLDBSwigPythonCallModuleInit
+@@ -1016,7 +992,6 @@ LLDBSwigPythonCallModuleInit
      lldb::DebuggerSP& debugger
  )
  {
 -    using namespace lldb_private;
-+
  
      std::string python_function_name_string = python_module_name;
      python_function_name_string += ".__lldb_init_module";
