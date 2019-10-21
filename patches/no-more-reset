@@ -1,5 +1,5 @@
 Bottom: b236189ec824ac8144676e2a95e53c68a716bab4
-Top:    1a9f5804858b612bf7f43c39a396da62033d00b6
+Top:    bc221bf8db699d9e2cffe5f5e0c062fea8992ab1
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-18 16:42:29 -0700
 
@@ -36,498 +36,498 @@ index 3dd75b55850..23fadf02e59 100644
  
      ExecuteScriptOptions &SetEnableIO(bool enable) {
 diff --git a/lldb/scripts/Python/python-extensions.swig b/lldb/scripts/Python/python-extensions.swig
-index 7823dc4ad1a..ccd098dc4bb 100644
+index 7823dc4ad1a..c10c32b4487 100644
 --- a/lldb/scripts/Python/python-extensions.swig
 +++ b/lldb/scripts/Python/python-extensions.swig
-@@ -9,9 +9,9 @@
+@@ -8,10 +8,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -25,9 +25,9 @@
+@@ -24,10 +21,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -41,9 +41,9 @@
+@@ -40,10 +34,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -72,9 +72,9 @@
+@@ -71,10 +62,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -89,9 +89,9 @@
+@@ -88,10 +76,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -122,9 +122,9 @@
+@@ -121,10 +106,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -151,9 +151,9 @@
+@@ -150,10 +132,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -180,9 +180,9 @@
+@@ -179,10 +158,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -196,9 +196,9 @@
+@@ -195,10 +171,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -212,9 +212,9 @@
+@@ -211,10 +184,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -243,9 +243,9 @@
+@@ -242,10 +212,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -259,9 +259,9 @@
+@@ -258,10 +225,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -275,9 +275,9 @@
+@@ -274,10 +238,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -291,9 +291,9 @@
+@@ -290,10 +251,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -322,9 +322,9 @@
+@@ -321,10 +279,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -338,9 +338,9 @@
+@@ -337,10 +292,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -354,9 +354,9 @@
+@@ -353,10 +305,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -385,9 +385,9 @@
+@@ -384,10 +333,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -402,9 +402,9 @@
+@@ -401,10 +347,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -433,9 +433,9 @@
+@@ -432,10 +375,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -450,9 +450,9 @@
+@@ -449,10 +389,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -467,9 +467,9 @@
+@@ -466,10 +403,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -483,9 +483,9 @@
+@@ -482,10 +416,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -527,9 +527,9 @@
+@@ -526,10 +457,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -556,9 +556,9 @@
+@@ -555,10 +483,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -572,9 +572,9 @@
+@@ -571,10 +496,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -589,9 +589,9 @@
+@@ -588,10 +510,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  
-@@ -620,9 +620,9 @@
+@@ -619,10 +538,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -636,9 +636,9 @@
+@@ -635,10 +551,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -652,9 +652,9 @@
+@@ -651,10 +564,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -681,9 +681,9 @@
+@@ -680,10 +590,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -697,9 +697,9 @@
+@@ -696,10 +603,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -713,9 +713,9 @@
+@@ -712,10 +616,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -729,9 +729,9 @@
+@@ -728,10 +629,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -745,9 +745,9 @@
+@@ -744,10 +642,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -774,9 +774,9 @@
+@@ -773,10 +668,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -803,9 +803,9 @@
+@@ -802,10 +694,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -832,9 +832,9 @@
+@@ -831,10 +720,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
      %pythoncode %{
-@@ -861,9 +861,9 @@
+@@ -860,10 +746,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -886,9 +886,9 @@
+@@ -885,10 +768,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
-@@ -902,9 +902,9 @@
+@@ -901,10 +781,7 @@
+                 size_t desc_len = description.GetSize();
                  if (desc_len > 0 && (desc[desc_len-1] == '\n' || desc[desc_len-1] == '\r'))
                      --desc_len;
-                 if (desc_len > 0)
+-                if (desc_len > 0)
 -                    return lldb_private::PythonString(llvm::StringRef(desc, desc_len)).release();
-+                    return PythonString(llvm::StringRef(desc, desc_len)).release();
-                 else
+-                else
 -                    return lldb_private::PythonString("").release();
-+                    return PythonString("").release();
++                return PythonString(llvm::StringRef(desc, desc_len)).release();
          }
          %clearnothreadallow;
  }
@@ -673,7 +673,7 @@ index 8ff178bc5e5..2ba380bdf0d 100644
      {
          $1 = NULL;
 diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
-index 277b8657d34..b8a7309a410 100644
+index 277b8657d34..ec7ec091585 100644
 --- a/lldb/scripts/Python/python-wrapper.swig
 +++ b/lldb/scripts/Python/python-wrapper.swig
 @@ -48,7 +48,6 @@ LLDBSwigPythonBreakpointCallbackFunction
@@ -700,15 +700,16 @@ index 277b8657d34..b8a7309a410 100644
      lldb::SBValue sb_value (valobj_sp);
      lldb::SBTypeSummaryOptions sb_options(options_sp.get());
  
-@@ -190,7 +187,6 @@ LLDBSwigPythonCreateSyntheticProvider
+@@ -190,8 +187,6 @@ LLDBSwigPythonCreateSyntheticProvider
      const lldb::ValueObjectSP& valobj_sp
  )
  {
 -    using namespace lldb_private;
- 
+-
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -228,7 +224,6 @@ LLDBSwigPythonCreateCommandObject
+ 
+@@ -228,7 +223,6 @@ LLDBSwigPythonCreateCommandObject
      const lldb::DebuggerSP debugger_sp
  )
  {
@@ -716,7 +717,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -260,7 +255,6 @@ LLDBSwigPythonCreateScriptedThreadPlan
+@@ -260,7 +254,6 @@ LLDBSwigPythonCreateScriptedThreadPlan
      const lldb::ThreadPlanSP& thread_plan_sp
  )
  {
@@ -724,7 +725,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -319,7 +313,6 @@ LLDBSWIGPythonCallThreadPlan
+@@ -319,7 +312,6 @@ LLDBSWIGPythonCallThreadPlan
      bool &got_error
  )
  {
@@ -732,7 +733,7 @@ index 277b8657d34..b8a7309a410 100644
  
      got_error = false;
  
-@@ -368,7 +361,6 @@ LLDBSwigPythonCreateScriptedBreakpointResolver
+@@ -368,7 +360,6 @@ LLDBSwigPythonCreateScriptedBreakpointResolver
      lldb::BreakpointSP &breakpoint_sp
  )
  {
@@ -740,7 +741,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -412,7 +404,6 @@ LLDBSwigPythonCallBreakpointResolver
+@@ -412,7 +403,6 @@ LLDBSwigPythonCallBreakpointResolver
      lldb_private::SymbolContext *sym_ctx
  )
  {
@@ -748,7 +749,7 @@ index 277b8657d34..b8a7309a410 100644
  
      PyErr_Cleaner py_err_cleaner(false);
      PythonObject self(PyRefType::Borrowed, static_cast<PyObject*>(implementor));
-@@ -464,7 +455,6 @@ LLDBSwigPython_CallOptionalMember
+@@ -464,7 +454,6 @@ LLDBSwigPython_CallOptionalMember
      bool* was_found = NULL
  )
  {
@@ -756,7 +757,7 @@ index 277b8657d34..b8a7309a410 100644
  
      PyErr_Cleaner py_err_cleaner(false);
  
-@@ -493,7 +483,6 @@ LLDBSwigPython_CalculateNumChildren
+@@ -493,7 +482,6 @@ LLDBSwigPython_CalculateNumChildren
      uint32_t max
  )
  {
@@ -764,7 +765,7 @@ index 277b8657d34..b8a7309a410 100644
  
      PythonObject self(PyRefType::Borrowed, implementor);
      auto pfunc = self.ResolveName<PythonCallable>("num_children");
-@@ -536,7 +525,6 @@ LLDBSwigPython_GetChildAtIndex
+@@ -536,7 +524,6 @@ LLDBSwigPython_GetChildAtIndex
      uint32_t idx
  )
  {
@@ -772,7 +773,7 @@ index 277b8657d34..b8a7309a410 100644
      PyErr_Cleaner py_err_cleaner(true);
  
      PythonObject self(PyRefType::Borrowed, implementor);
-@@ -567,7 +555,6 @@ LLDBSwigPython_GetIndexOfChildWithName
+@@ -567,7 +554,6 @@ LLDBSwigPython_GetIndexOfChildWithName
      const char* child_name
  )
  {
@@ -780,7 +781,7 @@ index 277b8657d34..b8a7309a410 100644
      PyErr_Cleaner py_err_cleaner(true);
  
      PythonObject self(PyRefType::Borrowed, implementor);
-@@ -687,7 +674,6 @@ LLDBSwigPythonCallCommand
+@@ -687,7 +673,6 @@ LLDBSwigPythonCallCommand
      lldb::ExecutionContextRefSP exe_ctx_ref_sp
  )
  {
@@ -788,7 +789,7 @@ index 277b8657d34..b8a7309a410 100644
      lldb::SBCommandReturnObject cmd_retobj_sb(cmd_retobj);
      lldb::SBDebugger debugger_sb(debugger);
      lldb::SBExecutionContext exe_ctx_sb(exe_ctx_ref_sp);
-@@ -728,7 +714,6 @@ LLDBSwigPythonCallCommandObject
+@@ -728,7 +713,6 @@ LLDBSwigPythonCallCommandObject
      lldb::ExecutionContextRefSP exe_ctx_ref_sp
  )
  {
@@ -796,7 +797,7 @@ index 277b8657d34..b8a7309a410 100644
      lldb::SBCommandReturnObject cmd_retobj_sb(cmd_retobj);
      lldb::SBDebugger debugger_sb(debugger);
      lldb::SBExecutionContext exe_ctx_sb(exe_ctx_ref_sp);
-@@ -760,7 +745,6 @@ LLDBSWIGPythonCreateOSPlugin
+@@ -760,7 +744,6 @@ LLDBSWIGPythonCreateOSPlugin
      const lldb::ProcessSP& process_sp
  )
  {
@@ -804,7 +805,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -795,7 +779,6 @@ LLDBSWIGPython_CreateFrameRecognizer
+@@ -795,7 +778,6 @@ LLDBSWIGPython_CreateFrameRecognizer
      const char *session_dictionary_name
  )
  {
@@ -812,7 +813,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_class_name == NULL || python_class_name[0] == '\0' || !session_dictionary_name)
          Py_RETURN_NONE;
-@@ -823,7 +806,6 @@ LLDBSwigPython_GetRecognizedArguments
+@@ -823,7 +805,6 @@ LLDBSwigPython_GetRecognizedArguments
      const lldb::StackFrameSP& frame_sp
  )
  {
@@ -820,7 +821,7 @@ index 277b8657d34..b8a7309a410 100644
  
      static char callee_name[] = "get_recognized_arguments";
  
-@@ -839,7 +821,6 @@ LLDBSwigPython_GetRecognizedArguments
+@@ -839,7 +820,6 @@ LLDBSwigPython_GetRecognizedArguments
  SWIGEXPORT void*
  LLDBSWIGPython_GetDynamicSetting (void* module, const char* setting, const lldb::TargetSP& target_sp)
  {
@@ -828,7 +829,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (!module || !setting)
          Py_RETURN_NONE;
-@@ -866,7 +847,6 @@ lldb::ProcessSP& process,
+@@ -866,7 +846,6 @@ lldb::ProcessSP& process,
  std::string& output)
  
  {
@@ -836,7 +837,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -896,7 +876,6 @@ lldb::ThreadSP& thread,
+@@ -896,7 +875,6 @@ lldb::ThreadSP& thread,
  std::string& output)
  
  {
@@ -844,7 +845,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -926,7 +905,6 @@ lldb::TargetSP& target,
+@@ -926,7 +904,6 @@ lldb::TargetSP& target,
  std::string& output)
  
  {
@@ -852,7 +853,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -956,7 +934,6 @@ lldb::StackFrameSP& frame,
+@@ -956,7 +933,6 @@ lldb::StackFrameSP& frame,
  std::string& output)
  
  {
@@ -860,7 +861,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -986,7 +963,6 @@ lldb::ValueObjectSP& value,
+@@ -986,7 +962,6 @@ lldb::ValueObjectSP& value,
  std::string& output)
  
  {
@@ -868,7 +869,7 @@ index 277b8657d34..b8a7309a410 100644
  
      if (python_function_name == NULL || python_function_name[0] == '\0' || !session_dictionary_name)
          return false;
-@@ -1016,7 +992,6 @@ LLDBSwigPythonCallModuleInit
+@@ -1016,7 +991,6 @@ LLDBSwigPythonCallModuleInit
      lldb::DebuggerSP& debugger
  )
  {
@@ -905,7 +906,7 @@ index 2c5071bc765..54b5c236f75 100644
  
    LINK_LIBS
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index d0d593656ef..540fa40d5e4 100644
+index d0d593656ef..70d93424fde 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -261,8 +261,7 @@ size_t PythonBytes::GetSize() const {
@@ -977,7 +978,7 @@ index d0d593656ef..540fa40d5e4 100644
    if (!pyarginfo)
      return pyarginfo.takeError();
    result.count = cantFail(As<long long>(pyarginfo.get().GetAttribute("count")));
-@@ -1056,6 +1036,54 @@ std::error_code PythonException::convertToErrorCode() const {
+@@ -1056,6 +1036,44 @@ std::error_code PythonException::convertToErrorCode() const {
    return llvm::inconvertibleErrorCode();
  }
  
@@ -998,7 +999,7 @@ index d0d593656ef..540fa40d5e4 100644
 +  return f.getvalue()
 +)";
 +
-+std::string PythonException::ReadBacktraceRecursive(unsigned limit) const {
++std::string PythonException::ReadBacktrace() const {
 +
 +  if (!m_traceback)
 +    return toCString();
@@ -1010,20 +1011,10 @@ index d0d593656ef..540fa40d5e4 100644
 +      read_exception(m_exception_type, m_exception, m_traceback));
 +
 +  if (!backtrace) {
-+    Twine message =
-+        Twine(toCString()) + "\n" +
++    std::string message =
++        std::string(toCString()) + "\n" +
 +        "Traceback unavailble, an error occurred while reading it:\n";
-+    if (limit == 0)
-+      return (message + llvm::toString(backtrace.takeError())).str();
-+
-+    std::string backtrace2;
-+    Error error =
-+        llvm::handleErrors(backtrace.takeError(), [&](PythonException &E) {
-+          backtrace2 = E.ReadBacktraceRecursive(limit - 1);
-+        });
-+    if (error)
-+      backtrace2 = llvm::toString(std::move(error));
-+    return (message + backtrace2).str();
++    return (message + llvm::toString(backtrace.takeError()));
 +  }
 +
 +  return std::move(backtrace.get());
@@ -1032,7 +1023,7 @@ index d0d593656ef..540fa40d5e4 100644
  char PythonException::ID = 0;
  
  llvm::Expected<File::OpenOptions>
-@@ -1496,4 +1524,69 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+@@ -1496,4 +1514,69 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
    return Take<PythonFile>(file_obj);
  }
  
@@ -1103,7 +1094,7 @@ index d0d593656ef..540fa40d5e4 100644
 +
  #endif
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 634d6e89601..441325e30b7 100644
+index 634d6e89601..373d3212697 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -59,6 +59,7 @@
@@ -1122,7 +1113,7 @@ index 634d6e89601..441325e30b7 100644
  
  // Take a reference that you already own, and turn it into
  // a PythonObject.
-@@ -175,7 +175,20 @@ public:
+@@ -175,7 +175,19 @@ public:
    operator const char *() { return str; }
  };
  
@@ -1140,11 +1131,10 @@ index 634d6e89601..441325e30b7 100644
 +  return llvm::createStringError(llvm::inconvertibleErrorCode(),
 +                                 "key not in dict");
 +}
-+
  
  enum class PyInitialValue { Invalid, Empty };
  
-@@ -191,6 +204,11 @@ template <> struct PythonFormat<long long> {
+@@ -191,6 +203,11 @@ template <> struct PythonFormat<long long> {
    static auto get(long long value) { return value; }
  };
  
@@ -1156,7 +1146,7 @@ index 634d6e89601..441325e30b7 100644
  template <typename T>
  struct PythonFormat<
      T, typename std::enable_if<std::is_base_of<PythonObject, T>::value>::type> {
-@@ -202,8 +220,14 @@ class PythonObject {
+@@ -202,8 +219,14 @@ class PythonObject {
  public:
    PythonObject() : m_py_obj(nullptr) {}
  
@@ -1173,7 +1163,7 @@ index 634d6e89601..441325e30b7 100644
    }
  
    PythonObject(const PythonObject &rhs)
-@@ -222,23 +246,6 @@ public:
+@@ -222,23 +245,6 @@ public:
      m_py_obj = nullptr;
    }
  
@@ -1197,7 +1187,7 @@ index 634d6e89601..441325e30b7 100644
    void Dump() const {
      if (m_py_obj)
        _PyObject_Dump(m_py_obj);
-@@ -304,17 +311,6 @@ public:
+@@ -304,17 +310,6 @@ public:
    StructuredData::ObjectSP CreateStructuredObject() const;
  
  protected:
@@ -1215,7 +1205,7 @@ index 634d6e89601..441325e30b7 100644
  
  #if PY_MAJOR_VERSION < 3
    // The python 2 API declares some arguments as char* that should
-@@ -348,7 +344,6 @@ public:
+@@ -348,7 +343,6 @@ public:
    }
  
    llvm::Expected<PythonObject> GetAttribute(const llvm::Twine &name) const {
@@ -1223,7 +1213,7 @@ index 634d6e89601..441325e30b7 100644
      if (!m_py_obj)
        return nullDeref();
      PyObject *obj = PyObject_GetAttrString(m_py_obj, NullTerminated(name));
-@@ -389,7 +384,6 @@ protected:
+@@ -389,7 +383,6 @@ protected:
    PyObject *m_py_obj;
  };
  
@@ -1231,7 +1221,7 @@ index 634d6e89601..441325e30b7 100644
  
  // This is why C++ needs monads.
  template <typename T> llvm::Expected<T> As(llvm::Expected<PythonObject> &&obj) {
-@@ -409,7 +403,6 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
+@@ -409,7 +402,6 @@ llvm::Expected<long long> As<long long>(llvm::Expected<PythonObject> &&obj);
  template <>
  llvm::Expected<std::string> As<std::string>(llvm::Expected<PythonObject> &&obj);
  
@@ -1239,7 +1229,7 @@ index 634d6e89601..441325e30b7 100644
  
  template <class T> class TypedPythonObject : public PythonObject {
  public:
-@@ -417,16 +410,12 @@ public:
+@@ -417,16 +409,12 @@ public:
    // This can be eliminated once we drop python 2 support.
    static void Convert(PyRefType &type, PyObject *&py_obj) {}
  
@@ -1257,17 +1247,16 @@ index 634d6e89601..441325e30b7 100644
      else if (type == PyRefType::Owned)
        Py_DECREF(py_obj);
    }
-@@ -698,6 +687,9 @@ public:
+@@ -698,6 +686,8 @@ public:
    ~PythonException();
    void log(llvm::raw_ostream &OS) const override;
    std::error_code convertToErrorCode() const override;
 +  bool Matches(PyObject *exc) const;
-+  std::string ReadBacktraceRecursive(unsigned limit = 1u) const;
-+  std::string ReadBacktrace() const { return ReadBacktraceRecursive(); };
++  std::string ReadBacktrace() const;
  };
  
  // This extracts the underlying T out of an Expected<T> and returns it.
-@@ -732,7 +724,6 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
+@@ -732,7 +722,6 @@ template <typename T> T unwrapOrSetPythonException(llvm::Expected<T> expected) {
    return T();
  }
  
@@ -1275,7 +1264,7 @@ index 634d6e89601..441325e30b7 100644
  // This is only here to help incrementally migrate old, exception-unsafe
  // code.
  template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
-@@ -741,8 +732,50 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
+@@ -741,8 +730,50 @@ template <typename T> T unwrapIgnoringErrors(llvm::Expected<T> expected) {
    llvm::consumeError(expected.takeError());
    return T();
  }
@@ -1941,36 +1930,48 @@ index 8f713352416..3eee5218414 100644
  }
  
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPythonImpl.h b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPythonImpl.h
-index 373513f8e47..14135b21d0e 100644
+index 373513f8e47..929567e579d 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPythonImpl.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPythonImpl.h
-@@ -23,6 +23,8 @@
- #include "llvm/ADT/STLExtras.h"
- #include "llvm/ADT/StringRef.h"
- 
-+using namespace lldb_private::python;
-+
- namespace lldb_private {
- class IOHandlerPythonInterpreter;
- class ScriptInterpreterPythonImpl : public ScriptInterpreterPython {
-@@ -363,7 +365,7 @@ public:
+@@ -363,25 +363,25 @@ public:
      eIOHandlerWatchpoint
    };
  
 -  PythonObject &GetMainModule();
-+  PythonModule &GetMainModule();
++  python::PythonModule &GetMainModule();
  
-   PythonDictionary &GetSessionDictionary();
+-  PythonDictionary &GetSessionDictionary();
++  python::PythonDictionary &GetSessionDictionary();
  
-@@ -377,7 +379,7 @@ public:
-   PythonObject m_saved_stdin;
-   PythonObject m_saved_stdout;
-   PythonObject m_saved_stderr;
+-  PythonDictionary &GetSysModuleDictionary();
++  python::PythonDictionary &GetSysModuleDictionary();
+ 
+   bool GetEmbeddedInterpreterModuleObjects();
+ 
+   bool SetStdHandle(lldb::FileSP file, const char *py_name,
+-                    PythonObject &save_file, const char *mode);
+-
+-  PythonObject m_saved_stdin;
+-  PythonObject m_saved_stdout;
+-  PythonObject m_saved_stderr;
 -  PythonObject m_main_module;
-+  PythonModule m_main_module;
-   PythonDictionary m_session_dict;
-   PythonDictionary m_sys_module_dict;
-   PythonObject m_run_one_line_function;
+-  PythonDictionary m_session_dict;
+-  PythonDictionary m_sys_module_dict;
+-  PythonObject m_run_one_line_function;
+-  PythonObject m_run_one_line_str_global;
++                    python::PythonObject &save_file, const char *mode);
++
++  python::PythonObject m_saved_stdin;
++  python::PythonObject m_saved_stdout;
++  python::PythonObject m_saved_stderr;
++  python::PythonModule m_main_module;
++  python::PythonDictionary m_session_dict;
++  python::PythonDictionary m_sys_module_dict;
++  python::PythonObject m_run_one_line_function;
++  python::PythonObject m_run_one_line_str_global;
+   std::string m_dictionary_name;
+   ActiveIOHandler m_active_io_handler;
+   bool m_session_is_active;
 diff --git a/lldb/unittests/ScriptInterpreter/Python/CMakeLists.txt b/lldb/unittests/ScriptInterpreter/Python/CMakeLists.txt
 index 618767de91e..471f4c6dbc3 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/CMakeLists.txt
@@ -1983,7 +1984,7 @@ index 618767de91e..471f4c6dbc3 100644
  
    LINK_LIBS
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
-index c01dade4440..06bec82f0f8 100644
+index c01dade4440..b676b42da66 100644
 --- a/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 +++ b/lldb/unittests/ScriptInterpreter/Python/PythonDataObjectsTests.cpp
 @@ -21,6 +21,8 @@
@@ -1995,7 +1996,7 @@ index c01dade4440..06bec82f0f8 100644
  
  class PythonDataObjectsTest : public PythonTestSuite {
  public:
-@@ -771,4 +773,72 @@ bar_unbound = Foo.bar
+@@ -771,4 +773,86 @@ bar_unbound = Foo.bar
    }
  
  #endif
@@ -2013,10 +2014,8 @@ index c01dade4440..06bec82f0f8 100644
 +)";
 +
 +  PythonScript factorial(script);
-+  Expected<long long> r = As<long long>(factorial(5ll));
-+  bool ok = (bool)r;
-+  ASSERT_TRUE(ok);
-+  EXPECT_EQ(r.get(), 120);
++
++  EXPECT_THAT_EXPECTED(As<long long>(factorial(5ll)), llvm::HasValue(120));
 +}
 +
 +TEST_F(PythonDataObjectsTest, TestExceptions) {
@@ -2040,6 +2039,23 @@ index c01dade4440..06bec82f0f8 100644
 +                                                  "line 5, in bar.*"
 +                                                  "line 7, in baz.*"
 +                                                  "ZeroDivisionError"))));
++
++  static const char script2[] = R"(
++class MyError(Exception):
++  def __str__(self):
++    return self.my_message
++
++def main():
++  raise MyError("lol")
++
++)";
++
++  PythonScript lol(script2);
++
++  EXPECT_THAT_EXPECTED(lol(),
++                       llvm::Failed<PythonException>(testing::Property(
++                           &PythonException::ReadBacktrace,
++                           testing::ContainsRegex("unprintable MyError"))));
 +}
 +
 +TEST_F(PythonDataObjectsTest, TestRun) {
@@ -2065,8 +2081,7 @@ index c01dade4440..06bec82f0f8 100644
 +  r = runStringMultiLine(script, globals, globals);
 +  ASSERT_THAT_EXPECTED(r, llvm::Succeeded());
 +  auto g = As<std::string>(globals.GetItem("g"));
-+  ASSERT_THAT_EXPECTED(g, llvm::Succeeded());
-+  EXPECT_EQ(g.get(), "foobarbaz");
++  ASSERT_THAT_EXPECTED(g, llvm::HasValue("foobarbaz"));
  }
 \ No newline at end of file
 diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonExceptionStateTests.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonExceptionStateTests.cpp
