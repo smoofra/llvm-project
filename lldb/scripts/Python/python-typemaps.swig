@@ -1,7 +1,6 @@
 /* Typemap definitions, to allow SWIG to properly handle 'char**' data types. */
 
 %typemap(in) char ** {
-
   /* Check if is a list  */
   if (PythonList::Check($input)) {
     PythonList list(PyRefType::Borrowed, $input);
@@ -30,7 +29,6 @@
 %typemap(typecheck) char ** {
   /* Check if is a list  */
   $1 = 1;
-
   if (PythonList::Check($input)) {
     PythonList list(PyRefType::Borrowed, $input);
     int size = list.GetSize();
@@ -55,7 +53,6 @@
   int i;
   len = 0;
   while ($1[len]) len++;
-
   PythonList list(len);
   for (i = 0; i < len; i++)
     list.SetItemAtIndex(i, PythonString($1[i]));
@@ -64,7 +61,6 @@
 
 
 %typemap(in) lldb::tid_t {
-
   if (PythonInteger::Check($input))
   {
     PythonInteger py_int(PyRefType::Borrowed, $input);
@@ -78,7 +74,6 @@
 }
 
 %typemap(in) lldb::StateType {
-
   if (PythonInteger::Check($input))
   {
     PythonInteger py_int(PyRefType::Borrowed, $input);
@@ -142,7 +137,6 @@
 // Ditto for SBProcess::PutSTDIN(const char *src, size_t src_len).
 %typemap(in) (const char *cstr, uint32_t cstr_len),
              (const char *src, size_t src_len) {
-
    if (PythonString::Check($input)) {
       PythonString str(PyRefType::Borrowed, $input);
       $1 = (char*)str.GetString().data();
@@ -166,7 +160,6 @@
 // For SBProcess::WriteMemory, SBTarget::GetInstructions and SBDebugger::DispatchInput.
 %typemap(in) (const void *buf, size_t size),
              (const void *data, size_t data_len) {
-
    if (PythonString::Check($input)) {
       PythonString str(PyRefType::Borrowed, $input);
       $1 = (void*)str.GetString().data();
@@ -374,7 +367,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 
 
 %typemap(in) lldb::FileSP {
-
   PythonFile py_file(PyRefType::Borrowed, $input);
   if (!py_file) {
     PyErr_SetString(PyExc_TypeError, "not a file");
@@ -387,7 +379,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 }
 
 %typemap(in) lldb::FileSP FORCE_IO_METHODS {
-
   PythonFile py_file(PyRefType::Borrowed, $input);
   if (!py_file) {
     PyErr_SetString(PyExc_TypeError, "not a file");
@@ -400,7 +391,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 }
 
 %typemap(in) lldb::FileSP BORROWED {
-
   PythonFile py_file(PyRefType::Borrowed, $input);
   if (!py_file) {
     PyErr_SetString(PyExc_TypeError, "not a file");
@@ -413,7 +403,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 }
 
 %typemap(in) lldb::FileSP BORROWED_FORCE_IO_METHODS {
-
   PythonFile py_file(PyRefType::Borrowed, $input);
   if (!py_file) {
     PyErr_SetString(PyExc_TypeError, "not a file");
@@ -435,7 +424,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 }
 
 %typemap(out) lldb::FileSP {
-
   $result = nullptr;
   lldb::FileSP &sp = $1;
   if (sp) {
@@ -452,7 +440,6 @@ bool SetNumberFromPyObject<double>(double &number, PyObject *obj) {
 }
 
 %typemap(in) (const char* string, int len) {
-
     if ($input == Py_None)
     {
         $1 = NULL;
