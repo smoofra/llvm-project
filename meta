@@ -1,10 +1,9 @@
 Version: 1
-Previous: 4f42beb544042c48a0d9ebf38728c774f4f96d78
-Head: 4440aee4b4a75af6adac91d593015dadc2a17a71
+Previous: dfd582e03483bab4988e4d10ef2b245d35bb30ae
+Head: 8d4ec5de65ad6dad4cf9e0921501f547e0e7a0fd
 Applied:
   python-fix: 75066c64f230cd84df64dfeb9e6ac7990a3d5dcf
   lldbpexpect-make-sure-term-is: ed63eca5b11021db24a842864ced805476fb57c9
   stringliteral-intellisense: 8d4ec5de65ad6dad4cf9e0921501f547e0e7a0fd
-  no-more-reset: 4440aee4b4a75af6adac91d593015dadc2a17a71
 Unapplied:
 Hidden:
