@@ -1,5 +1,5 @@
-Bottom: 48062b4e55cc628afa990e2d20adac888d6a0592
-Top:    b91c3c18adbc317a7077b4dfdfacf1005ff4fa78
+Bottom: 8aec2bf1db5fc014f4a5ea7f1c77814d6e1198d6
+Top:    b7cdcfa4948f8d88b53b19326fb01625dabcf73a
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-09-14 14:01:51 -0700
 
@@ -24,10 +24,10 @@ Differential Revision: https://reviews.llvm.org/D67788
 
 ---
 diff --git a/llvm/include/llvm/ADT/StringRef.h b/llvm/include/llvm/ADT/StringRef.h
-index 52baab17bed..1d3179d9e42 100644
+index e87a08f7eff..5b106f29abf 100644
 --- a/llvm/include/llvm/ADT/StringRef.h
 +++ b/llvm/include/llvm/ADT/StringRef.h
-@@ -857,7 +857,7 @@ namespace llvm {
+@@ -863,7 +863,7 @@ namespace llvm {
    public:
      template <size_t N>
      constexpr StringLiteral(const char (&Str)[N])

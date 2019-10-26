@@ -1,9 +1,9 @@
 Version: 1
-Previous: 48b7676b3ef9d26fe80e8ecd9440fa03dcd35969
-Head: 11c920207afa92ad13fdf72daba14c9af336293a
+Previous: fb920bc758388725f8be60b2bc1fc0ca1ea5fc10
+Head: 4d5cfe5deabb9acc11e14a2ce5a70bc7611eb053
 Applied:
+  python-fix: aa7e35008f03d7466aad34eb577c2fbe6b0bd07b
+  lldbpexpect-make-sure-term-is: da0cb9b7070e76fb977deb627a109f9d822449b0
+  stringliteral-intellisense: 4d5cfe5deabb9acc11e14a2ce5a70bc7611eb053
 Unapplied:
-  python-fix: 75066c64f230cd84df64dfeb9e6ac7990a3d5dcf
-  lldbpexpect-make-sure-term-is: ed63eca5b11021db24a842864ced805476fb57c9
-  stringliteral-intellisense: 8d4ec5de65ad6dad4cf9e0921501f547e0e7a0fd
 Hidden:
