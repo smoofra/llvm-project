@@ -61,20 +61,24 @@ LLDBSwigPythonBreakpointCallbackFunction
     if (!pfunc.IsAllocated())
         return stop_at_breakpoint;
 
+    unsigned max_positional_args = PythonCallable::ArgInfo::UNBOUNDED;
+    if (auto arg_info = pfunc.GetArgInfo()) {
+        max_positional_args = arg_info.get().max_positional_args;
+    } else {
+        llvm::consumeError(arg_info.takeError());
+    }
+
     PythonObject frame_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_frame));
     PythonObject bp_loc_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_bp_loc));
 
     PythonObject result;
     // If the called function doesn't take extra_args, drop them here:
-    auto arg_info = pfunc.GetNumArguments();
-    if (arg_info.count == 3)
-      result = pfunc(frame_arg, bp_loc_arg, dict);
-    else if (arg_info.count == 4) {
+    if (max_positional_args < 4) {
+        result = pfunc(frame_arg, bp_loc_arg, dict);
+    } else {
         lldb::SBStructuredData *args_value = new lldb::SBStructuredData(args_impl);
         PythonObject args_arg(PyRefType::Owned, SBTypeToSWIGWrapper(args_value));
-        result = pfunc(frame_arg, bp_loc_arg, args_arg, dict);      
-    } else {
-      return stop_at_breakpoint;
+        result = pfunc(frame_arg, bp_loc_arg, args_arg, dict);
     }
 
     if (result.get() == Py_False)
