@@ -1,10 +1,11 @@
 Version: 1
-Previous: 0fc80aa6f90ae31ed496007cbeb8729509f71c40
+Previous: fc0caad0b90064fe2079b07add2a50e790117873
 Head: 6540669816592f59e9784c33022ba041a8b3d4cf
 Applied:
   python-fix: aa7e35008f03d7466aad34eb577c2fbe6b0bd07b
   lldbpexpect-make-sure-term-is: da0cb9b7070e76fb977deb627a109f9d822449b0
   stringliteral-intellisense: 4d5cfe5deabb9acc11e14a2ce5a70bc7611eb053
   lldb-breakpoints-arginfo-count: 59060a9dc0891ce854a71ec315262208eb6d0ee6
+  lldb-formatters-arginfo-count: 6540669816592f59e9784c33022ba041a8b3d4cf
 Unapplied:
 Hidden:
