@@ -1,0 +1,21 @@
+Bottom: 943ea0efe7fedbad8482e2cd9c2be9939758e4cf
+Top:    a6c3898559fd75a3c1327737bb9d0ea9144c2b9e
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-27 16:45:27 -0700
+
+Refresh of lldb-python-fix-another-fflush
+
+---
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index 9dae24d766f..7850222376f 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -310,7 +310,7 @@ Status NativeFile::Close() {
+     if (m_own_stream) {
+       if (::fclose(m_stream) == EOF)
+         error.SetErrorToErrno();
+-    } else {
++    } else if (m_options & eOpenOptionWrite) {
+       if (::fflush(m_stream) == EOF)
+         error.SetErrorToErrno();
+     }
