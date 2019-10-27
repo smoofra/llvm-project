@@ -1502,12 +1502,28 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
   file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
                            "ignore", nullptr, 0);
 #else
-  // Read through the Python source, doesn't seem to modify these strings
-  char *cmode = const_cast<char *>(mode);
-  // We pass ::flush instead of ::fclose here so we borrow the FILE* --
-  // the lldb_private::File still owns it.
-  file_obj =
-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, ::fflush);
+  // It's more or less safe to let a python program borrow a file descriptor.
+  // If they let it dangle and then use it, they'll probably get an exception.
+  // The worst that can happen is they'll wind up doing IO on the wrong
+  // descriptor.   But it would be very unsafe to let a python program borrow
+  // a FILE*.   They could actually crash the program just by keeping a
+  // reference to it around.    Since in python 2 we must have a FILE* and
+  // not a descriptor, we dup the descriptor and fdopen a new FILE* to it
+  // so python can have something it can own safely.
+  auto opts = file.GetOptions();
+  if (!opts)
+    return opts.takeError();
+  int fd = file.GetDescriptor();
+  if (!File::DescriptorIsValid(fd))
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "File has no file descriptor");
+  NativeFile dupfile(fd, opts.get(), false);
+  FILE *stream = NativeFile::ReleaseFILE(std::move(dupfile));
+  if (!stream)
+    return llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                   "could not create FILE* stream");
+  file_obj = PyFile_FromFile(stream, py2_const_cast(""), py2_const_cast(mode),
+                             ::fclose);
 #endif
 
   if (!file_obj)
