@@ -1,5 +1,5 @@
 Bottom: 2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
-Top:    06dbb39a6232d19da02c2be2997b4a2106e626f8
+Top:    9eb9f23b515be2c5b37efb27948f0b3877954635
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-27 13:18:20 -0700
 
@@ -49,7 +49,7 @@ index 2b85ebf18c6..df8bac951fc 100644
  
    if (!file_obj)
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
-index 373d3212697..40fd19dc25c 100644
+index 373d3212697..070cfe27ffe 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
 @@ -189,6 +189,14 @@ inline llvm::Error keyError() {
@@ -59,9 +59,9 @@ index 373d3212697..40fd19dc25c 100644
 +#if PY_MAJOR_VERSION < 3
 +// The python 2 API declares some arguments as char* that should
 +// be const char *, but it doesn't actually modify them.
-+static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
++char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
 +#else
-+static const char *py2_const_cast(const char *s) { return s; }
++const char *py2_const_cast(const char *s) { return s; }
 +#endif
 +
  enum class PyInitialValue { Invalid, Empty };
