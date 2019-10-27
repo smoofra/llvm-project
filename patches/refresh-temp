@@ -1,0 +1,24 @@
+Bottom: 06dbb39a6232d19da02c2be2997b4a2106e626f8
+Top:    9eb9f23b515be2c5b37efb27948f0b3877954635
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-27 16:19:45 -0700
+
+Refresh of lldb-python-fix-another-fflush
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 40fd19dc25c..070cfe27ffe 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -192,9 +192,9 @@ inline llvm::Error keyError() {
+ #if PY_MAJOR_VERSION < 3
+ // The python 2 API declares some arguments as char* that should
+ // be const char *, but it doesn't actually modify them.
+-static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
++char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
+ #else
+-static const char *py2_const_cast(const char *s) { return s; }
++const char *py2_const_cast(const char *s) { return s; }
+ #endif
+ 
+ enum class PyInitialValue { Invalid, Empty };
