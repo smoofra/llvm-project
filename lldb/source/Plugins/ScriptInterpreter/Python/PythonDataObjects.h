@@ -192,9 +192,9 @@ inline llvm::Error keyError() {
 #if PY_MAJOR_VERSION < 3
 // The python 2 API declares some arguments as char* that should
 // be const char *, but it doesn't actually modify them.
-char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
+inline char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
 #else
-const char *py2_const_cast(const char *s) { return s; }
+inline const char *py2_const_cast(const char *s) { return s; }
 #endif
 
 enum class PyInitialValue { Invalid, Empty };
