@@ -1,0 +1,86 @@
+Bottom: 2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
+Top:    06dbb39a6232d19da02c2be2997b4a2106e626f8
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-27 13:18:20 -0700
+
+[LLDB][Python] fix another fflush issue on NetBSD
+
+Summary:
+Here's another instance where we were calling fflush on an input
+stream, which is illegal on NetBSD.
+
+Reviewers: labath, mgorny
+
+Subscribers: krytarowski, lldb-commits
+
+Tags: #lldb
+
+Differential Revision: https://reviews.llvm.org/D69488
+
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 2b85ebf18c6..df8bac951fc 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1502,12 +1502,19 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
+                            "ignore", nullptr, 0);
+ #else
+-  // Read through the Python source, doesn't seem to modify these strings
+-  char *cmode = const_cast<char *>(mode);
+   // We pass ::flush instead of ::fclose here so we borrow the FILE* --
+-  // the lldb_private::File still owns it.
+-  file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, ::fflush);
++  // the lldb_private::File still owns it.   NetBSD does not allow
++  // input files to be flushed, so we have to check for that case too.
++  int (*closer)(FILE *);
++  auto opts = file.GetOptions();
++  if (!opts)
++    return opts.takeError();
++  if (opts.get() & File::eOpenOptionWrite)
++    closer = ::fflush;
++  else
++    closer = [](FILE *) { return 0; };
++  file_obj = PyFile_FromFile(file.GetStream(), py2_const_cast(""),
++                             py2_const_cast(mode), closer);
+ #endif
+ 
+   if (!file_obj)
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 373d3212697..40fd19dc25c 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -189,6 +189,14 @@ inline llvm::Error keyError() {
+                                  "key not in dict");
+ }
+ 
++#if PY_MAJOR_VERSION < 3
++// The python 2 API declares some arguments as char* that should
++// be const char *, but it doesn't actually modify them.
++static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
++#else
++static const char *py2_const_cast(const char *s) { return s; }
++#endif
++
+ enum class PyInitialValue { Invalid, Empty };
+ 
+ template <typename T, typename Enable = void> struct PythonFormat;
+@@ -309,16 +317,6 @@ public:
+ 
+   StructuredData::ObjectSP CreateStructuredObject() const;
+ 
+-protected:
+-
+-#if PY_MAJOR_VERSION < 3
+-  // The python 2 API declares some arguments as char* that should
+-  // be const char *, but it doesn't actually modify them.
+-  static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
+-#else
+-  static const char *py2_const_cast(const char *s) { return s; }
+-#endif
+-
+ public:
+   template <typename... T>
+   llvm::Expected<PythonObject> CallMethod(const char *name,
