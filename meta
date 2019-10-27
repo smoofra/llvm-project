@@ -1,11 +1,11 @@
 Version: 1
-Previous: 157507f68b0ab04792269c1842e2a8869c9e6530
-Head: 40b0fa7ef2123866b2252ef6990040c2707cabe4
+Previous: e31e111029365fb178ea7a3b6b73f036f3141414
+Head: adf9ecc4f121c8eb609e0bd910e4cf166c5aebda
 Applied:
+  python-fix: f6a7c52c26d349c09f8758365877594fdda5c9e4
+  lldbpexpect-make-sure-term-is: 5d8a51ac395d4363b0ad5a35dec53d54d559a7dd
+  stringliteral-intellisense: a71d53152ce8f2e468708903a83a49e26cf8b3fd
+  lldb-breakpoints-arginfo-count: 5eecac4d8a2d5fc4f0959b3a6fec4006053ebac4
+  lldb-formatters-arginfo-count: adf9ecc4f121c8eb609e0bd910e4cf166c5aebda
 Unapplied:
-  python-fix: aa7e35008f03d7466aad34eb577c2fbe6b0bd07b
-  lldbpexpect-make-sure-term-is: da0cb9b7070e76fb977deb627a109f9d822449b0
-  stringliteral-intellisense: 4d5cfe5deabb9acc11e14a2ce5a70bc7611eb053
-  lldb-breakpoints-arginfo-count: 59060a9dc0891ce854a71ec315262208eb6d0ee6
-  lldb-formatters-arginfo-count: 6540669816592f59e9784c33022ba041a8b3d4cf
 Hidden:

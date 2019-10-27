@@ -1,5 +1,5 @@
-Bottom: b7cdcfa4948f8d88b53b19326fb01625dabcf73a
-Top:    85d8be0cb5ce605b84a503bb5a6f79ed217664b1
+Bottom: f26686964af6b0152d25b5e1c97c6950e17d4d48
+Top:    2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-26 14:44:40 -0700
 
@@ -51,7 +51,7 @@ index 69af88091a4..b32962b8035 100644
      llvm::inconvertibleErrorCode(), "Unimplemented function");
    }
 diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
-index b7af3422193..bc9cc282efa 100644
+index 5e9a2ba1367..03b2dcf5bed 100644
 --- a/lldb/scripts/Python/python-wrapper.swig
 +++ b/lldb/scripts/Python/python-wrapper.swig
 @@ -61,20 +61,24 @@ LLDBSwigPythonBreakpointCallbackFunction
