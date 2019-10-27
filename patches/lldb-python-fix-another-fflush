@@ -1,5 +1,5 @@
 Bottom: 2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
-Top:    83ec14097473851b1f72bfa6e643d79b714718cc
+Top:    943ea0efe7fedbad8482e2cd9c2be9939758e4cf
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-27 13:18:20 -0700
 
@@ -19,6 +19,18 @@ Differential Revision: https://reviews.llvm.org/D69488
 
 
 ---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 5a75187262a..5d025a46dce 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -845,6 +845,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+             def i(sbf):
+                 for i in range(10):
+                     f = sbf.GetFile()
++                    self.assertEqual(f.mode, "w")
+                     yield f
+                     sbf = lldb.SBFile.Create(f, borrow=True)
+                     yield sbf
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 index 2b85ebf18c6..df8bac951fc 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
