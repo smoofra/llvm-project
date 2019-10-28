@@ -1510,7 +1510,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
   // reference to it around.    Since in python 2 we must have a FILE* and
   // not a descriptor, we dup the descriptor and fdopen a new FILE* to it
   // so python can have something it can own safely.
-  auto opts = file.GetOptions();
+  auto opts = File::GetOptionsFromMode(mode);
   if (!opts)
     return opts.takeError();
   int fd = file.GetDescriptor();
