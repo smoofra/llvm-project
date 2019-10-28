@@ -304,6 +304,18 @@ FILE *NativeFile::GetStream() {
   return m_stream;
 }
 
+FILE *NativeFile::ReleaseFILE(NativeFile &&file) {
+  FILE *stream = nullptr;
+  file.GetStream();
+  if (file.m_own_stream) {
+    stream = file.m_stream;
+    file.m_own_stream = false;
+    file.m_stream = nullptr;
+  }
+  file.Close();
+  return stream;
+}
+
 Status NativeFile::Close() {
   Status error;
   if (StreamIsValid()) {

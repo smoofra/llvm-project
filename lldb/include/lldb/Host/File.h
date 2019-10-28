@@ -411,6 +411,8 @@ public:
   size_t PrintfVarArg(const char *format, va_list args) override;
   llvm::Expected<OpenOptions> GetOptions() const override;
 
+  static FILE *ReleaseFILE(NativeFile &&file);
+
   static char ID;
   virtual bool isA(const void *classID) const override {
     return classID == &ID || File::isA(classID);
