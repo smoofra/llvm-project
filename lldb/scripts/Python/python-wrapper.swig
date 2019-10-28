@@ -67,7 +67,7 @@ LLDBSwigPythonBreakpointCallbackFunction
     PythonObject frame_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_frame));
     PythonObject bp_loc_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_bp_loc));
 
-    auto pyresult = [&] () -> Expected<PythonObject> {
+    auto result = [&] () -> Expected<PythonObject> {
         // If the called function doesn't take extra_args, drop them here:
         if (max_positional_args < 4) {
             return pfunc.Call(frame_arg, bp_loc_arg, dict);
@@ -77,12 +77,12 @@ LLDBSwigPythonBreakpointCallbackFunction
             return pfunc.Call(frame_arg, bp_loc_arg, args_arg, dict);
         }
     } ();
-    Expected<bool> result = As<bool>(std::move(pyresult));
 
     if (!result)
         return result.takeError();
 
-    return result.get();
+    // Only False counts as false!
+    return result.get().get() != Py_False;
 }
 
 // This function is called by lldb_private::ScriptInterpreterPython::WatchpointCallbackFunction(...)
