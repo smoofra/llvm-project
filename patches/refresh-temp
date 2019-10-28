@@ -1,0 +1,166 @@
+Bottom: 7437b3f774c7a6557c66410051c8abf56c351b31
+Top:    af9fa4b65541b19407c319ab0cf5f8f6a4a5ec0d
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-28 12:58:17 -0700
+
+Refresh of fix
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/functionalities/breakpoint/breakpoint_command/TestBreakpointCommandsFromPython.py b/lldb/packages/Python/lldbsuite/test/functionalities/breakpoint/breakpoint_command/TestBreakpointCommandsFromPython.py
+index ccb61d79c40..15a31201c56 100644
+--- a/lldb/packages/Python/lldbsuite/test/functionalities/breakpoint/breakpoint_command/TestBreakpointCommandsFromPython.py
++++ b/lldb/packages/Python/lldbsuite/test/functionalities/breakpoint/breakpoint_command/TestBreakpointCommandsFromPython.py
+@@ -132,7 +132,7 @@ class PythonBreakpointCommandSettingTestCase(TestBase):
+         # Now finish, and make sure the return value is correct.
+         threads = lldbutil.get_threads_stopped_at_breakpoint(
+             self.process, body_bkpt)
+-        self.assertTrue(len(threads) == 1, "Stopped at inner breakpoint.")
++        self.assertEquals(len(threads), 1, "Stopped at inner breakpoint.")
+         self.thread = threads[0]
+ 
+         self.assertEquals("callback was here", side_effect.callback)
+diff --git a/lldb/scripts/Python/python-wrapper.swig b/lldb/scripts/Python/python-wrapper.swig
+index 03b2dcf5bed..fea0017bfe1 100644
+--- a/lldb/scripts/Python/python-wrapper.swig
++++ b/lldb/scripts/Python/python-wrapper.swig
+@@ -39,7 +39,7 @@ private:
+ // This function is called by lldb_private::ScriptInterpreterPython::BreakpointCallbackFunction(...)
+ // and is used when a script command is attached to a breakpoint for execution.
+ 
+-SWIGEXPORT bool
++SWIGEXPORT llvm::Expected<bool>
+ LLDBSwigPythonBreakpointCallbackFunction
+ (
+     const char *python_function_name,
+@@ -49,42 +49,40 @@ LLDBSwigPythonBreakpointCallbackFunction
+     lldb_private::StructuredDataImpl *args_impl
+ )
+ {
++    using namespace llvm;
++
+     lldb::SBFrame sb_frame (frame_sp);
+     lldb::SBBreakpointLocation sb_bp_loc(bp_loc_sp);
+ 
+-    bool stop_at_breakpoint = true;
+-
+     PyErr_Cleaner py_err_cleaner(true);
+     auto dict = PythonModule::MainModule().ResolveName<PythonDictionary>(session_dictionary_name);
+     auto pfunc = PythonObject::ResolveNameWithDictionary<PythonCallable>(python_function_name, dict);
+ 
+-    if (!pfunc.IsAllocated())
+-        return stop_at_breakpoint;
+-
+-    unsigned max_positional_args = PythonCallable::ArgInfo::UNBOUNDED;
+-    if (auto arg_info = pfunc.GetArgInfo()) {
++    unsigned max_positional_args;
++    if (auto arg_info = pfunc.GetArgInfo())
+         max_positional_args = arg_info.get().max_positional_args;
+-    } else {
+-        llvm::consumeError(arg_info.takeError());
+-    }
++    else
++        return arg_info.takeError();
+ 
+     PythonObject frame_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_frame));
+     PythonObject bp_loc_arg(PyRefType::Owned, SBTypeToSWIGWrapper(sb_bp_loc));
+ 
+-    PythonObject result;
+-    // If the called function doesn't take extra_args, drop them here:
+-    if (max_positional_args < 4) {
+-        result = pfunc(frame_arg, bp_loc_arg, dict);
+-    } else {
+-        lldb::SBStructuredData *args_value = new lldb::SBStructuredData(args_impl);
+-        PythonObject args_arg(PyRefType::Owned, SBTypeToSWIGWrapper(args_value));
+-        result = pfunc(frame_arg, bp_loc_arg, args_arg, dict);
+-    }
++    auto pyresult = [&] () -> Expected<PythonObject> {
++        // If the called function doesn't take extra_args, drop them here:
++        if (max_positional_args < 4) {
++            return pfunc.Call(frame_arg, bp_loc_arg, dict);
++        } else {
++            lldb::SBStructuredData *args_value = new lldb::SBStructuredData(args_impl);
++            PythonObject args_arg(PyRefType::Owned, SBTypeToSWIGWrapper(args_value));
++            return pfunc.Call(frame_arg, bp_loc_arg, args_arg, dict);
++        }
++    } ();
++    Expected<bool> result = As<bool>(std::move(pyresult));
+ 
+-    if (result.get() == Py_False)
+-        stop_at_breakpoint = false;
++    if (!result)
++        return result.takeError();
+ 
+-    return stop_at_breakpoint;
++    return result.get();
+ }
+ 
+ // This function is called by lldb_private::ScriptInterpreterPython::WatchpointCallbackFunction(...)
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+index 37b20857a72..15843feae57 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/ScriptInterpreterPython.cpp
+@@ -72,11 +72,16 @@ extern "C" void init_lldb(void);
+ // These prototypes are the Pythonic implementations of the required callbacks.
+ // Although these are scripting-language specific, their definition depends on
+ // the public API.
+-extern "C" bool LLDBSwigPythonBreakpointCallbackFunction(
++
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
++
++extern "C" llvm::Expected<bool> LLDBSwigPythonBreakpointCallbackFunction(
+     const char *python_function_name, const char *session_dictionary_name,
+     const lldb::StackFrameSP &sb_frame,
+-    const lldb::BreakpointLocationSP &sb_bp_loc,
+-    StructuredDataImpl *args_impl);
++    const lldb::BreakpointLocationSP &sb_bp_loc, StructuredDataImpl *args_impl);
++
++#pragma clang diagnostic pop
+ 
+ extern "C" bool LLDBSwigPythonWatchpointCallbackFunction(
+     const char *python_function_name, const char *session_dictionary_name,
+@@ -2264,11 +2269,26 @@ bool ScriptInterpreterPythonImpl::BreakpointCallbackFunction(
+           Locker py_lock(python_interpreter, Locker::AcquireLock |
+                                                  Locker::InitSession |
+                                                  Locker::NoSTDIN);
+-          ret_val = LLDBSwigPythonBreakpointCallbackFunction(
+-              python_function_name,
+-              python_interpreter->m_dictionary_name.c_str(), stop_frame_sp,
+-              bp_loc_sp,
+-              bp_option_data->m_extra_args_up.get());
++          Expected<bool> maybe_ret_val =
++              LLDBSwigPythonBreakpointCallbackFunction(
++                  python_function_name,
++                  python_interpreter->m_dictionary_name.c_str(), stop_frame_sp,
++                  bp_loc_sp, bp_option_data->m_extra_args_up.get());
++
++          if (!maybe_ret_val) {
++
++            llvm::handleAllErrors(
++                maybe_ret_val.takeError(),
++                [&](PythonException &E) {
++                  debugger.GetErrorStream() << E.ReadBacktrace();
++                },
++                [&](const llvm::ErrorInfoBase &E) {
++                  debugger.GetErrorStream() << E.message();
++                });
++
++          } else {
++            ret_val = maybe_ret_val.get();
++          }
+         }
+         return ret_val;
+       }
+diff --git a/lldb/unittests/ScriptInterpreter/Python/PythonTestSuite.cpp b/lldb/unittests/ScriptInterpreter/Python/PythonTestSuite.cpp
+index 66b5ff84b04..2ac631eba42 100644
+--- a/lldb/unittests/ScriptInterpreter/Python/PythonTestSuite.cpp
++++ b/lldb/unittests/ScriptInterpreter/Python/PythonTestSuite.cpp
+@@ -59,7 +59,7 @@ extern "C" void init_lldb(void) {}
+ #define LLDBSwigPyInit init_lldb
+ #endif
+ 
+-extern "C" bool LLDBSwigPythonBreakpointCallbackFunction(
++extern "C" llvm::Expected<bool> LLDBSwigPythonBreakpointCallbackFunction(
+     const char *python_function_name, const char *session_dictionary_name,
+     const lldb::StackFrameSP &sb_frame,
+     const lldb::BreakpointLocationSP &sb_bp_loc,
