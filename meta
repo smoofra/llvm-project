@@ -1,5 +1,5 @@
 Version: 1
-Previous: 4192532bb439102d882993c0199c411eba2348ff
+Previous: 545c734cf65ae40cf6435e429a0b405f6293ccc5
 Head: 2ebd59b3e3fff25e8fe71502851501989b0e4459
 Applied:
   python-fix: bc3f7cef5d9c46a0fd3ab056f1047c8aecb90c11
@@ -7,6 +7,7 @@ Applied:
   stringliteral-intellisense: 9f7eccc1a06892454ebcf6b23a74eb7836af2bca
   breakpoint: fb88bd73cdd0f83fc830feb8abaf2e5f7efd48e5
   lldb-python-fix-another-fflush: cb7dadc8ba614aea46821ee59a5909b2ab32c57e
-  fix-dangerous-borrow-semantics: 83e56632b9c14118b3c0a5acf1b4ec3da4a1df03
+  lldb-pythonfile-fix-dangerous: 2ebd59b3e3fff25e8fe71502851501989b0e4459
 Unapplied:
+  fix-dangerous-borrow-semantics: 83e56632b9c14118b3c0a5acf1b4ec3da4a1df03
 Hidden:
