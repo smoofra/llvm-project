@@ -1,5 +1,5 @@
 Bottom: 16bd1c79e89b7cd5d558e3076a429fdace1e0b99
-Top:    16bd1c79e89b7cd5d558e3076a429fdace1e0b99
+Top:    4af221b93fc44262c9086b1be7fc06d5e52db414
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-27 13:18:20 -0700
 
@@ -19,4 +19,102 @@ Differential Revision: https://reviews.llvm.org/D69488
 
 
 ---
-
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 5a75187262a..f7f1ad08500 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -845,11 +845,16 @@ class FileHandleTestCase(lldbtest.TestBase):
+             def i(sbf):
+                 for i in range(10):
+                     f = sbf.GetFile()
++                    self.assertEqual(f.mode, "w")
+                     yield f
+                     sbf = lldb.SBFile.Create(f, borrow=True)
+                     yield sbf
+                     sbf.Write(str(i).encode('ascii') + b"\n")
+             files = list(i(sbf))
++            # delete them in reverse order, again because each is a borrow
++            # of the previous.
++            while files:
++                files.pop()
+         with open(self.out_filename, 'r') as f:
+             self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
+ 
+diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
+index 9dae24d766f..7850222376f 100644
+--- a/lldb/source/Host/common/File.cpp
++++ b/lldb/source/Host/common/File.cpp
+@@ -310,7 +310,7 @@ Status NativeFile::Close() {
+     if (m_own_stream) {
+       if (::fclose(m_stream) == EOF)
+         error.SetErrorToErrno();
+-    } else {
++    } else if (m_options & eOpenOptionWrite) {
+       if (::fflush(m_stream) == EOF)
+         error.SetErrorToErrno();
+     }
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 2b85ebf18c6..df8bac951fc 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1502,12 +1502,19 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   file_obj = PyFile_FromFd(file.GetDescriptor(), nullptr, mode, -1, nullptr,
+                            "ignore", nullptr, 0);
+ #else
+-  // Read through the Python source, doesn't seem to modify these strings
+-  char *cmode = const_cast<char *>(mode);
+   // We pass ::flush instead of ::fclose here so we borrow the FILE* --
+-  // the lldb_private::File still owns it.
+-  file_obj =
+-      PyFile_FromFile(file.GetStream(), const_cast<char *>(""), cmode, ::fflush);
++  // the lldb_private::File still owns it.   NetBSD does not allow
++  // input files to be flushed, so we have to check for that case too.
++  int (*closer)(FILE *);
++  auto opts = file.GetOptions();
++  if (!opts)
++    return opts.takeError();
++  if (opts.get() & File::eOpenOptionWrite)
++    closer = ::fflush;
++  else
++    closer = [](FILE *) { return 0; };
++  file_obj = PyFile_FromFile(file.GetStream(), py2_const_cast(""),
++                             py2_const_cast(mode), closer);
+ #endif
+ 
+   if (!file_obj)
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+index 373d3212697..302901664ec 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.h
+@@ -189,6 +189,14 @@ inline llvm::Error keyError() {
+                                  "key not in dict");
+ }
+ 
++#if PY_MAJOR_VERSION < 3
++// The python 2 API declares some arguments as char* that should
++// be const char *, but it doesn't actually modify them.
++inline char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
++#else
++inline const char *py2_const_cast(const char *s) { return s; }
++#endif
++
+ enum class PyInitialValue { Invalid, Empty };
+ 
+ template <typename T, typename Enable = void> struct PythonFormat;
+@@ -309,16 +317,6 @@ public:
+ 
+   StructuredData::ObjectSP CreateStructuredObject() const;
+ 
+-protected:
+-
+-#if PY_MAJOR_VERSION < 3
+-  // The python 2 API declares some arguments as char* that should
+-  // be const char *, but it doesn't actually modify them.
+-  static char *py2_const_cast(const char *s) { return const_cast<char *>(s); }
+-#else
+-  static const char *py2_const_cast(const char *s) { return s; }
+-#endif
+-
+ public:
+   template <typename... T>
+   llvm::Expected<PythonObject> CallMethod(const char *name,
