@@ -1,0 +1,9 @@
+Bottom: 4af221b93fc44262c9086b1be7fc06d5e52db414
+Top:    4af221b93fc44262c9086b1be7fc06d5e52db414
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-28 14:01:05 -0700
+
+fix dangerous borrow semantics on python2
+
+---
+
