@@ -1,0 +1,21 @@
+Bottom: ffd0e42deb28bc9df429928f81995a72bdb9bdec
+Top:    7437b3f774c7a6557c66410051c8abf56c351b31
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-28 00:11:47 -0700
+
+Refresh of lldb-python-fix-another-fflush
+
+---
+diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+index 09f4c05b33e..f7ff882022d 100644
+--- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
++++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
+@@ -1510,7 +1510,7 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
+   // reference to it around.    Since in python 2 we must have a FILE* and
+   // not a descriptor, we dup the descriptor and fdopen a new FILE* to it
+   // so python can have something it can own safely.
+-  auto opts = file.GetOptions();
++  auto opts = File::GetOptionsFromMode(mode);
+   if (!opts)
+     return opts.takeError();
+   int fd = file.GetDescriptor();
