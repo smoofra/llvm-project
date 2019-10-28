@@ -72,11 +72,16 @@ extern "C" void init_lldb(void);
 // These prototypes are the Pythonic implementations of the required callbacks.
 // Although these are scripting-language specific, their definition depends on
 // the public API.
-extern "C" bool LLDBSwigPythonBreakpointCallbackFunction(
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
+
+extern "C" llvm::Expected<bool> LLDBSwigPythonBreakpointCallbackFunction(
     const char *python_function_name, const char *session_dictionary_name,
     const lldb::StackFrameSP &sb_frame,
-    const lldb::BreakpointLocationSP &sb_bp_loc,
-    StructuredDataImpl *args_impl);
+    const lldb::BreakpointLocationSP &sb_bp_loc, StructuredDataImpl *args_impl);
+
+#pragma clang diagnostic pop
 
 extern "C" bool LLDBSwigPythonWatchpointCallbackFunction(
     const char *python_function_name, const char *session_dictionary_name,
@@ -2264,11 +2269,26 @@ bool ScriptInterpreterPythonImpl::BreakpointCallbackFunction(
           Locker py_lock(python_interpreter, Locker::AcquireLock |
                                                  Locker::InitSession |
                                                  Locker::NoSTDIN);
-          ret_val = LLDBSwigPythonBreakpointCallbackFunction(
-              python_function_name,
-              python_interpreter->m_dictionary_name.c_str(), stop_frame_sp,
-              bp_loc_sp,
-              bp_option_data->m_extra_args_up.get());
+          Expected<bool> maybe_ret_val =
+              LLDBSwigPythonBreakpointCallbackFunction(
+                  python_function_name,
+                  python_interpreter->m_dictionary_name.c_str(), stop_frame_sp,
+                  bp_loc_sp, bp_option_data->m_extra_args_up.get());
+
+          if (!maybe_ret_val) {
+
+            llvm::handleAllErrors(
+                maybe_ret_val.takeError(),
+                [&](PythonException &E) {
+                  debugger.GetErrorStream() << E.ReadBacktrace();
+                },
+                [&](const llvm::ErrorInfoBase &E) {
+                  debugger.GetErrorStream() << E.message();
+                });
+
+          } else {
+            ret_val = maybe_ret_val.get();
+          }
         }
         return ret_val;
       }
