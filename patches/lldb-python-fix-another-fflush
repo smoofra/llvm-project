@@ -1,5 +1,5 @@
 Bottom: 2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
-Top:    ffd0e42deb28bc9df429928f81995a72bdb9bdec
+Top:    7437b3f774c7a6557c66410051c8abf56c351b31
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-27 13:18:20 -0700
 
@@ -76,7 +76,7 @@ index 9dae24d766f..b638034af31 100644
          error.SetErrorToErrno();
      }
 diff --git a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
-index 2b85ebf18c6..09f4c05b33e 100644
+index 2b85ebf18c6..f7ff882022d 100644
 --- a/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 +++ b/lldb/source/Plugins/ScriptInterpreter/Python/PythonDataObjects.cpp
 @@ -1502,12 +1502,28 @@ Expected<PythonFile> PythonFile::FromFile(File &file, const char *mode) {
@@ -97,7 +97,7 @@ index 2b85ebf18c6..09f4c05b33e 100644
 +  // reference to it around.    Since in python 2 we must have a FILE* and
 +  // not a descriptor, we dup the descriptor and fdopen a new FILE* to it
 +  // so python can have something it can own safely.
-+  auto opts = file.GetOptions();
++  auto opts = File::GetOptionsFromMode(mode);
 +  if (!opts)
 +    return opts.takeError();
 +  int fd = file.GetDescriptor();
