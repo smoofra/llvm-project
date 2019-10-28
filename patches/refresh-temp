@@ -1,0 +1,22 @@
+Bottom: a6c3898559fd75a3c1327737bb9d0ea9144c2b9e
+Top:    ec83e652bb2f11a618c43e02219c66d21d93992f
+Author: Lawrence D'Anna <lawrence_danna@apple.com>
+Date:   2019-10-27 17:20:00 -0700
+
+Refresh of lldb-python-fix-another-fflush
+
+---
+diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+index 5d025a46dce..f7f1ad08500 100644
+--- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
++++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
+@@ -851,6 +851,10 @@ class FileHandleTestCase(lldbtest.TestBase):
+                     yield sbf
+                     sbf.Write(str(i).encode('ascii') + b"\n")
+             files = list(i(sbf))
++            # delete them in reverse order, again because each is a borrow
++            # of the previous.
++            while files:
++                files.pop()
+         with open(self.out_filename, 'r') as f:
+             self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
