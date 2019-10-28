@@ -1,5 +1,5 @@
 Bottom: 2f8dbfbe873ed9b3faa1fc97ae210f7837e2d08c
-Top:    a6c3898559fd75a3c1327737bb9d0ea9144c2b9e
+Top:    ec83e652bb2f11a618c43e02219c66d21d93992f
 Author: Lawrence D'Anna <lawrence_danna@apple.com>
 Date:   2019-10-27 13:18:20 -0700
 
@@ -20,10 +20,10 @@ Differential Revision: https://reviews.llvm.org/D69488
 
 ---
 diff --git a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-index 5a75187262a..5d025a46dce 100644
+index 5a75187262a..f7f1ad08500 100644
 --- a/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
 +++ b/lldb/packages/Python/lldbsuite/test/python_api/file_handle/TestFileHandle.py
-@@ -845,6 +845,7 @@ class FileHandleTestCase(lldbtest.TestBase):
+@@ -845,11 +845,16 @@ class FileHandleTestCase(lldbtest.TestBase):
              def i(sbf):
                  for i in range(10):
                      f = sbf.GetFile()
@@ -31,6 +31,15 @@ index 5a75187262a..5d025a46dce 100644
                      yield f
                      sbf = lldb.SBFile.Create(f, borrow=True)
                      yield sbf
+                     sbf.Write(str(i).encode('ascii') + b"\n")
+             files = list(i(sbf))
++            # delete them in reverse order, again because each is a borrow
++            # of the previous.
++            while files:
++                files.pop()
+         with open(self.out_filename, 'r') as f:
+             self.assertEqual(list(range(10)), list(map(int, f.read().strip().split())))
+ 
 diff --git a/lldb/source/Host/common/File.cpp b/lldb/source/Host/common/File.cpp
 index 9dae24d766f..7850222376f 100644
 --- a/lldb/source/Host/common/File.cpp
