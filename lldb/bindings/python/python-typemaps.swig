@@ -69,7 +69,8 @@
 
 %typemap(in) lldb::StateType {
   PythonObject obj = Retain<PythonObject>($input);
-  unsigned long long state_type_value = unwrapOrSetPythonException(As<unsigned long long>(obj)); 
+  unsigned long long state_type_value =
+    unwrapOrSetPythonException(As<unsigned long long>(obj));
   if (PyErr_Occurred())
     return nullptr;
   if (state_type_value > lldb::StateType::kLastStateType) {
