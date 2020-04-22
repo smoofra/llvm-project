@@ -147,11 +147,6 @@ extern "C" void *LLDBSwigPython_GetChildAtIndex(void *implementor,
   return nullptr;
 }
 
-extern "C" int LLDBSwigPython_GetIndexOfChildWithName(void *implementor,
-                                                      const char *child_name) {
-  return 0;
-}
-
 extern "C" void *LLDBSWIGPython_CastPyObjectToSBValue(void *data) {
   return nullptr;
 }

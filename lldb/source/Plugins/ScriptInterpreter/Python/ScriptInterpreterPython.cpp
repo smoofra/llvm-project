@@ -139,9 +139,6 @@ extern "C" size_t LLDBSwigPython_CalculateNumChildren(void *implementor,
 extern "C" void *LLDBSwigPython_GetChildAtIndex(void *implementor,
                                                 uint32_t idx);
 
-extern "C" int LLDBSwigPython_GetIndexOfChildWithName(void *implementor,
-                                                      const char *child_name);
-
 extern "C" void *LLDBSWIGPython_CastPyObjectToSBValue(void *data);
 
 extern lldb::ValueObjectSP
@@ -2447,28 +2444,6 @@ lldb::ValueObjectSP ScriptInterpreterPythonImpl::GetChildAtIndex(
   return ret_val;
 }
 
-int ScriptInterpreterPythonImpl::GetIndexOfChildWithName(
-    const StructuredData::ObjectSP &implementor_sp, const char *child_name) {
-  if (!implementor_sp)
-    return UINT32_MAX;
-
-  StructuredData::Generic *generic = implementor_sp->GetAsGeneric();
-  if (!generic)
-    return UINT32_MAX;
-  void *implementor = generic->GetValue();
-  if (!implementor)
-    return UINT32_MAX;
-
-  int ret_val = UINT32_MAX;
-
-  {
-    Locker py_lock(this,
-                   Locker::AcquireLock | Locker::InitSession | Locker::NoSTDIN);
-    ret_val = LLDBSwigPython_GetIndexOfChildWithName(implementor, child_name);
-  }
-
-  return ret_val;
-}
 
 bool ScriptInterpreterPythonImpl::UpdateSynthProviderInstance(
     const StructuredData::ObjectSP &implementor_sp) {

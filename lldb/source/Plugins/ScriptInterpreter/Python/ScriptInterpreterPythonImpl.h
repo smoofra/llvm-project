@@ -146,8 +146,6 @@ public:
   GetChildAtIndex(const StructuredData::ObjectSP &implementor,
                   uint32_t idx) override;
 
-  int GetIndexOfChildWithName(const StructuredData::ObjectSP &implementor,
-                              const char *child_name) override;
 
   bool UpdateSynthProviderInstance(
       const StructuredData::ObjectSP &implementor) override;

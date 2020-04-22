@@ -567,35 +567,6 @@ LLDBSwigPython_GetChildAtIndex
     return result.release();
 }
 
-SWIGEXPORT int
-LLDBSwigPython_GetIndexOfChildWithName
-(
-    PyObject *implementor,
-    const char* child_name
-)
-{
-    PyErr_Cleaner py_err_cleaner(true);
-
-    PythonObject self(PyRefType::Borrowed, implementor);
-    auto pfunc = self.ResolveName<PythonCallable>("get_child_index");
-
-    if (!pfunc.IsAllocated())
-        return UINT32_MAX;
-
-    llvm::Expected<PythonObject> result = pfunc.Call(PythonString(child_name));
-
-    long long retval = unwrapOrSetPythonException(As<long long>(std::move(result)));
-
-    if (PyErr_Occurred()) { 
-        PyErr_Clear(); // FIXME print this? do something else
-        return UINT32_MAX;
-    }
-
-    if (retval >= 0)
-        return (uint32_t)retval;
-
-    return UINT32_MAX;
-}
 
 SWIGEXPORT bool
 LLDBSwigPython_UpdateSynthProviderInstance
