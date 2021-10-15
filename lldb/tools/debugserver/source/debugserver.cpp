@@ -880,6 +880,9 @@ static struct option g_long_options[] = {
     {"fd", required_argument, NULL,
      '2'}, // A file descriptor was passed to this process when spawned that
            // is already open and ready for communication
+
+    {"stdio", no_argument, NULL, '3'},
+
     {"named-pipe", required_argument, NULL, 'P'},
     {"reverse-connect", no_argument, NULL, 'R'},
     {"env", required_argument, NULL,
@@ -896,7 +899,7 @@ static struct option g_long_options[] = {
            // SIGSEGV, SIGILL and SIGFPE being propagated to the target process.
     {NULL, 0, NULL, 0}};
 
-int communication_fd = -1;
+int read_fd = -1, write_fd = -1;
 
 // main
 int main(int argc, char *argv[]) {
@@ -1281,7 +1284,15 @@ int main(int argc, char *argv[]) {
     case '2':
       // File descriptor passed to this process during fork/exec and is already
       // open and ready for communication.
-      communication_fd = atoi(optarg);
+      read_fd = write_fd = atoi(optarg);
+      break;
+
+    case '3':
+      read_fd = dup(0);
+      write_fd = dup(1);
+      close(0);
+      close(1);
+      dup2(2, 1);
       break;
     }
   }
@@ -1360,7 +1371,7 @@ int main(int argc, char *argv[]) {
   char str[PATH_MAX];
   str[0] = '\0';
 
-  if (g_lockdown_opt == 0 && g_applist_opt == 0 && communication_fd == -1) {
+  if (g_lockdown_opt == 0 && g_applist_opt == 0 && read_fd == -1) {
     // Make sure we at least have port
     if (argc < 1) {
       show_usage_and_exit(1);
@@ -1501,11 +1512,11 @@ int main(int argc, char *argv[]) {
       } else if (str[0] == '/') {
         if (remote->Comm().OpenFile(str))
           mode = eRNBRunLoopModeExit;
-      } else if (communication_fd >= 0) {
+      } else if (read_fd >= 0 && write_fd >= 0) {
         // We were passed a file descriptor to use during fork/exec that is
         // already open
         // in our process, so lets just use it!
-        if (remote->Comm().useFD(communication_fd))
+        if (remote->Comm().useFD(read_fd, write_fd))
           mode = eRNBRunLoopModeExit;
         else
           remote->StartReadRemoteDataThread();
@@ -1603,11 +1614,11 @@ int main(int argc, char *argv[]) {
         } else if (str[0] == '/') {
           if (remote->Comm().OpenFile(str))
             mode = eRNBRunLoopModeExit;
-        } else if (communication_fd >= 0) {
+        } else if (read_fd >= 0 && write_fd >= 0) {
           // We were passed a file descriptor to use during fork/exec that is
           // already open
           // in our process, so lets just use it!
-          if (remote->Comm().useFD(communication_fd))
+          if (remote->Comm().useFD(read_fd, write_fd))
             mode = eRNBRunLoopModeExit;
           else
             remote->StartReadRemoteDataThread();
@@ -1632,11 +1643,11 @@ int main(int argc, char *argv[]) {
         } else if (str[0] == '/') {
           if (remote->Comm().OpenFile(str))
             mode = eRNBRunLoopModeExit;
-        } else if (communication_fd >= 0) {
+        } else if (read_fd >= 0 && write_fd >= 0) {
           // We were passed a file descriptor to use during fork/exec that is
           // already open
           // in our process, so lets just use it!
-          if (remote->Comm().useFD(communication_fd))
+          if (remote->Comm().useFD(read_fd, write_fd))
             mode = eRNBRunLoopModeExit;
           else
             remote->StartReadRemoteDataThread();
@@ -1670,11 +1681,11 @@ int main(int argc, char *argv[]) {
       } else if (str[0] == '/') {
         if (remote->Comm().OpenFile(str))
           mode = eRNBRunLoopModeExit;
-      } else if (communication_fd >= 0) {
+      } else if (read_fd >= 0 && write_fd >= 0) {
         // We were passed a file descriptor to use during fork/exec that is
         // already open
         // in our process, so lets just use it!
-        if (remote->Comm().useFD(communication_fd))
+        if (remote->Comm().useFD(read_fd, write_fd))
           mode = eRNBRunLoopModeExit;
         else
           remote->StartReadRemoteDataThread();
