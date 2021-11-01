@@ -410,6 +410,41 @@ FileSpec ScriptInterpreterPython::GetPythonDir() {
   return g_spec;
 }
 
+const char * ScriptInterpreterPython::GetInterpreterInfo() {
+  GIL gil;
+  if (m_interpreter_info.length()) {
+    return m_interpreter_info.c_str();
+  }
+  FileSpec python_dir_spec = GetPythonDir();
+  if (!python_dir_spec)
+    return nullptr;
+  PythonString python_dir(python_dir_spec.GetPath());
+  PythonDictionary info(PyInitialValue::Empty);
+  llvm::Error error = info.SetItem("lldb-pythonpath", python_dir);
+  if (error)
+    return nullptr;
+  static const char script[] = R"(
+def main(info):
+  import json
+  import sys
+  import os
+  name = 'python' + str(sys.version_info.major)
+  info.update({
+    "language": "python",
+    "prefix": sys.prefix,
+    "executable": os.path.join(sys.prefix, "bin", name),
+  })
+  return json.dumps(info, indent=True)
+)";
+  PythonScript get_info(script);
+  auto info_json = unwrapIgnoringErrors(As<PythonString>(get_info(info)));
+  assert(info_json);
+  if (!info_json)
+    return nullptr;
+  m_interpreter_info = info_json.GetString().str();
+  return m_interpreter_info.c_str();
+}
+
 void ScriptInterpreterPython::SharedLibraryDirectoryHelper(
     FileSpec &this_file) {
   // When we're loaded from python, this_file will point to the file inside the

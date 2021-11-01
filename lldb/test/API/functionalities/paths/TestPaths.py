@@ -5,6 +5,8 @@ Test some lldb command abbreviations.
 
 import lldb
 import os
+import sys
+import json
 from lldbsuite.test.decorators import *
 from lldbsuite.test.lldbtest import *
 from lldbsuite.test import lldbutil
@@ -42,6 +44,14 @@ class TestPaths(TestBase):
         self.assertTrue(any([os.path.exists(os.path.join(shlib_dir, f)) for f in
             filenames]), "shlib_dir = " + shlib_dir)
 
+    @no_debug_info_test
+    def test_interpreter_info(self):
+        info = json.loads(self.dbg.GetScriptInterpreterInfo(self.dbg.GetScriptingLanguage("python")))
+        prefix = info['prefix']
+        self.assertEqual(os.path.realpath(sys.prefix), os.path.realpath(prefix))
+        self.assertEqual(
+            os.path.realpath(os.path.join(info['lldb-pythonpath'], 'lldb')),
+            os.path.realpath(os.path.dirname(lldb.__file__)))
 
     @no_debug_info_test
     def test_directory_doesnt_end_with_slash(self):

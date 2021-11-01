@@ -46,6 +46,7 @@ public:
       : ScriptInterpreter(debugger, lldb::eScriptLanguagePython),
         IOHandlerDelegateMultiline("DONE") {}
 
+  virtual const char *GetInterpreterInfo() override;
   static void Initialize();
   static void Terminate();
   static llvm::StringRef GetPluginNameStatic() { return "script-python"; }
@@ -56,6 +57,7 @@ public:
 protected:
   static void ComputePythonDirForApple(llvm::SmallVectorImpl<char> &path);
   static void ComputePythonDir(llvm::SmallVectorImpl<char> &path);
+  std::string m_interpreter_info;
 };
 } // namespace lldb_private
 

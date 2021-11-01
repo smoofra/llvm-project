@@ -148,6 +148,8 @@ public:
       lldb::ScriptedProcessInterfaceUP scripted_process_interface_up =
           std::make_unique<ScriptedProcessInterface>());
 
+  virtual const char *GetInterpreterInfo();
+
   ~ScriptInterpreter() override = default;
 
   virtual bool Interrupt() { return false; }

@@ -148,6 +148,10 @@ ScriptInterpreterLua::ScriptInterpreterLua(Debugger &debugger)
 
 ScriptInterpreterLua::~ScriptInterpreterLua() = default;
 
+const char * ScriptInterpreterLua::GetInterpreterInfo() {
+  return "{\"language\": \"lua\"}";
+}
+
 bool ScriptInterpreterLua::ExecuteOneLine(llvm::StringRef command,
                                           CommandReturnObject *result,
                                           const ExecuteScriptOptions &options) {

@@ -201,6 +201,9 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
   if (args.hasArg(OPT_python_path)) {
     m_option_data.m_print_python_path = true;
   }
+  if (args.hasArg(OPT_print_script_interpreter_info)) {
+    m_option_data.m_print_script_interpreter_info = true;
+  }
 
   if (args.hasArg(OPT_batch)) {
     m_option_data.m_batch = true;
@@ -394,6 +397,18 @@ SBError Driver::ProcessArgs(const opt::InputArgList &args, bool &exiting) {
         llvm::outs() << "<PATH TOO LONG>\n";
     } else
       llvm::outs() << "<COULD NOT FIND PATH>\n";
+    exiting = true;
+    return error;
+  }
+
+  if (m_option_data.m_print_script_interpreter_info) {
+    const char *info = m_debugger.GetScriptInterpreterInfo(m_debugger.GetScriptLanguage());
+    if (info) {
+      llvm::outs() << info << '\n';
+    } else {
+      llvm::errs() << "no script interpreter.\n";
+      error.SetErrorString("no script interpreter.");
+    }
     exiting = true;
     return error;
   }

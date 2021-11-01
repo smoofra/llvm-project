@@ -680,6 +680,18 @@ SBDebugger::GetScriptingLanguage(const char *script_language_name) {
       llvm::StringRef(script_language_name), eScriptLanguageDefault, nullptr);
 }
 
+const char *
+SBDebugger::GetScriptInterpreterInfo(lldb::ScriptLanguage language) {
+  LLDB_RECORD_METHOD(const char *, SBDebugger, GetScriptInterpreterInfo, (lldb::ScriptLanguage), language);
+  if (m_opaque_sp) {
+    lldb_private::ScriptInterpreter *interp = m_opaque_sp->GetScriptInterpreter(language);
+    if (interp) {
+      return interp->GetInterpreterInfo();
+    }
+  }
+  return nullptr;
+}
+
 const char *SBDebugger::GetVersionString() {
   LLDB_RECORD_STATIC_METHOD_NO_ARGS(const char *, SBDebugger, GetVersionString);
 
@@ -1783,6 +1795,7 @@ template <> void RegisterMethods<SBDebugger>(Registry &R) {
                               (const char *));
   LLDB_REGISTER_METHOD(lldb::ScriptLanguage, SBDebugger, GetScriptingLanguage,
                        (const char *));
+  LLDB_REGISTER_METHOD(const char *, SBDebugger, GetScriptInterpreterInfo, (lldb::ScriptLanguage));
   LLDB_REGISTER_STATIC_METHOD(const char *, SBDebugger, GetVersionString, ());
   LLDB_REGISTER_STATIC_METHOD(const char *, SBDebugger, StateAsCString,
                               (lldb::StateType));

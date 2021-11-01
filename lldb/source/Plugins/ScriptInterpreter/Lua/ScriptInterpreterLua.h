@@ -49,6 +49,8 @@ public:
                            StructuredData::ObjectSP *module_sp = nullptr,
                            FileSpec extra_search_dir = {}) override;
 
+  virtual const char *GetInterpreterInfo() override;
+
   // Static Functions
   static void Initialize();
 

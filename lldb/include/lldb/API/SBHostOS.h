@@ -20,6 +20,8 @@ public:
 
   static lldb::SBFileSpec GetLLDBPythonPath();
 
+  const char *GetScriptInterpreterInfo();
+
   static lldb::SBFileSpec GetLLDBPath(lldb::PathType path_type);
 
   static lldb::SBFileSpec GetUserHomeDirectory();
