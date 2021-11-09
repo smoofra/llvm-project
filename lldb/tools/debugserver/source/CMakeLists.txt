@@ -103,7 +103,7 @@ check_c_source_compiles(
 )
 
 if (BUILDING_FOR_ARM64_OSX)
-  set(CMAKE_OSX_ARCHITECTURES "arm64;arm64e")
+  set(CMAKE_OSX_ARCHITECTURES "arm64")
 endif ()
 
 check_library_exists(compression compression_encode_buffer "" HAVE_LIBCOMPRESSION)
